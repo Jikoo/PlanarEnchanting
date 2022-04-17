@@ -24,17 +24,18 @@ This is a class containing several simple ways to modify anvil behaviors.
 For basic vanilla-style combination, all you need is an ordinary `AnvilOperation`.
 
 ```java
-class MyAnvilHandler implements org.bukkit.event.Listener {
-  @org.bukkit.event.EventHandler
-  private void onPrepareAnvil(org.bukkit.event.inventory.PrepareAnvilEvent event) {
-    org.bukkit.inventory.AnvilInventory inventory = event.getInventory();
-    com.github.jikoo.planarenchanting.anvil.AnvilOperation operation = new AnvilOperation();
-    com.github.jikoo.planarenchanting.anvil.AnvilResult result = operation.apply(inventory);
+class MyAnvilHandler implements Listener {
+  @EventHandler
+  private void onPrepareAnvil(PrepareAnvilEvent event) {
+    AnvilInventory inventory = event.getInventory();
+    AnvilOperation operation = new AnvilOperation();
+    AnvilResult result = operation.apply(inventory);
 
     event.setResult(result.item());
     inventory.setRepairCostAmount(result.materialCost());
 
     // Note: depending on how anvil actually functions, may need to update cost on a 0-tick delay.
+    // May also need to set relevant window property for client.
     inventory.setRepairCost(result.levelCost());
   }
 }
@@ -57,7 +58,7 @@ operation order.
 A custom `AnvilOperation` that only performs rename operations:
 
 ```java
-public class RenameOperation extends AnvilOperation {
+class RenameOperation extends AnvilOperation {
   @Override
   public void apply(@NotNull AnvilInventory inventory) {
     AnvilOperationState state = new AnvilOperationState(this, inventory);
@@ -76,6 +77,57 @@ public class RenameOperation extends AnvilOperation {
 }
 ```
 
+### Enchanting Table Enchanting
+
+Enchanting Table-style enchanting is accessed via the [`EnchantingTable`](src/main/java/com/github/jikoo/planarenchanting/table/EnchantingTable.java).
+
+The constructor accepts a collection of enchantments that may be applied and the `Enchantability` (a
+wrapper for a magic value representing an enchantment bonus; constants for vanilla values are
+provided) of the item.
+
+Minecraft's enchantment system is a mess of magic values, RNG, and a tiny bit of math. As there's no
+really great way to expose that math and make it modifiable (you may as well just write your own
+system then anyway), the enchantment system is not particularly customizable beyond what you see on
+the surface. You may manipulate incompatibility between enchantments and enchantments' max levels.
+
+Allow enchanting `Material.STONE` with enchantments usually available for tools:
+
+```java
+class StoneEnchantListener extends TableEnchantListener {
+
+  // Set up table.
+  private final EnchantingTable table = new EnchantingTable(
+      List.of(
+          Enchantment.DIG_SPEED,
+          Enchantment.DURABILITY,
+          Enchantment.LOOT_BONUS_BLOCKS,
+          Enchantment.SILK_TOUCH),
+      Enchantability.STONE);
+
+  StoneEnchantListener(@NotNull Plugin plugin) {
+    super(plugin);
+  }
+
+  @Override
+  protected @NotNull EnchantingTable getTable(
+      @NotNull Player player,
+      @NotNull ItemStack enchanted) {
+    // Use stored instance. 
+    return table;
+  }
+
+  @Override
+  protected boolean isIneligible(
+      @NotNull Player player,
+      @NotNull ItemStack enchanted) {
+    // Only allow enchanting stone.
+    return itemStack.getType() != Material.STONE;
+  }
+
+}
+```
+
+If you want more specific functionality you can write your own listener from scratch.
 
 ## For Developers
 

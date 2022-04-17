@@ -35,7 +35,7 @@ public final class EnchantDataReflection {
    * @param enchantment the {@code Enchantment}
    * @return the internal method or the default value if the internal method is not available
    */
-  public static IntUnaryOperator getMinEnchantQuality(Enchantment enchantment) {
+  public static IntUnaryOperator getMinCost(Enchantment enchantment) {
     // NMSREF net.minecraft.world.item.enchantment.Enchantment#getMinCost(int)
     return nmsIntUnaryOperator(enchantment, "a", EnchantDataReflection::defaultMinEnchantQuality);
   }
@@ -56,7 +56,7 @@ public final class EnchantDataReflection {
    * @param enchantment the {@code Enchantment}
    * @return the internal method or the default value if the internal method is not available
    */
-  public static IntUnaryOperator getMaxEnchantQuality(Enchantment enchantment) {
+  public static IntUnaryOperator getMaxCost(Enchantment enchantment) {
     // NMSREF net.minecraft.world.item.enchantment.Enchantment#getMaxCost(int)
     return nmsIntUnaryOperator(enchantment, "b", EnchantDataReflection::defaultMaxEnchantQuality);
   }

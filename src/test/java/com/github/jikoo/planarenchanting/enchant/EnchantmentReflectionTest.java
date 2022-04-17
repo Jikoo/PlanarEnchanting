@@ -48,7 +48,7 @@ class EnchantmentReflectionTest {
       }
       EnchantData data = EnchantData.of(enchantment);
       return new CraftEnchantMock(enchantment, data.getWeight(),
-          data::getMinEnchantCost, data::getMaxEnchantCost);
+          data::getMinCost, data::getMaxCost);
     }).forEach(EnchantmentHelper::putEnchant);
      brokenRegisteredEnchant = new CraftEnchantMock(
         NamespacedKey.minecraft("fake_enchant1"),
@@ -86,12 +86,11 @@ class EnchantmentReflectionTest {
   @ParameterizedTest
   @MethodSource("enchantmentStream")
   void testReflectiveMin(Enchantment enchantment) {
-    System.out.println(enchantment.getClass().getName());
     EnchantData enchantData = EnchantData.of(enchantment);
     int level = getRandomLevel(enchantment);
     assertThat("Reflection should provide expected value",
-        enchantData.getMinEnchantCost(level),
-        is(EnchantDataReflection.getMinEnchantQuality(enchantment).applyAsInt(level)));
+        enchantData.getMinCost(level),
+        is(EnchantDataReflection.getMinCost(enchantment).applyAsInt(level)));
   }
 
   @DisplayName("Reflection should grab maximum quality method or fall through gracefully.")
@@ -101,8 +100,8 @@ class EnchantmentReflectionTest {
     EnchantData enchantData = EnchantData.of(enchantment);
     int level = getRandomLevel(enchantment);
     assertThat("Reflection should provide expected value",
-        enchantData.getMaxEnchantCost(level),
-        is(EnchantDataReflection.getMaxEnchantQuality(enchantment).applyAsInt(level)));
+        enchantData.getMaxCost(level),
+        is(EnchantDataReflection.getMaxCost(enchantment).applyAsInt(level)));
   }
 
   @DisplayName("Reflection should grab minimum method or fall through gracefully.")
@@ -119,13 +118,13 @@ class EnchantmentReflectionTest {
   @MethodSource("getBrokenEnchants")
   void testReflectiveDefaults(Enchantment broken) {
     assertThat("Reflection should fall through gracefully", 1,
-        is(EnchantDataReflection.getMinEnchantQuality(broken).applyAsInt(0)));
+        is(EnchantDataReflection.getMinCost(broken).applyAsInt(0)));
     assertThat("Reflection should fall through gracefully", 21,
-        is(EnchantDataReflection.getMinEnchantQuality(broken).applyAsInt(2)));
+        is(EnchantDataReflection.getMinCost(broken).applyAsInt(2)));
     assertThat("Reflection should fall through gracefully", 6,
-        is(EnchantDataReflection.getMaxEnchantQuality(broken).applyAsInt(0)));
+        is(EnchantDataReflection.getMaxCost(broken).applyAsInt(0)));
     assertThat("Reflection should fall through gracefully", 26,
-        is(EnchantDataReflection.getMaxEnchantQuality(broken).applyAsInt(2)));
+        is(EnchantDataReflection.getMaxCost(broken).applyAsInt(2)));
     assertThat("Reflection should fall through gracefully", 0,
         is(EnchantDataReflection.getRarity(broken).getWeight()));
   }

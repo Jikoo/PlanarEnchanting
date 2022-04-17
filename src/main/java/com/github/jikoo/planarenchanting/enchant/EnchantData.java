@@ -126,13 +126,13 @@ public class EnchantData implements WeightedRandom.Choice {
 
   private final @NotNull Enchantment enchantment;
   private final @NotNull EnchantRarity enchantRarity;
-  private final @NotNull IntUnaryOperator minEffectiveLevel;
-  private final @NotNull IntUnaryOperator maxEffectiveLevel;
+  private final @NotNull IntUnaryOperator minCost;
+  private final @NotNull IntUnaryOperator maxCost;
 
   private EnchantData(@NotNull Enchantment enchantment) {
     this(enchantment, EnchantDataReflection.getRarity(enchantment),
-        EnchantDataReflection.getMinEnchantQuality(enchantment),
-        EnchantDataReflection.getMaxEnchantQuality(enchantment));
+        EnchantDataReflection.getMinCost(enchantment),
+        EnchantDataReflection.getMaxCost(enchantment));
   }
 
   private EnchantData(
@@ -142,8 +142,8 @@ public class EnchantData implements WeightedRandom.Choice {
       @NotNull IntUnaryOperator maxEnchantQuality) {
     this.enchantment = enchantment;
     this.enchantRarity = enchantRarity;
-    this.minEffectiveLevel = minEnchantQuality;
-    this.maxEffectiveLevel = maxEnchantQuality;
+    this.minCost = minEnchantQuality;
+    this.maxCost = maxEnchantQuality;
   }
 
   public @NotNull Enchantment getEnchantment() {
@@ -159,12 +159,12 @@ public class EnchantData implements WeightedRandom.Choice {
     return this.getRarity().getWeight();
   }
 
-  public int getMinEnchantCost(int level) {
-    return this.minEffectiveLevel.applyAsInt(level);
+  public int getMinCost(int level) {
+    return this.minCost.applyAsInt(level);
   }
 
-  public int getMaxEnchantCost(int level) {
-    return this.maxEffectiveLevel.applyAsInt(level);
+  public int getMaxCost(int level) {
+    return this.maxCost.applyAsInt(level);
   }
 
 }

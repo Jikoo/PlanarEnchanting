@@ -55,8 +55,8 @@ class EnchantDataTest {
     assertThat("Backing enchantment is identical", data.getEnchantment(), is(enchant));
     assertThat("Weight is expected value", data.getWeight(), is(5));
     assertThat("Rarity is expected value", data.getRarity(), is(EnchantRarity.UNCOMMON));
-    assertThat("Min quality is expected value", data.getMinEnchantCost(0), is(5));
-    assertThat("Max quality is expected value", data.getMaxEnchantCost(0), is(10));
+    assertThat("Min quality is expected value", data.getMinCost(0), is(5));
+    assertThat("Max quality is expected value", data.getMaxCost(0), is(10));
   }
 
   static Stream<Enchantment> getEnchants() {
