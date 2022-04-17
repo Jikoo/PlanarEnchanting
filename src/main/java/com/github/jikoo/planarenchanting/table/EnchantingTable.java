@@ -208,10 +208,10 @@ public class EnchantingTable {
     }
 
     // Calculate enchantments offered for levels offered.
-    var enchantments = this.apply(random, enchantLevel);
+    var rolledEnchants = this.apply(random, enchantLevel);
 
     // Get offer for first enchantment if present, otherwise return null.
-    return enchantments.entrySet().stream().findFirst()
+    return rolledEnchants.entrySet().stream().findFirst()
         .map(entry -> new EnchantmentOffer(entry.getKey(), entry.getValue(), enchantLevel))
         .orElse(null);
   }

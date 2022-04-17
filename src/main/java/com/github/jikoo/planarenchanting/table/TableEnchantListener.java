@@ -24,7 +24,7 @@ public abstract class TableEnchantListener implements Listener {
    *
    * @param plugin the owning plugin
    */
-  public TableEnchantListener(@NotNull Plugin plugin) {
+  protected TableEnchantListener(@NotNull Plugin plugin) {
     this.plugin = plugin;
     // Set up enchantment seed management.
     EnchantingTable.setUpSeeding(plugin);
