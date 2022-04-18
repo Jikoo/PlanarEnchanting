@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.RecipeChoice.MaterialChoice;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Definitions of materials used in anvil repair operations.
@@ -20,7 +21,7 @@ public final class RepairMaterial {
 
   static {
     String[] armor = new String[] { "_HELMET", "_CHESTPLATE", "_LEGGINGS", "_BOOTS" };
-    String[] tools = new String[] { "_AXE", "_SHOVEL", "_PICKAXE", "_HOE" };
+    String[] tools = new String[] { "_AXE", "_SHOVEL", "_PICKAXE", "_HOE", "_SWORD" };
     String[] armortools = new String[armor.length + tools.length];
     System.arraycopy(armor, 0, armortools, 0, armor.length);
     System.arraycopy(tools, 0, armortools, armor.length, tools.length);
@@ -67,6 +68,11 @@ public final class RepairMaterial {
   private static RecipeChoice singleChoice(Material material) {
     // RecipeChoice.ExactChoice is a full meta match, which isn't what we want.
     return new RecipeChoice.MaterialChoice(List.of(material));
+  }
+
+  @VisibleForTesting
+  static boolean hasEntry(@NotNull Material material) {
+    return MATERIALS_TO_REPAIRABLE.containsKey(material);
   }
 
   /**
