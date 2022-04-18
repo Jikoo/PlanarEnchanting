@@ -1,6 +1,6 @@
 package com.github.jikoo.planarenchanting.anvil;
 
-import org.bukkit.Material;
+import com.github.jikoo.planarenchanting.util.ItemUtil;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,6 +16,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public record AnvilResult(@NotNull ItemStack item, int levelCost, int materialCost) {
 
-  public static final AnvilResult EMPTY = new AnvilResult(new ItemStack(Material.AIR), 0, 0);
+  public static final AnvilResult EMPTY = new AnvilResult(ItemUtil.AIR, 0, 0);
 
 }

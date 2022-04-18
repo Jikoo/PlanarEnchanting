@@ -178,7 +178,4 @@ class EnchantingTableUtilTest {
     assertDoesNotThrow(() -> scheduler.performTicks(1));
   }
 
-  // TODO RNG/seed tests
-  // Technically already covered by listener test but would be nice to be thorough
-
 }

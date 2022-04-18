@@ -109,10 +109,10 @@ class StoneEnchantListener extends TableEnchantListener {
   }
 
   @Override
-  protected @NotNull EnchantingTable getTable(
+  protected @Nullable EnchantingTable getTable(
       @NotNull Player player,
       @NotNull ItemStack enchanted) {
-    // Use stored instance. 
+    // Use stored instance.
     return table;
   }
 
@@ -183,7 +183,6 @@ Sample configuration:
               <goal>shade</goal>
             </goals>
             <configuration>
-              <minimizeJar>true</minimizeJar>
               <relocations>
                 <relocation>
                   <pattern>com.github.jikoo.planarenchanting</pattern>

@@ -8,33 +8,21 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiPredicate;
-import java.util.function.IntSupplier;
 import java.util.function.ToIntFunction;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.inventory.InventoryView;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * A container for data required to calculate enchantments.
  */
 public class EnchantingTable {
-
-  private static NamespacedKey key;
 
   private final @NotNull Collection<@NotNull Enchantment> enchantments;
   private final @NotNull Enchantability enchantability;
@@ -321,99 +309,6 @@ public class EnchantingTable {
 
     // Default for unknown values.
     return 0;
-  }
-
-  /**
-   * A helper method used to inline random generation seeding.
-   *
-   * @param random the {@link Random} instance used for number generation
-   * @param plugin the {@link Plugin} performing enchantment operations
-   * @param player the {@link Player} whose enchantment seed is to be used
-   * @param buttonIndex the index of the enchanting button
-   * @return the random after seeding
-   */
-  @Contract("_, _, _, _ -> param1")
-  public static Random seedRandom(
-      @NotNull Random random,
-      @NotNull Plugin plugin,
-      @NotNull Player player,
-      int buttonIndex) {
-    random.setSeed(getSeed(plugin, player, buttonIndex));
-    return random;
-  }
-
-  /**
-   * Obtain the enchantment seed from the {@link Player}. Rather than use Minecraft's internal seed,
-   * this uses a plugin-generated seed.
-   *
-   * <p>Also sets up seeding in case you forgot to. Forgetting will cause edge cases where seed is
-   * not reset after other enchantments until your seeding operation runs.
-   *
-   * @param plugin the {@link Plugin} performing enchantment operations
-   * @param player the {@link Player}
-   * @param buttonIndex the index of the enchanting button
-   * @return the enchantment seed
-   */
-  public static long getSeed(@NotNull Plugin plugin, @NotNull Player player, int buttonIndex) {
-    setUpSeeding(plugin, false);
-    return getEnchantmentSeed(player, EnchantingTable::getRandomSeed) + buttonIndex;
-  }
-
-  /**
-   * Obtain the enchantment seed from the {@link Player}. If unable to use Minecraft's internal
-   * seed, falls through to a consistent plugin-created seed.
-   *
-   * @param player the {@link Player}
-   * @param supplier the way to obtain the seed if not present
-   * @return the enchantment seed
-   */
-  @VisibleForTesting
-  static long getEnchantmentSeed(@NotNull Player player, @NotNull IntSupplier supplier) {
-    var integer = player.getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
-
-    if (integer == null) {
-      integer = supplier.getAsInt();
-      player.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, integer);
-    }
-
-    return integer;
-  }
-
-  /**
-   * Get a random seed.
-   *
-   * @return a random seed
-   */
-  private static int getRandomSeed() {
-    return ThreadLocalRandom.current().nextInt();
-  }
-
-  /**
-   * Set up seed generation.
-   *
-   * @param plugin the plugin performing enchantment operations
-   */
-  public static void setUpSeeding(@NotNull Plugin plugin) {
-    setUpSeeding(plugin, true);
-  }
-
-  /**
-   * Set up seed generation. Manual initialization will always occur, automatic will only initialize
-   * seed management if it has not already been set up.
-   *
-   * @param plugin the plugin performing enchantment operations
-   * @param manual whether seeding was started manually
-   */
-  private static void setUpSeeding(@NotNull Plugin plugin, boolean manual) {
-    if (key == null || manual) {
-      key = new NamespacedKey(plugin, "enchanting_table_seed");
-      plugin.getServer().getPluginManager().registerEvents(new Listener() {
-        @EventHandler(priority = EventPriority.MONITOR)
-        private void onEnchant(@NotNull EnchantItemEvent event) {
-          event.getEnchanter().getPersistentDataContainer().remove(key);
-        }
-      }, plugin);
-    }
   }
 
 }

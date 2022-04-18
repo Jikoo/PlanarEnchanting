@@ -13,6 +13,7 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -21,9 +22,11 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventException;
-import org.bukkit.event.EventPriority;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.inventory.ItemStack;
@@ -31,6 +34,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
 import org.hamcrest.Matchers;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -67,7 +71,7 @@ class TableEnchantListenerTest {
   }
 
   @BeforeEach
-  void setUp() throws NoSuchMethodException {
+  void setUp() throws ReflectiveOperationException {
     if (plugin != null) {
       HandlerList.unregisterAll(plugin);
     }
@@ -92,40 +96,66 @@ class TableEnchantListenerTest {
 
     // Manually register events - MockBukkit doesn't seem capable of finding private methods.
     // CB is very capable of this, locates event handlers on the classloader level.
-    var onPrepareItemEnchant = TableEnchantListener.class
-        .getDeclaredMethod("onPrepareItemEnchant", PrepareItemEnchantEvent.class);
-    onPrepareItemEnchant.setAccessible(true);
-    PrepareItemEnchantEvent.getHandlerList().register(new RegisteredListener(listener,
-        (listener, event) -> {
-          try {
-            onPrepareItemEnchant.invoke(listener, event);
-          } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new EventException(e);
-          }
-        },
-        EventPriority.NORMAL,
-        plugin,
-        false));
-    var onEnchantItem = TableEnchantListener.class
-        .getDeclaredMethod("onEnchantItem", EnchantItemEvent.class);
-    onEnchantItem.setAccessible(true);
-    EnchantItemEvent.getHandlerList().register(new RegisteredListener(listener,
-        (listener, event) -> {
-          try {
-            onEnchantItem.invoke(listener, event);
-          } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new EventException(e);
-          }
-        },
-        EventPriority.NORMAL,
-        plugin,
-        false));
-    System.out.printf("Prepare: %s%n", PrepareItemEnchantEvent.getHandlerList().getRegisteredListeners().length);
-    System.out.printf("Do: %s%n", EnchantItemEvent.getHandlerList().getRegisteredListeners().length);
+    registerReflective(PrepareItemEnchantEvent.class, listener, "onPrepareItemEnchant", plugin);
+    registerReflective(EnchantItemEvent.class, listener, "onEnchantItem", plugin);
+    registerReflective(EnchantItemEvent.class, listener, "afterAnyEnchant", plugin);
 
     player = new PlayerMock(server, "sampletext");
+    player.getPersistentDataContainer().set(key, PersistentDataType.LONG, 0L);
     itemStack = new ItemStack(ENCHANTABLE_MATERIAL);
     key = new NamespacedKey(plugin, "enchanting_table_seed");
+  }
+
+  private static <T extends Event> void registerReflective(
+      Class<T> eventClass,
+      Listener listener,
+      String methodName,
+      Plugin plugin) throws ReflectiveOperationException {
+    Method method = null;
+    Class<?> searchedClass = listener.getClass();
+    do {
+      try {
+        method = searchedClass.getDeclaredMethod(methodName, eventClass);
+      } catch (NoSuchMethodException error) {
+        searchedClass = searchedClass.getSuperclass();
+      }
+    } while (method == null && searchedClass != null);
+
+    if (method == null) {
+      throw new NoSuchMethodException(
+          String.format(
+              "No such method %s#%s(%s)",
+              listener.getClass().getName(),
+              methodName,
+              eventClass.getName()));
+    }
+
+    method.setAccessible(true);
+
+    EventHandler eventHandler = method.getAnnotation(EventHandler.class);
+    if (eventHandler == null) {
+      throw new IllegalStateException(
+          String.format(
+              "Method %s#%s(%s) missing EventHandler annotation",
+              listener.getClass().getName(),
+              methodName,
+              eventClass.getName()));
+    }
+
+    Method getHandlerList = eventClass.getDeclaredMethod("getHandlerList");
+
+    final Method finalMethod = method;
+    ((HandlerList) getHandlerList.invoke(null)).register(new RegisteredListener(listener,
+        (listener1, event) -> {
+          try {
+            finalMethod.invoke(listener1, event);
+          } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new EventException(e);
+          }
+        },
+        eventHandler.priority(),
+        plugin,
+        eventHandler.ignoreCancelled()));
   }
 
   @AfterAll
@@ -164,13 +194,7 @@ class TableEnchantListenerTest {
   @Test
   void testPrepareItemEnchantInvalid() {
     itemStack.setType(UNENCHANTABLE_MATERIAL);
-    var event = new PrepareItemEnchantEvent(
-        player,
-        player.getOpenInventory(),
-        player.getLocation().getBlock(),
-        itemStack,
-        new EnchantmentOffer[3],
-        15);
+    var event = prepareEvent(15);
     assertDoesNotThrow(() -> server.getPluginManager().callEvent(event));
     assertThat(
         "Invalid material does not yield offers",
@@ -180,14 +204,7 @@ class TableEnchantListenerTest {
 
   @Test
   void testPrepareItemEnchant() {
-    player.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, 0);
-    var event = new PrepareItemEnchantEvent(
-        player,
-        player.getOpenInventory(),
-        player.getLocation().getBlock(),
-        itemStack,
-        new EnchantmentOffer[3],
-        15);
+    var event = prepareEvent(15);
     assertDoesNotThrow(() -> server.getPluginManager().callEvent(event));
     assertThat(
         "Seed yielding results yields offers",
@@ -197,17 +214,68 @@ class TableEnchantListenerTest {
 
   @Test
   void testEnchantItem() {
-    player.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, 0);
-    var event = new EnchantItemEvent(
+    var event = enchantEvent(30, 2);
+    assertDoesNotThrow(() -> server.getPluginManager().callEvent(event));
+    assertThat("Enchantments must not be empty", event.getEnchantsToAdd(), not(anEmptyMap()));
+  }
+
+  @Test
+  void testSeedSetAndConsistent() {
+    player.getPersistentDataContainer().remove(key);
+    assertThat(
+        "Seed is unset",
+        player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
+        is(nullValue()));
+
+    assertDoesNotThrow(() -> server.getPluginManager().callEvent(prepareEvent(0)));
+
+    Long seed = player.getPersistentDataContainer().get(key, PersistentDataType.LONG);
+    assertThat("Seed is set", seed, is(notNullValue()));
+
+    assertDoesNotThrow(() -> server.getPluginManager().callEvent(prepareEvent(15)));
+
+    assertThat(
+        "Seed is unchanged",
+        player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
+        is(seed));
+  }
+
+  @Test
+  void testSeedUnsetPostEnchant() {
+    assertThat(
+        "Seed is set",
+        player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
+        is(notNullValue()));
+
+    assertDoesNotThrow(() -> server.getPluginManager().callEvent(enchantEvent(1, 0)));
+
+    assertThat(
+        "Seed is unset",
+        player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
+        is(nullValue()));
+  }
+
+  @Contract("_ -> new")
+  private @NotNull PrepareItemEnchantEvent prepareEvent(int bonus) {
+    return new PrepareItemEnchantEvent(
         player,
         player.getOpenInventory(),
         player.getLocation().getBlock(),
         itemStack,
-        30,
+        new EnchantmentOffer[3],
+        bonus);
+  }
+
+  @Contract("_, _ -> new")
+  private @NotNull EnchantItemEvent enchantEvent(int level, int buttonIndex) {
+    return new EnchantItemEvent(
+        player,
+        player.getOpenInventory(),
+        player.getLocation().getBlock(),
+        itemStack,
+        level,
         new HashMap<>(),
-        2);
-    assertDoesNotThrow(() -> server.getPluginManager().callEvent(event));
-    assertThat("Enchantments must not be empty", event.getEnchantsToAdd(), not(anEmptyMap()));
+        buttonIndex);
   }
 
 }

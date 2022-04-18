@@ -1,14 +1,20 @@
 package com.github.jikoo.planarenchanting.table;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.LongSupplier;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An abstraction to remove the boilerplate of implementing custom enchantment.
@@ -18,6 +24,7 @@ public abstract class TableEnchantListener implements Listener {
   // We specifically want our own random so we can seed it.
   private final @NotNull Random random = new Random();
   private final @NotNull Plugin plugin;
+  private final NamespacedKey key;
 
   /**
    * Construct a new {@code TableEnchantListener}.
@@ -26,8 +33,14 @@ public abstract class TableEnchantListener implements Listener {
    */
   protected TableEnchantListener(@NotNull Plugin plugin) {
     this.plugin = plugin;
-    // Set up enchantment seed management.
-    EnchantingTable.setUpSeeding(plugin);
+    this.key = new NamespacedKey(this.plugin, "enchanting_table_seed");
+  }
+
+  @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+  private void afterAnyEnchant(@NotNull EnchantItemEvent event) {
+    // Unset seed after every enchantment action.
+    // This mimics vanilla recalculating all enchantments after any enchant action.
+    event.getEnchanter().getPersistentDataContainer().remove(key);
   }
 
   @EventHandler
@@ -37,8 +50,14 @@ public abstract class TableEnchantListener implements Listener {
       return;
     }
 
+    // Get the EnchantingTable instance to be used.
+    EnchantingTable table = getTable(event.getEnchanter(), event.getItem());
+    if (table == null) {
+      return;
+    }
+
     // Seed the random. Button index is 0 for button level generation.
-    EnchantingTable.seedRandom(random, plugin, event.getEnchanter(), 0);
+    random.setSeed(getSeed(event.getEnchanter(), 0));
 
     // Calculate levels offered for bookshelf count.
     int[] buttonLevels = EnchantingTable.getButtonLevels(random, event.getEnchantmentBonus());
@@ -46,11 +65,10 @@ public abstract class TableEnchantListener implements Listener {
 
     for (int buttonIndex = 0; buttonIndex < buttonLevels.length; ++buttonIndex) {
       // Seed random with button index.
-      EnchantingTable.seedRandom(random, plugin, event.getEnchanter(), buttonIndex);
+      random.setSeed(getSeed(event.getEnchanter(), buttonIndex));
 
       // Generate and set the offer.
-      event.getOffers()[buttonIndex] = getTable(event.getEnchanter(), event.getItem())
-          .getOffer(random, buttonLevels[buttonIndex]);
+      event.getOffers()[buttonIndex] = table.getOffer(random, buttonLevels[buttonIndex]);
     }
 
     // Force button refresh. This is required for normally unenchantable items.
@@ -64,20 +82,23 @@ public abstract class TableEnchantListener implements Listener {
       return;
     }
 
+    // Get the EnchantingTable instance to be used.
+    EnchantingTable table = getTable(event.getEnchanter(), event.getItem());
+    if (table == null) {
+      return;
+    }
+
     // Seed the random.
-    EnchantingTable.seedRandom(random, plugin, event.getEnchanter(), event.whichButton());
+    random.setSeed(getSeed(event.getEnchanter(), event.whichButton()));
 
     // Calculate and set enchantments.
-    event.getEnchantsToAdd().putAll(
-        getTable(event.getEnchanter(), event.getItem())
-            .apply(random, event.getExpLevelCost()));
+    event.getEnchantsToAdd().putAll(table.apply(random, event.getExpLevelCost()));
   }
 
   /**
    * Ensure the enchanter cannot enchant the specified item. By default, this ensures that the item
    * is unstacked, calls {@link #isIneligible(Player, ItemStack)}, and then ensures that the item is
    * not already enchanted.
-   *
    * @see #isIneligible(Player, ItemStack)
    * @param player the enchanter
    * @param enchanted the item enchanted
@@ -90,8 +111,10 @@ public abstract class TableEnchantListener implements Listener {
   }
 
   /**
-   * Ensure the enchanter cannot enchant the specified item.
+   * Ensure the enchanter cannot enchant the specified item. Anything that is required to construct
+   * an {@link EnchantingTable} should  be verified in {@link #getTable(Player, ItemStack)} instead.
    *
+   * @see #getTable(Player, ItemStack)
    * @param player the enchanter
    * @param enchanted the item enchanted
    * @return whether the enchanter is allowed to enchant the item
@@ -99,14 +122,55 @@ public abstract class TableEnchantListener implements Listener {
   protected abstract boolean isIneligible(@NotNull Player player, @NotNull ItemStack enchanted);
 
   /**
-   * Get the {@link EnchantingTable} instance for the enchanting operation being performed.
+   * Get the {@link EnchantingTable} instance for the enchanting operation being performed. If
+   * {@code null}, no enchantment will occur.
    *
    * @param player the enchanter
    * @param enchanted the item enchanted
    * @return the {@code EnchantingTable}
    */
-  protected abstract @NotNull EnchantingTable getTable(
+  protected abstract @Nullable EnchantingTable getTable(
       @NotNull Player player,
       @NotNull ItemStack enchanted);
+
+  /**
+   * Obtain the enchantment seed from the {@link Player}. Rather than use Minecraft's internal seed
+   * (the field's obfuscation is very volatile and there is little benefit because we generate
+   * enchantments in a slightly different fashion), this uses a plugin-generated seed.
+   *
+   * @param player the {@link Player}
+   * @param buttonIndex the index of the enchanting button
+   * @return the enchantment seed
+   */
+  private long getSeed(@NotNull Player player, int buttonIndex) {
+    return getEnchantmentSeed(player, TableEnchantListener::getRandomSeed) + buttonIndex;
+  }
+
+  /**
+   * Obtain the enchantment seed from the {@link Player}. If not present, generates a new seed.
+   *
+   * @param player the {@link Player}
+   * @param supplier the way to obtain the seed if not present
+   * @return the enchantment seed
+   */
+  private long getEnchantmentSeed(@NotNull Player player, @NotNull LongSupplier supplier) {
+    var seed = player.getPersistentDataContainer().get(key, PersistentDataType.LONG);
+
+    if (seed == null) {
+      seed = supplier.getAsLong();
+      player.getPersistentDataContainer().set(key, PersistentDataType.LONG, seed);
+    }
+
+    return seed;
+  }
+
+  /**
+   * Get a random seed.
+   *
+   * @return a random seed
+   */
+  private static long getRandomSeed() {
+    return ThreadLocalRandom.current().nextLong();
+  }
 
 }
