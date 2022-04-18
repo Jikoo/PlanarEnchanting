@@ -16,6 +16,20 @@ import org.jetbrains.annotations.VisibleForTesting;
  */
 public final class RepairMaterial {
 
+  /**
+   * Get whether an item is repairable by another item.
+   *
+   * <p>N.B. This is for pure material-based repair operations, not for combination operations.
+   *
+   * @param base the item to be repaired
+   * @param addition the item used to repair
+   * @return whether the addition material can repair the base material
+   */
+  public static boolean repairs(@NotNull ItemStack base, @NotNull ItemStack addition) {
+    RecipeChoice recipeChoice = MATERIALS_TO_REPAIRABLE.get(base.getType());
+    return recipeChoice != null && recipeChoice.test(addition);
+  }
+
   private static final Map<Material, RecipeChoice> MATERIALS_TO_REPAIRABLE
       = new EnumMap<>(Material.class);
 
@@ -73,20 +87,6 @@ public final class RepairMaterial {
   @VisibleForTesting
   static boolean hasEntry(@NotNull Material material) {
     return MATERIALS_TO_REPAIRABLE.containsKey(material);
-  }
-
-  /**
-   * Get whether an item is repairable by another item.
-   *
-   * <p>N.B. This is for pure material-based repair operations, not for combination operations.
-   *
-   * @param base the item to be repaired
-   * @param addition the item used to repair
-   * @return whether the addition material can repair the base material
-   */
-  public static boolean repairs(@NotNull ItemStack base, @NotNull ItemStack addition) {
-    RecipeChoice recipeChoice = MATERIALS_TO_REPAIRABLE.get(base.getType());
-    return recipeChoice != null && recipeChoice.test(addition);
   }
 
   private RepairMaterial() {}

@@ -1,6 +1,6 @@
 package com.github.jikoo.planarenchanting.table;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import org.bukkit.Material;
 import org.jetbrains.annotations.Contract;
@@ -34,11 +34,22 @@ public record Enchantability(@Range(from = 1, to = Integer.MAX_VALUE) int value)
   public static final Enchantability BOOK;
   public static final Enchantability TRIDENT;
 
+  /**
+   * Get the {@code Enchantability} of a {@link Material}. Will return {@code null} if not
+   * enchantable in an enchanting table.
+   *
+   * <p>Note that {@link Material#BOOK} and {@link Material#ENCHANTED_BOOK} are both listed as
+   * enchantable. This is a special case designed to ease the process for people seeking to handle
+   * book enchantment, but technically enchanted books are not enchantable.
+   *
+   * @param material the {@code Material}
+   * @return the {@code Enchantability} if enchantable
+   */
   public static @Nullable Enchantability forMaterial(@NotNull Material material) {
     return BY_MATERIAL.get(material);
   }
 
-  private static final Map<Material, Enchantability> BY_MATERIAL = new HashMap<>();
+  private static final Map<Material, Enchantability> BY_MATERIAL = new EnumMap<>(Material.class);
 
   static {
     String[] armor = new String[] { "_HELMET", "_CHESTPLATE", "_LEGGINGS", "_BOOTS" };
