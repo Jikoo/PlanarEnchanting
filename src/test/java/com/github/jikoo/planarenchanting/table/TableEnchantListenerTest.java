@@ -12,8 +12,6 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -22,21 +20,16 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventException;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.RegisteredListener;
 import org.hamcrest.Matchers;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -71,11 +64,7 @@ class TableEnchantListenerTest {
   }
 
   @BeforeEach
-  void setUp() throws ReflectiveOperationException {
-    if (plugin != null) {
-      HandlerList.unregisterAll(plugin);
-    }
-
+  void setUp() {
     plugin = MockBukkit.createMockPlugin("SampleText");
 
     listener = new TableEnchantListener(plugin) {
@@ -94,11 +83,7 @@ class TableEnchantListenerTest {
       }
     };
 
-    // Manually register events - MockBukkit doesn't seem capable of finding private methods.
-    // CB is very capable of this, locates event handlers on the classloader level.
-    registerReflective(PrepareItemEnchantEvent.class, listener, "onPrepareItemEnchant", plugin);
-    registerReflective(EnchantItemEvent.class, listener, "onEnchantItem", plugin);
-    registerReflective(EnchantItemEvent.class, listener, "afterAnyEnchant", plugin);
+    server.getPluginManager().registerEvents(listener, plugin);
 
     player = new PlayerMock(server, "sampletext");
     player.getPersistentDataContainer().set(key, PersistentDataType.LONG, 0L);
@@ -106,56 +91,9 @@ class TableEnchantListenerTest {
     key = new NamespacedKey(plugin, "enchanting_table_seed");
   }
 
-  private static <T extends Event> void registerReflective(
-      Class<T> eventClass,
-      Listener listener,
-      String methodName,
-      Plugin plugin) throws ReflectiveOperationException {
-    Method method = null;
-    Class<?> searchedClass = listener.getClass();
-    do {
-      try {
-        method = searchedClass.getDeclaredMethod(methodName, eventClass);
-      } catch (NoSuchMethodException error) {
-        searchedClass = searchedClass.getSuperclass();
-      }
-    } while (method == null && searchedClass != null);
-
-    if (method == null) {
-      throw new NoSuchMethodException(
-          String.format(
-              "No such method %s#%s(%s)",
-              listener.getClass().getName(),
-              methodName,
-              eventClass.getName()));
-    }
-
-    method.setAccessible(true);
-
-    EventHandler eventHandler = method.getAnnotation(EventHandler.class);
-    if (eventHandler == null) {
-      throw new IllegalStateException(
-          String.format(
-              "Method %s#%s(%s) missing EventHandler annotation",
-              listener.getClass().getName(),
-              methodName,
-              eventClass.getName()));
-    }
-
-    Method getHandlerList = eventClass.getDeclaredMethod("getHandlerList");
-
-    final Method finalMethod = method;
-    ((HandlerList) getHandlerList.invoke(null)).register(new RegisteredListener(listener,
-        (listener1, event) -> {
-          try {
-            finalMethod.invoke(listener1, event);
-          } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new EventException(e);
-          }
-        },
-        eventHandler.priority(),
-        plugin,
-        eventHandler.ignoreCancelled()));
+  @AfterEach
+  void afterEach() {
+    server.getPluginManager().clearPlugins();
   }
 
   @AfterAll

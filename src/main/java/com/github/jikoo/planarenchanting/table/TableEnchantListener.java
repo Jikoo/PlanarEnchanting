@@ -37,14 +37,14 @@ public abstract class TableEnchantListener implements Listener {
   }
 
   @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-  private void afterAnyEnchant(@NotNull EnchantItemEvent event) {
+  public final void afterAnyEnchant(@NotNull EnchantItemEvent event) {
     // Unset seed after every enchantment action.
     // This mimics vanilla recalculating all enchantments after any enchant action.
     event.getEnchanter().getPersistentDataContainer().remove(key);
   }
 
   @EventHandler
-  private void onPrepareItemEnchant(@NotNull PrepareItemEnchantEvent event) {
+  public final void onPrepareItemEnchant(@NotNull PrepareItemEnchantEvent event) {
     // Ensure item is enchantable.
     if (canNotEnchant(event.getEnchanter(), event.getItem())) {
       return;
@@ -76,7 +76,7 @@ public abstract class TableEnchantListener implements Listener {
   }
 
   @EventHandler
-  private void onEnchantItem(@NotNull EnchantItemEvent event) {
+  public final void onEnchantItem(@NotNull EnchantItemEvent event) {
     // Ensure item is enchantable.
     if (canNotEnchant(event.getEnchanter(), event.getItem())) {
       return;
