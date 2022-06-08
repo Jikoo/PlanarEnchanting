@@ -49,6 +49,10 @@
       <id>jitpack.io</id>
       <url>https://jitpack.io</url>
     </repository>
+    <repository>
+      <id>papermc</id>
+      <url>https://repo.papermc.io/repository/maven-public/</url>
+    </repository>
   </repositories>
 
   <dependencyManagement>
@@ -62,7 +66,7 @@
       <dependency>
         <groupId>org.spigotmc</groupId>
         <artifactId>spigot-api</artifactId>
-        <version>1.18.2-R0.1-SNAPSHOT</version>
+        <version>1.19-R0.1-SNAPSHOT</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
