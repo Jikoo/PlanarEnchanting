@@ -289,7 +289,7 @@ public class EnchantingTable {
     try {
       Class<?> clazzRegistry = Class.forName("net.minecraft.core.IRegistry");
       // NMSREF net.minecraft.core.Registry#ENCHANTMENT
-      Object enchantmentRegistry = clazzRegistry.getDeclaredField("V").get(null);
+      Object enchantmentRegistry = clazzRegistry.getDeclaredField("W").get(null);
       // NMSREF net.minecraft.core.Registry#getId(java.lang.Object)
       Method methodRegistryGetId = clazzRegistry.getDeclaredMethod("a", Object.class);
 

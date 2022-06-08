@@ -5,7 +5,7 @@ import org.bukkit.enchantments.Enchantment;
 public interface IRegistry<T> {
 
   // NMSREF \nnet\.minecraft\.core\.Registry(.|\n)*?net\.minecraft\.core\.Registry ENCHANTMENT
-  IRegistry<Enchantment> V = object -> {
+  IRegistry<Enchantment> W = object -> {
     Enchantment[] enchantments = Enchantment.values();
     for (int i = 0; i < enchantments.length; i++) {
       if (enchantments[i].equals(object)) {
