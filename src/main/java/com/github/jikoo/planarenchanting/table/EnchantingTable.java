@@ -2,7 +2,9 @@ package com.github.jikoo.planarenchanting.table;
 
 import com.github.jikoo.planarenchanting.enchant.EnchantData;
 import com.github.jikoo.planarwrappers.util.WeightedRandom;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,6 +13,7 @@ import java.util.Random;
 import java.util.function.BiPredicate;
 import java.util.function.ToIntFunction;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.Player;
@@ -279,8 +282,9 @@ public class EnchantingTable {
    * @return the magic value or 0 if the value cannot be obtained
    */
   private static int getEnchantmentId(@NotNull Enchantment enchantment) {
+    NamespacedKey enchantmentKey = enchantment.getKey();
     // Re-obtain from registry to ensure we have the internal enchantment.
-    enchantment = Enchantment.getByKey(enchantment.getKey());
+    enchantment = Enchantment.getByKey(enchantmentKey);
     if (enchantment == null) {
       // If the enchantment isn't registered, it won't have an ID anyway.
       return 0;
@@ -296,14 +300,31 @@ public class EnchantingTable {
       Method getHandle = enchantment.getClass().getDeclaredMethod("getHandle");
 
       return (int) methodRegistryGetId.invoke(enchantmentRegistry, getHandle.invoke(enchantment));
-    } catch (ReflectiveOperationException | ClassCastException e) {
+    } catch (ReflectiveOperationException | ClassCastException ignored) {
       // Fall through to using declaration order.
-      // Bukkit does match Minecraft's declaration order, but it's not safe to rely on.
-      Enchantment[] enchantments = Enchantment.values();
-      for (int i = 0; i < enchantments.length; i++) {
-        if (enchantments[i].getKey().equals(enchantment.getKey())) {
-          return i;
+    }
+
+    // Bukkit's constant declaration order matches Minecraft registry values.
+    try {
+      int enchantIndex = 0;
+      for (Field field : Enchantment.class.getFields()) {
+        if (Modifier.isStatic(field.getModifiers()) && Enchantment.class.equals(field.getType())) {
+          Enchantment enchantField = (Enchantment) field.get(null);
+          if (enchantField.getKey().equals(enchantmentKey)) {
+            return enchantIndex;
+          }
+          ++enchantIndex;
         }
+      }
+    } catch (IllegalAccessException ignored) {
+      // Fall through to faux enum order. This yields incorrect indices, but at least they vary.
+      // Clever players can then assemble their own knowledge base of which means what.
+    }
+
+    Enchantment[] enchantments = Enchantment.values();
+    for (int i = 0; i < enchantments.length; i++) {
+      if (enchantments[i].getKey().equals(enchantmentKey)) {
+        return i;
       }
     }
 
