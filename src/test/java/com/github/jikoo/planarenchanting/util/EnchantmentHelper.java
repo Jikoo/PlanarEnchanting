@@ -52,7 +52,10 @@ public final class EnchantmentHelper {
           return enchantment.conflictsWith(other);
         }
       };
-      mock.setItemTarget(enchantment.getItemTarget());
+      EnchantmentTarget itemTarget = enchantment.getItemTarget();
+      if (itemTarget != null) {
+        mock.setItemTarget(itemTarget);
+      }
       mock.setMaxLevel(enchantment.getMaxLevel());
       mock.setStartLevel(1);
       // Up to MockBukkit to remove support for curses

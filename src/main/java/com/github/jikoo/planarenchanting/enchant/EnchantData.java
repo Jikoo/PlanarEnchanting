@@ -34,6 +34,8 @@ public class EnchantData implements WeightedRandom.Choice {
     add(Enchantment.DEPTH_STRIDER, EnchantRarity.RARE, lvlTimes10, 15);
     add(Enchantment.FROST_WALKER, EnchantRarity.RARE, lvlTimes10, 15);
     add(Enchantment.SOUL_SPEED, EnchantRarity.VERY_RARE, lvlTimes10, 15);
+    IntUnaryOperator lvlTimes25 = level -> level * 25;
+    add(Enchantment.SWIFT_SNEAK, EnchantRarity.VERY_RARE, lvlTimes25, 50);
 
     add(Enchantment.DAMAGE_ALL, EnchantRarity.COMMON, modLvl(1, 11), 20);
     add(Enchantment.DAMAGE_UNDEAD, EnchantRarity.UNCOMMON, modLvl(5, 8), 20);
@@ -65,7 +67,7 @@ public class EnchantData implements WeightedRandom.Choice {
     add(Enchantment.MULTISHOT, EnchantRarity.RARE, flat20, flat50);
     add(Enchantment.QUICK_CHARGE, EnchantRarity.UNCOMMON, level -> 12 + (level - 1) * 20, flat50);
     add(Enchantment.PIERCING, EnchantRarity.COMMON, modLvl(1, 10), flat50);
-    add(Enchantment.MENDING, EnchantRarity.RARE, level -> level * 25);
+    add(Enchantment.MENDING, EnchantRarity.RARE, lvlTimes25);
   }
 
   private static @NotNull IntUnaryOperator modLvl(int base, int levelMod) {
