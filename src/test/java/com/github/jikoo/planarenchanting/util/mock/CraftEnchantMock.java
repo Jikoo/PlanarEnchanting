@@ -33,7 +33,7 @@ public class CraftEnchantMock extends EnchantmentMock {
   }
 
   public Enchantment getHandle() {
-    return new Enchantment(minQuality, maxQuality, new Rarity(rarityWeight));
+    return new Enchantment(getKey(), minQuality, maxQuality, new Rarity(rarityWeight));
   }
 
 }

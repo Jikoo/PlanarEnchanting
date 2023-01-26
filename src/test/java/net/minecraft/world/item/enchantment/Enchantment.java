@@ -1,8 +1,10 @@
 package net.minecraft.world.item.enchantment;
 
+import org.bukkit.NamespacedKey;
 import java.util.function.IntUnaryOperator;
 
 public record Enchantment(
+    NamespacedKey key,
     IntUnaryOperator minCost,
     IntUnaryOperator maxCost,
     Rarity d) {
