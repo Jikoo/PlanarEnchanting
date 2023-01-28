@@ -6,31 +6,34 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.Mockito.when;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.enchantments.EnchantmentMock;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
-import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
-import com.github.jikoo.planarenchanting.util.mock.AnvilInventoryMock;
-import java.util.Arrays;
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
+import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
+import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
+import com.github.jikoo.planarenchanting.util.mock.TagMocks;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
-import com.github.jikoo.planarenchanting.util.mock.MockHelper;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /*
@@ -51,13 +54,19 @@ class AnvilOperationTest {
 
   @BeforeAll
   void beforeAll() {
-    MockBukkit.mock();
-    EnchantmentHelper.setupToolEnchants();
-  }
+    EnchantmentMocks.init();
+    Server server = ServerMocks.mockServer();
 
-  @AfterAll
-  void afterAll() {
-    MockHelper.unmock();
+    ItemFactory factory = ItemFactoryMocks.mockFactory();
+    when(server.getItemFactory()).thenReturn(factory);
+
+    // RepairMaterial requires these tags to be set up to test.
+    TagMocks.mockTag(server, "items", NamespacedKey.minecraft("stone_tool_materials"), Material.class,
+        List.of(Material.STONE, Material.ANDESITE, Material.GRANITE, Material.DIORITE));
+    TagMocks.mockTag(server, "blocks", NamespacedKey.minecraft("planks"), Material.class,
+        List.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)); //etc. non-exhaustive list
+
+    Bukkit.setServer(server);
   }
 
   @BeforeEach
@@ -82,23 +91,8 @@ class AnvilOperationTest {
 
   @Test
   void testEnchantmentConflict() {
-    Enchantment conflict1 = new EnchantmentMock(
-        Enchantment.SILK_TOUCH.getKey(),
-        Enchantment.SILK_TOUCH.getKey().getKey()) {
-      @Override
-      public boolean conflictsWith(@NotNull Enchantment other) {
-        return other.getKey().equals(Enchantment.LOOT_BONUS_BLOCKS.getKey());
-      }
-    };
-
-    Enchantment conflict2 = new EnchantmentMock(
-        Enchantment.LOOT_BONUS_BLOCKS.getKey(),
-        Enchantment.LOOT_BONUS_BLOCKS.getKey().getKey()) {
-      @Override
-      public boolean conflictsWith(@NotNull Enchantment other) {
-        return other.getKey().equals(Enchantment.SILK_TOUCH.getKey());
-      }
-    };
+    Enchantment conflict1 = Enchantment.SILK_TOUCH;
+    Enchantment conflict2 = Enchantment.LOOT_BONUS_BLOCKS;
 
     assertThat(
         "Vanilla enchantments conflict",
@@ -124,8 +118,8 @@ class AnvilOperationTest {
         is((int) Short.MAX_VALUE));
   }
 
-  private static Stream<Arguments> getEnchantments() {
-    return Arrays.stream(Enchantment.values()).map(Arguments::of);
+  private static @NotNull Collection<Enchantment> getEnchantments() {
+    return EnchantmentMocks.getRegisteredEnchantments();
   }
 
   @Test
@@ -162,7 +156,7 @@ class AnvilOperationTest {
 
   @Test
   void testEmptyBaseIsEmpty() {
-    var anvil = getMockInventory(null, null);
+    var anvil = InventoryMocks.newAnvilMock();
     var result = operation.apply(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
@@ -177,7 +171,7 @@ class AnvilOperationTest {
   @Test
   void testEmptyAdditionRenameNotEmpty() {
     var anvil = getMockInventory(new ItemStack(TOOL), null);
-    anvil.setRenameText("Sample Text");
+    when(anvil.getRenameText()).thenReturn("Sample Text");
     var result = operation.apply(anvil);
     assertThat("Result must not be empty", result, not(AnvilResult.EMPTY));
   }
@@ -251,10 +245,10 @@ class AnvilOperationTest {
         lessThan(damageable.getDamage()));
   }
 
-  private static @NotNull AnvilInventoryMock getMockInventory(
+  private static @NotNull AnvilInventory getMockInventory(
       @Nullable ItemStack base,
       @Nullable ItemStack addition) {
-    var anvil = new AnvilInventoryMock(new PlayerMock(MockBukkit.getMock(), "player1"));
+    var anvil = InventoryMocks.newAnvilMock();
     anvil.setItem(0, base);
     anvil.setItem(1, addition);
 

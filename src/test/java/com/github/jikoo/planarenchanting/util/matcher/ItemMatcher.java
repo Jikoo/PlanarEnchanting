@@ -1,13 +1,13 @@
 package com.github.jikoo.planarenchanting.util.matcher;
 
+import java.util.Objects;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.Repairable;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.Objects;
 
 public final class ItemMatcher {
 
@@ -52,6 +52,7 @@ public final class ItemMatcher {
   }
 
   private static class ItemIsEqualMatcher extends BaseMatcher<ItemStack> {
+    // TODO can probably delete
 
     private final @NotNull ItemStack other;
     private final @Nullable BaseMatcher<ItemMeta> metaIsEqualMatcher;
@@ -102,15 +103,7 @@ public final class ItemMatcher {
 
     @Override
     public boolean matches(@Nullable Object actual) {
-      if (!(actual instanceof ItemMeta actualMeta) || !other.equals(actualMeta)) {
-        return false;
-      }
-      // TODO MockBukkit ItemMetaMock#equals does not account for repair cost
-      if (actual instanceof Repairable actualRepairable && actualRepairable.hasRepairCost()) {
-        return other instanceof Repairable otherRepairable && actualRepairable.getRepairCost() == otherRepairable.getRepairCost();
-      } else {
-        return !(other instanceof Repairable otherRepairable) || !otherRepairable.hasRepairCost();
-      }
+      return actual instanceof ItemMeta actualMeta && Bukkit.getItemFactory().equals(other, actualMeta);
     }
 
     @Override

@@ -3,11 +3,14 @@ package com.github.jikoo.planarenchanting.anvil;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import com.github.jikoo.planarenchanting.util.mock.MockHelper;
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
+import com.github.jikoo.planarenchanting.util.mock.TagMocks;
+import java.util.List;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Server;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -19,12 +22,15 @@ class RepairMaterialTest {
 
   @BeforeAll
   void beforeAll() {
-    MockBukkit.mock();
-  }
+    Server server = ServerMocks.mockServer();
 
-  @AfterAll
-  void afterAll() {
-    MockHelper.unmock();
+    // RepairMaterial requires these tags.
+    TagMocks.mockTag(server, "items", NamespacedKey.minecraft("stone_tool_materials"), Material.class,
+        List.of(Material.STONE, Material.ANDESITE, Material.GRANITE, Material.DIORITE));
+    TagMocks.mockTag(server, "blocks", NamespacedKey.minecraft("planks"), Material.class,
+        List.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)); //etc. non-exhaustive list
+
+    Bukkit.setServer(server);
   }
 
   @ParameterizedTest

@@ -3,16 +3,13 @@ package com.github.jikoo.planarenchanting.enchant;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
-import com.github.jikoo.planarenchanting.util.mock.CraftEnchantMock;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.InternalEnchantmentHolder;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
-import com.github.jikoo.planarenchanting.util.mock.MockHelper;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.TestInstance;
@@ -39,18 +36,18 @@ class EnchantmentReflectionTest {
 
   @BeforeAll
   void beforeAll() {
-    MockBukkit.mock();
-    EnchantmentHelper.setupToolEnchants();
-    EnchantmentHelper.getRegisteredEnchantments().stream().map(enchantment -> {
+    EnchantmentMocks.init();
+
+    EnchantmentMocks.getRegisteredEnchantments().stream().map(enchantment -> {
       // Keep mending default to check fallthrough.
       if (enchantment.equals(Enchantment.MENDING)) {
         return enchantment;
       }
       EnchantData data = EnchantData.of(enchantment);
-      return new CraftEnchantMock(enchantment, data.getWeight(),
+      return new InternalEnchantmentHolder(enchantment, data.getWeight(),
           data::getMinCost, data::getMaxCost);
-    }).forEach(EnchantmentHelper::putEnchant);
-     brokenRegisteredEnchant = new CraftEnchantMock(
+    }).forEach(EnchantmentMocks::putEnchant);
+     brokenRegisteredEnchant = new InternalEnchantmentHolder(
         NamespacedKey.minecraft("fake_enchant1"),
         -5,
          value -> {
@@ -61,16 +58,11 @@ class EnchantmentReflectionTest {
           Unsafe.getUnsafe().throwException(new InvocationTargetException(new Exception("hello world")));
           return 5;
         });
-    EnchantmentHelper.putEnchant(brokenRegisteredEnchant);
-  }
-
-  @AfterAll
-  void afterAll() {
-    MockHelper.unmock();
+    EnchantmentMocks.putEnchant(brokenRegisteredEnchant);
   }
 
   private Stream<Enchantment> enchantmentStream() {
-    return EnchantmentHelper.getRegisteredEnchantments().stream()
+    return EnchantmentMocks.getRegisteredEnchantments().stream()
         // Mending is not set up so that it can be used to test fallthrough.
         .filter(enchantment ->
             !enchantment.equals(Enchantment.MENDING)
@@ -78,6 +70,7 @@ class EnchantmentReflectionTest {
   }
 
   private int getRandomLevel(Enchantment enchantment) {
+    // TODO this is bad. Tests should not be fully random. Test 1-max instead or use seeded random.
     return enchantment.getMaxLevel() > 0 ?
         ThreadLocalRandom.current().nextInt(enchantment.getMaxLevel()) + 1 : 1;
   }
@@ -134,7 +127,7 @@ class EnchantmentReflectionTest {
         // Present but not fake NMS.
         Enchantment.MENDING,
         // Not present.
-        new CraftEnchantMock(
+        new InternalEnchantmentHolder(
             NamespacedKey.minecraft("fake_enchant2"),
             5,
             value -> 5,

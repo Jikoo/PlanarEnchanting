@@ -10,26 +10,32 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.when;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.github.jikoo.planarenchanting.anvil.mock.ReadableResultState;
-import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
-import com.github.jikoo.planarenchanting.util.mock.AnvilInventoryMock;
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
+import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
+import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
+import com.github.jikoo.planarenchanting.util.mock.TagMocks;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
-import com.github.jikoo.planarenchanting.util.mock.MockHelper;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Server;
+import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -51,13 +57,19 @@ class AnvilFunctionTest {
 
   @BeforeAll
   void beforeAll() {
-    MockBukkit.mock();
-    EnchantmentHelper.setupToolEnchants();
-  }
+    EnchantmentMocks.init();
+    Server server = ServerMocks.mockServer();
 
-  @AfterAll
-  void afterAll() {
-    MockHelper.unmock();
+    ItemFactory factory = ItemFactoryMocks.mockFactory();
+    when(server.getItemFactory()).thenReturn(factory);
+
+    // RepairMaterial requires these tags to be set up to test.
+    TagMocks.mockTag(server, "items", NamespacedKey.minecraft("stone_tool_materials"), Material.class,
+        List.of(Material.STONE, Material.ANDESITE, Material.GRANITE, Material.DIORITE));
+    TagMocks.mockTag(server, "blocks", NamespacedKey.minecraft("planks"), Material.class,
+        List.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)); //etc. non-exhaustive list
+
+    Bukkit.setServer(server);
   }
 
   @Nested
@@ -137,7 +149,7 @@ class AnvilFunctionTest {
     @ParameterizedTest
     @MethodSource("renameSituations")
     void testRenameRequiresDifferentName(
-        BiConsumer<ItemMeta, AnvilInventoryMock> setup,
+        BiConsumer<ItemMeta, AnvilInventory> setup,
         boolean canApply) {
       var base = new ItemStack(BASE_MAT);
       var inventory = getMockInventory(base, null);
@@ -154,7 +166,7 @@ class AnvilFunctionTest {
     @DisplayName("Rename applies name and cost")
     @ParameterizedTest
     @MethodSource("renameSuccessSituations")
-    void testRenameApplication(BiConsumer<ItemMeta, AnvilInventoryMock> setup) {
+    void testRenameApplication(BiConsumer<ItemMeta, AnvilInventory> setup) {
       var base = new ItemStack(BASE_MAT);
       var baseMeta = base.getItemMeta();
       assertThat("Base meta is not null", baseMeta, is(notNullValue()));
@@ -186,31 +198,31 @@ class AnvilFunctionTest {
       return Stream.of(
           // NON-APPLICABLE
           // Both unnamed
-          Arguments.of((BiConsumer<ItemMeta, AnvilInventoryMock>) (meta, anvil) -> {
+          Arguments.of((BiConsumer<ItemMeta, AnvilInventory>) (meta, anvil) -> {
             meta.setDisplayName(null);
-            anvil.setRenameText(null);
+            when(anvil.getRenameText()).thenReturn(null);
           }, false),
           // Both identically named
-          Arguments.of((BiConsumer<ItemMeta, AnvilInventoryMock>) (meta, anvil) -> {
+          Arguments.of((BiConsumer<ItemMeta, AnvilInventory>) (meta, anvil) -> {
             meta.setDisplayName(displayName);
-            anvil.setRenameText(displayName);
+            when(anvil.getRenameText()).thenReturn(displayName);
           }, false),
 
           // APPLICABLE
           // Only anvil named
-          Arguments.of((BiConsumer<ItemMeta, AnvilInventoryMock>) (meta, anvil) -> {
+          Arguments.of((BiConsumer<ItemMeta, AnvilInventory>) (meta, anvil) -> {
             meta.setDisplayName(null);
-            anvil.setRenameText(displayName);
+            when(anvil.getRenameText()).thenReturn(displayName);
           }, true),
           // Only item named
-          Arguments.of((BiConsumer<ItemMeta, AnvilInventoryMock>) (meta, anvil) -> {
+          Arguments.of((BiConsumer<ItemMeta, AnvilInventory>) (meta, anvil) -> {
             meta.setDisplayName(displayName);
-            anvil.setRenameText(null);
+            when(anvil.getRenameText()).thenReturn(null);
           }, true),
           // Both named differently
-          Arguments.of((BiConsumer<ItemMeta, AnvilInventoryMock>) (meta, anvil) -> {
+          Arguments.of((BiConsumer<ItemMeta, AnvilInventory>) (meta, anvil) -> {
             meta.setDisplayName(displayName);
-            anvil.setRenameText(displayName + " different text");
+            when(anvil.getRenameText()).thenReturn(displayName + " different text");
           }, true)
       );
     }
@@ -519,10 +531,10 @@ class AnvilFunctionTest {
 
   }
 
-  private static @NotNull AnvilInventoryMock getMockInventory(
+  private static @NotNull AnvilInventory getMockInventory(
       @Nullable ItemStack base,
       @Nullable ItemStack addition) {
-    var anvil = new AnvilInventoryMock(new PlayerMock(MockBukkit.getMock(), "player1"));
+    var anvil = InventoryMocks.newAnvilMock();
     anvil.setItem(0, base);
     anvil.setItem(1, addition);
 

@@ -6,20 +6,27 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Mockito.when;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
 import com.github.jikoo.planarenchanting.anvil.mock.ReadableResultState;
 import com.github.jikoo.planarenchanting.util.MetaCachedStack;
-import com.github.jikoo.planarenchanting.util.mock.AnvilInventoryMock;
-import com.github.jikoo.planarenchanting.util.mock.MockHelper;
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
+import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
+import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
+import com.github.jikoo.planarenchanting.util.mock.TagMocks;
+import java.util.List;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Server;
 import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,18 +42,25 @@ class AnvilOperationStateTest {
 
   @BeforeAll
   void beforeAll() {
-    MockBukkit.mock();
-  }
+    EnchantmentMocks.init();
+    Server server = ServerMocks.mockServer();
 
-  @AfterAll
-  void afterAll() {
-    MockHelper.unmock();
+    ItemFactory factory = ItemFactoryMocks.mockFactory();
+    when(server.getItemFactory()).thenReturn(factory);
+
+    // RepairMaterial requires these tags to be set up.
+    TagMocks.mockTag(server, "items", NamespacedKey.minecraft("stone_tool_materials"), Material.class,
+        List.of(Material.STONE, Material.ANDESITE, Material.GRANITE, Material.DIORITE));
+    TagMocks.mockTag(server, "blocks", NamespacedKey.minecraft("planks"), Material.class,
+        List.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)); //etc. non-exhaustive list
+
+    Bukkit.setServer(server);
   }
 
   @BeforeEach
   void beforeEach() {
     operation = new AnvilOperation();
-    inventory = new AnvilInventoryMock(null);
+    inventory = InventoryMocks.newAnvilMock();
   }
 
   @Test

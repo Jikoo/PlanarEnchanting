@@ -2,6 +2,7 @@ package com.github.jikoo.planarenchanting.anvil;
 
 import com.github.jikoo.planarenchanting.util.ItemUtil;
 import com.github.jikoo.planarenchanting.util.MetaCachedStack;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
@@ -158,7 +159,8 @@ public class AnvilOperationState {
     }
 
     // If reset meta is identical then no operation is occurring.
-    if (baseMeta.equals(resultMeta)) {
+    // Note that meta must be compared via ItemFactory#equals(ItemMeta, ItemMeta) for test purposes.
+    if (Bukkit.getItemFactory().equals(baseMeta, resultMeta)) {
       return AnvilResult.EMPTY;
     }
 

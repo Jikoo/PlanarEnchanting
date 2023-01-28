@@ -3,15 +3,11 @@ package com.github.jikoo.planarenchanting.enchant;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
-import com.github.jikoo.planarenchanting.util.mock.CraftEnchantMock;
-import java.util.Arrays;
-import java.util.stream.Stream;
-import com.github.jikoo.planarenchanting.util.mock.MockHelper;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.InternalEnchantmentHolder;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
+import java.util.Collection;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,12 +21,7 @@ class EnchantDataTest {
 
   @BeforeAll
   void beforeAll() {
-    MockBukkit.mock();
-  }
-
-  @AfterAll
-  void afterAll() {
-    MockHelper.unmock();
+    EnchantmentMocks.init();
   }
 
   @DisplayName("Enchantments must be explicitly supported.")
@@ -43,12 +34,12 @@ class EnchantDataTest {
   @DisplayName("Unsupported enchantments must be supported via reflection.")
   @Test
   void testUnknownEnchant() {
-    var enchant = new CraftEnchantMock(
+    var enchant = new InternalEnchantmentHolder(
         NamespacedKey.minecraft("fake_enchant"),
         5,
         value -> 5,
         value -> 10);
-    EnchantmentHelper.putEnchant(enchant);
+    EnchantmentMocks.putEnchant(enchant);
 
     var data = EnchantData.of(enchant);
 
@@ -59,8 +50,8 @@ class EnchantDataTest {
     assertThat("Max quality is expected value", data.getMaxCost(0), is(10));
   }
 
-  static Stream<Enchantment> getEnchants() {
-    return Arrays.stream(Enchantment.values());
+  static Collection<Enchantment> getEnchants() {
+    return EnchantmentMocks.getRegisteredEnchantments();
   }
 
 }

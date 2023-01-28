@@ -8,16 +8,17 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 
-import be.seeseemelk.mockbukkit.inventory.meta.EnchantedBookMetaMock;
-import be.seeseemelk.mockbukkit.inventory.meta.ItemMetaMock;
+import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 @DisplayName("Enchantment utility methods")
 @TestInstance(Lifecycle.PER_CLASS)
@@ -30,7 +31,7 @@ class EnchantmentUtilTest {
 
   @Test
   void testGetEnchantsStorageMeta() {
-    var meta = new EnchantedBookMetaMock();
+    var meta = ItemFactoryMocks.createMeta(EnchantmentStorageMeta.class);
 
     assertThat("Meta is empty", EnchantmentUtil.getEnchants(meta), is(anEmptyMap()));
 
@@ -50,7 +51,7 @@ class EnchantmentUtilTest {
 
   @Test
   void testSetEnchantsStorageMeta() {
-    var meta = new EnchantedBookMetaMock();
+    var meta = ItemFactoryMocks.createMeta(EnchantmentStorageMeta.class);
 
     assertThat("Meta is empty", EnchantmentUtil.getEnchants(meta), is(anEmptyMap()));
 
@@ -68,7 +69,7 @@ class EnchantmentUtilTest {
 
   @Test
   void testGetEnchants() {
-    var meta = new ItemMetaMock();
+    var meta = ItemFactoryMocks.createMeta(ItemMeta.class);
 
     assertThat("Meta is empty", EnchantmentUtil.getEnchants(meta), is(anEmptyMap()));
 
@@ -88,7 +89,7 @@ class EnchantmentUtilTest {
 
   @Test
   void testSetEnchants() {
-    var meta = new ItemMetaMock();
+    var meta = ItemFactoryMocks.createMeta(ItemMeta.class);
 
     assertThat("Meta is empty", EnchantmentUtil.getEnchants(meta), is(anEmptyMap()));
 

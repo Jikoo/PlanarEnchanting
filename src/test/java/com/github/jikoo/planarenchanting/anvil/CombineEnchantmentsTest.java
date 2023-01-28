@@ -9,27 +9,31 @@ import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import com.github.jikoo.planarenchanting.anvil.mock.ReadableResultState;
 import com.github.jikoo.planarenchanting.enchant.EnchantData;
 import com.github.jikoo.planarenchanting.enchant.EnchantmentUtil;
-import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
-import com.github.jikoo.planarenchanting.util.mock.AnvilInventoryMock;
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
+import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import com.github.jikoo.planarenchanting.util.mock.MockHelper;
+import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,18 +53,17 @@ public class CombineEnchantmentsTest {
 
   @BeforeAll
   void beforeAll() {
-    MockBukkit.mock();
-    EnchantmentHelper.setupToolEnchants();
-    // Set up protection as a trident enchantment.
-    // This is necessary because no actual trident enchantments are currently common, so the
-    // defensive code will not be hit in testing normally.
-    EnchantmentHelper.setupEnchant("protection", 4, EnchantmentTarget.TRIDENT);
-    EnchantmentHelper.setupEnchant("riptide", 1, EnchantmentTarget.TRIDENT);
-  }
+    EnchantmentMocks.init();
+    Enchantment protection = spy(EnchantmentMocks.getEnchant(Enchantment.PROTECTION_ENVIRONMENTAL.getKey()));
+    when(protection.getItemTarget()).thenReturn(EnchantmentTarget.TRIDENT);
+    EnchantmentMocks.putEnchant(protection);
 
-  @AfterAll
-  void afterAll() {
-    MockHelper.unmock();
+    Server server = ServerMocks.mockServer();
+
+    ItemFactory factory = ItemFactoryMocks.mockFactory();
+    when(server.getItemFactory()).thenReturn(factory);
+
+    Bukkit.setServer(server);
   }
 
   abstract static class CombineEnchantsTest {
@@ -438,10 +441,10 @@ public class CombineEnchantmentsTest {
 
   }
 
-  private static @NotNull AnvilInventoryMock getMockInventory(
+  private static @NotNull AnvilInventory getMockInventory(
       @Nullable ItemStack base,
       @Nullable ItemStack addition) {
-    var anvil = new AnvilInventoryMock(new PlayerMock(MockBukkit.getMock(), "player1"));
+    var anvil = InventoryMocks.newAnvilMock();
     anvil.setItem(0, base);
     anvil.setItem(1, addition);
 

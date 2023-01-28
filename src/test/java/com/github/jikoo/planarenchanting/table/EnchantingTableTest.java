@@ -8,16 +8,13 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
-import com.github.jikoo.planarenchanting.util.mock.MockHelper;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import org.bukkit.enchantments.Enchantment;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,13 +48,7 @@ class EnchantingTableTest {
 
   @BeforeAll
   void beforeAll() {
-    MockBukkit.mock();
-    EnchantmentHelper.setupToolEnchants();
-  }
-
-  @AfterAll
-  void afterAll() {
-    MockHelper.unmock();
+    EnchantmentMocks.init();
   }
 
   @DisplayName("Empty enchantment list yields empty enchantments.")

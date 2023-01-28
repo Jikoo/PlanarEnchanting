@@ -4,9 +4,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import be.seeseemelk.mockbukkit.inventory.meta.ItemMetaMock;
+import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Repairable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -54,7 +55,7 @@ class ItemUtilTest {
   @Test
   void testRepairCostRepairable() {
     var value = 10;
-    var meta = new ItemMetaMock();
+    var meta = ItemFactoryMocks.createMeta(Repairable.class);
     meta.setRepairCost(value);
     assertThat("Repairable returns cost", ItemUtil.getRepairCost(meta), is(value));
   }

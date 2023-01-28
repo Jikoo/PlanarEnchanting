@@ -14,12 +14,12 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.enchantments.EnchantmentMock;
 import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import be.seeseemelk.mockbukkit.scheduler.BukkitSchedulerMock;
 import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
-import com.github.jikoo.planarenchanting.util.mock.CraftEnchantMock;
-import com.github.jikoo.planarenchanting.util.mock.MockHelper;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.InternalEnchantmentHolder;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
@@ -30,6 +30,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.InventoryView.Property;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,7 +53,11 @@ class EnchantingTableUtilTest {
 
   @AfterAll
   void afterAll() {
-    MockHelper.unmock();
+    ServerMock server = MockBukkit.getMock();
+    for (Plugin plugin : server.getPluginManager().getPlugins()) {
+      server.getScheduler().cancelTasks(plugin);
+    }
+    MockBukkit.unmock();
   }
 
   @DisplayName("Enchanting table button levels should be calculated consistently.")
@@ -161,7 +166,7 @@ class EnchantingTableUtilTest {
 
     String enchantName = "enchant_table_util";
     var unregisteredEnchantment = new EnchantmentMock(NamespacedKey.minecraft(enchantName + 1), enchantName + 1);
-    var registeredReflectableEnchant = new CraftEnchantMock(NamespacedKey.minecraft(enchantName + 2), 1, value -> value, value -> value);
+    var registeredReflectableEnchant = new InternalEnchantmentHolder(NamespacedKey.minecraft(enchantName + 2), 1, value -> value, value -> value);
     EnchantmentHelper.putEnchant(registeredReflectableEnchant);
     var registeredUnlistedNonReflectableEnchant = new EnchantmentMock(NamespacedKey.minecraft(enchantName + 3), enchantName + 3);
 
