@@ -1,6 +1,5 @@
 package com.github.jikoo.planarenchanting.util.matcher;
 
-import java.util.Objects;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -32,48 +31,6 @@ public final class ItemMatcher {
     @Override
     public boolean matches(@Nullable Object actual) {
       return actual instanceof ItemStack actualItem && other.isSimilar(actualItem);
-    }
-
-    @Override
-    public void describeTo(Description description) {
-      description.appendText(other.toString());
-    }
-
-  }
-
-  /**
-   * Construct a new {@code ItemIsEqualMatcher} for the given {@link ItemStack}.
-   *
-   * @param other the matchable item
-   * @return the resulting matcher
-   */
-  public static BaseMatcher<ItemStack> isItemEqual(@NotNull ItemStack other) {
-    return new ItemIsEqualMatcher(other);
-  }
-
-  private static class ItemIsEqualMatcher extends BaseMatcher<ItemStack> {
-    // TODO can probably delete
-
-    private final @NotNull ItemStack other;
-    private final @Nullable BaseMatcher<ItemMeta> metaIsEqualMatcher;
-
-    private ItemIsEqualMatcher(@NotNull ItemStack other) {
-      this.other = other;
-      if (this.other.hasItemMeta()) {
-        this.metaIsEqualMatcher = isMetaEqual(Objects.requireNonNull(other.getItemMeta()));
-      } else {
-        this.metaIsEqualMatcher = null;
-      }
-    }
-
-    @Override
-    public boolean matches(@Nullable Object actual) {
-      if (!(actual instanceof ItemStack actualItem) || !other.equals(actualItem)) {
-        return false;
-      }
-
-      // If meta is null, equality is valid. Respect special matching otherwise.
-      return metaIsEqualMatcher == null || metaIsEqualMatcher.matches(actualItem.getItemMeta());
     }
 
     @Override

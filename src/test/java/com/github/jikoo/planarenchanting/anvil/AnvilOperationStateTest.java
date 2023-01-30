@@ -1,6 +1,5 @@
 package com.github.jikoo.planarenchanting.anvil;
 
-import static com.github.jikoo.planarenchanting.util.matcher.ItemMatcher.isItemEqual;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -11,10 +10,10 @@ import static org.mockito.Mockito.when;
 import com.github.jikoo.planarenchanting.anvil.mock.ReadableResultState;
 import com.github.jikoo.planarenchanting.util.MetaCachedStack;
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
+import com.github.jikoo.planarenchanting.util.mock.TagMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
-import com.github.jikoo.planarenchanting.util.mock.TagMocks;
 import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -74,7 +73,7 @@ class AnvilOperationStateTest {
     var base = new ItemStack(Material.DIRT);
     inventory.setItem(0, base);
     var state = new AnvilOperationState(operation, inventory);
-    assertThat("Base item must match", state.getBase().getItem(), isItemEqual(base));
+    assertThat("Base item must match", state.getBase().getItem(), is(base));
   }
 
   @Test
@@ -82,7 +81,7 @@ class AnvilOperationStateTest {
     var addition = new ItemStack(Material.DIRT);
     inventory.setItem(1, addition);
     var state = new AnvilOperationState(operation, inventory);
-    assertThat("Addition item must match", state.getAddition().getItem(), isItemEqual(addition));
+    assertThat("Addition item must match", state.getAddition().getItem(), is(addition));
   }
 
   @Test
