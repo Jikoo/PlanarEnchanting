@@ -54,6 +54,9 @@ public class CombineEnchantmentsTest {
   @BeforeAll
   void beforeAll() {
     EnchantmentMocks.init();
+    // Set up protection as a trident enchantment.
+    // This is necessary because no actual trident enchantments are currently common, so the
+    // defensive code will not be hit in testing normally.
     Enchantment protection = spy(EnchantmentMocks.getEnchant(Enchantment.PROTECTION_ENVIRONMENTAL.getKey()));
     when(protection.getItemTarget()).thenReturn(EnchantmentTarget.TRIDENT);
     EnchantmentMocks.putEnchant(protection);

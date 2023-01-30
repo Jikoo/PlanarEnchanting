@@ -2,34 +2,48 @@ package com.github.jikoo.planarenchanting.table;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anEmptyMap;
+import static org.hamcrest.Matchers.arrayWithSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.ServerMock;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
-import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
+import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Server;
+import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.SimplePluginManager;
+import org.bukkit.plugin.java.JavaPluginLoader;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.hamcrest.Matchers;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,7 +63,7 @@ class TableEnchantListenerTest {
   private static final Material UNENCHANTABLE_MATERIAL = Material.DIRT;
   private static final Enchantment VALID_ENCHANT = Enchantment.DIG_SPEED;
 
-  private ServerMock server;
+  private Server server;
   private Plugin plugin;
   private TableEnchantListener listener;
   private Player player;
@@ -58,14 +72,29 @@ class TableEnchantListenerTest {
 
   @BeforeAll
   void setUpAll() {
-    server = MockBukkit.mock();
-    server.addSimpleWorld("world");
-    EnchantmentHelper.setupToolEnchants();
+    EnchantmentMocks.init();
+
+    server = ServerMocks.mockServer();
+
+    var factory = ItemFactoryMocks.mockFactory();
+    when(server.getItemFactory()).thenReturn(factory);
+
+    var scheduler = mock(BukkitScheduler.class);
+    // Immediately run tasks when called.
+    when(scheduler.runTaskLater(any(Plugin.class), any(Runnable.class), anyLong()))
+        .thenAnswer(invocation -> {
+          invocation.getArgument(1, Runnable.class).run();
+          return null;
+        });
+    when(server.getScheduler()).thenReturn(scheduler);
+
+    Bukkit.setServer(server);
   }
 
   @BeforeEach
   void setUp() {
-    plugin = MockBukkit.createMockPlugin("SampleText");
+    plugin = mock(Plugin.class);
+    when(plugin.getName()).thenReturn("SampleText");
 
     listener = new TableEnchantListener(plugin) {
       private final EnchantingTable table = new EnchantingTable(TOOL_ENCHANTS, Enchantability.STONE);
@@ -83,22 +112,62 @@ class TableEnchantListenerTest {
       }
     };
 
-    server.getPluginManager().registerEvents(listener, plugin);
+    var pdc = mock(PersistentDataContainer.class);
+    AtomicReference<Long> value = new AtomicReference<>(0L);
+    when(pdc.get(key, PersistentDataType.LONG)).thenAnswer(invocation -> value.get());
+    doAnswer(invocation -> {
+      value.set(invocation.getArgument(2));
+      return null;
+    }).when(pdc).set(eq(key), eq(PersistentDataType.LONG), anyLong());
+    doAnswer(invocation -> {
+      value.set(null);
+      return null;
+    }).when(pdc).remove(key);
 
-    player = new PlayerMock(server, "sampletext");
-    player.getPersistentDataContainer().set(key, PersistentDataType.LONG, 0L);
+    player = mock(Player.class);
+    when(player.getPersistentDataContainer()).thenReturn(pdc);
+    var location = mock(Location.class);
+    when(player.getLocation()).thenReturn(location);
+
     itemStack = new ItemStack(ENCHANTABLE_MATERIAL);
     key = new NamespacedKey(plugin, "enchanting_table_seed");
   }
 
-  @AfterEach
-  void afterEach() {
-    server.getPluginManager().clearPlugins();
-  }
+  @Test
+  void testEventRegistration() {
+    assertThat(
+        "No handler for PrepareItemEnchantEvent is registered",
+        PrepareItemEnchantEvent.getHandlerList().getRegisteredListeners(),
+        is(arrayWithSize(0)));
+    assertThat(
+        "No handler for EnchantItemEvent is registered",
+        EnchantItemEvent.getHandlerList().getRegisteredListeners(),
+        is(arrayWithSize(0)));
 
-  @AfterAll
-  void tearDownAll() {
-    MockBukkit.unmock();
+    // Plugin must be enabled to register events
+    when(plugin.isEnabled()).thenReturn(true);
+    var loader = new JavaPluginLoader(server);
+    when(plugin.getPluginLoader()).thenReturn(loader);
+    var description = new PluginDescriptionFile(plugin.getName(), "1.2.3", "cool.beans");
+    when(plugin.getDescription()).thenReturn(description);
+
+    var manager = new SimplePluginManager(server, new SimpleCommandMap(server));
+    // Plugin manager must be set so that event registration can check if timings are enabled.
+    when(server.getPluginManager()).thenReturn(manager);
+
+    assertDoesNotThrow(() -> manager.registerEvents(listener, plugin));
+
+    // Unset plugin manager post-use to not modify server for future tests.
+    when(server.getPluginManager()).thenReturn(null);
+
+    assertThat(
+        "Handler for PrepareItemEnchantEvent is registered",
+        PrepareItemEnchantEvent.getHandlerList().getRegisteredListeners(),
+        is(arrayWithSize(1)));
+    assertThat(
+        "Handlers for EnchantItemEvent are registered",
+        EnchantItemEvent.getHandlerList().getRegisteredListeners(),
+        is(arrayWithSize(2)));
   }
 
   @Test
@@ -133,7 +202,7 @@ class TableEnchantListenerTest {
   void testPrepareItemEnchantInvalid() {
     itemStack.setType(UNENCHANTABLE_MATERIAL);
     var event = prepareEvent(15);
-    assertDoesNotThrow(() -> server.getPluginManager().callEvent(event));
+    assertDoesNotThrow(() -> listener.onPrepareItemEnchant(event));
     assertThat(
         "Invalid material does not yield offers",
         event.getOffers(),
@@ -143,7 +212,7 @@ class TableEnchantListenerTest {
   @Test
   void testPrepareItemEnchant() {
     var event = prepareEvent(15);
-    assertDoesNotThrow(() -> server.getPluginManager().callEvent(event));
+    assertDoesNotThrow(() -> listener.onPrepareItemEnchant(event));
     assertThat(
         "Seed yielding results yields offers",
         event.getOffers(),
@@ -153,7 +222,7 @@ class TableEnchantListenerTest {
   @Test
   void testEnchantItem() {
     var event = enchantEvent(30, 2);
-    assertDoesNotThrow(() -> server.getPluginManager().callEvent(event));
+    assertDoesNotThrow(() -> listener.onEnchantItem(event));
     assertThat("Enchantments must not be empty", event.getEnchantsToAdd(), not(anEmptyMap()));
   }
 
@@ -165,12 +234,12 @@ class TableEnchantListenerTest {
         player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
         is(nullValue()));
 
-    assertDoesNotThrow(() -> server.getPluginManager().callEvent(prepareEvent(0)));
+    assertDoesNotThrow(() -> listener.onPrepareItemEnchant(prepareEvent(0)));
 
     Long seed = player.getPersistentDataContainer().get(key, PersistentDataType.LONG);
     assertThat("Seed is set", seed, is(notNullValue()));
 
-    assertDoesNotThrow(() -> server.getPluginManager().callEvent(prepareEvent(15)));
+    assertDoesNotThrow(() -> listener.onPrepareItemEnchant(prepareEvent(15)));
 
     assertThat(
         "Seed is unchanged",
@@ -185,7 +254,7 @@ class TableEnchantListenerTest {
         player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
         is(notNullValue()));
 
-    assertDoesNotThrow(() -> server.getPluginManager().callEvent(enchantEvent(1, 0)));
+    assertDoesNotThrow(() -> listener.afterAnyEnchant(enchantEvent(1, 0)));
 
     assertThat(
         "Seed is unset",

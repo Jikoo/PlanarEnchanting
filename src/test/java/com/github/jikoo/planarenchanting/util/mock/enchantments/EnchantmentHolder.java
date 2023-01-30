@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 // Simple data holder is a lot easier to write than mocking every single method
-class EnchantmentHolder extends Enchantment {
+public class EnchantmentHolder extends Enchantment {
 
   private final int maxLevel;
   private final @NotNull EnchantmentTarget target;

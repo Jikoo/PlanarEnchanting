@@ -12,27 +12,32 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
-import be.seeseemelk.mockbukkit.ServerMock;
-import be.seeseemelk.mockbukkit.enchantments.EnchantmentMock;
-import be.seeseemelk.mockbukkit.entity.PlayerMock;
-import be.seeseemelk.mockbukkit.scheduler.BukkitSchedulerMock;
-import com.github.jikoo.planarenchanting.util.EnchantmentHelper;
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentHolder;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.InternalEnchantmentHolder;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
+import org.bukkit.enchantments.EnchantmentTarget;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.InventoryView.Property;
 import org.bukkit.plugin.Plugin;
-import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterAll;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +45,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
 
 @DisplayName("Enchanting table utility methods")
 @TestInstance(Lifecycle.PER_CLASS)
@@ -47,17 +53,12 @@ class EnchantingTableUtilTest {
 
   @BeforeAll
   void beforeAll() {
-    MockBukkit.mock();
-    EnchantmentHelper.setupToolEnchants();
+    EnchantmentMocks.init();
   }
 
-  @AfterAll
-  void afterAll() {
-    ServerMock server = MockBukkit.getMock();
-    for (Plugin plugin : server.getPluginManager().getPlugins()) {
-      server.getScheduler().cancelTasks(plugin);
-    }
-    MockBukkit.unmock();
+  @AfterEach
+  void afterEach() {
+    ServerMocks.unsetBukkitServer();
   }
 
   @DisplayName("Enchanting table button levels should be calculated consistently.")
@@ -88,18 +89,22 @@ class EnchantingTableUtilTest {
   @DisplayName("Button updates send to user as expected.")
   @Test
   void testSendButtonUpdates() {
-    var server = MockBukkit.getMock();
+    var scheduler = mock(BukkitScheduler.class);
+    ArgumentCaptor<Runnable> taskCaptor = ArgumentCaptor.forClass(Runnable.class);
+    ArgumentCaptor<Long> delayCaptor = ArgumentCaptor.forClass(Long.class);
+    when(scheduler.runTaskLater(any(Plugin.class), taskCaptor.capture(), delayCaptor.capture())).thenReturn(null);
 
-    var plugin = MockBukkit.createMockPlugin("SampleText");
+    var server = ServerMocks.mockServer();
+    when(server.getScheduler()).thenReturn(scheduler);
+    Bukkit.setServer(server);
+
+    var plugin = mock(Plugin.class);
+    var player = mock(Player.class);
     var offerData = new EnumMap<>(InventoryView.Property.class);
-
-    var player = new PlayerMock(server, "sampletext") {
-      @Override
-      public boolean setWindowProperty(@NotNull InventoryView.Property prop, int value) {
-        offerData.put(prop, value);
-        return true;
-      }
-    };
+    when(player.setWindowProperty(any(Property.class), anyInt())).thenAnswer(invocation -> {
+      offerData.put(invocation.getArgument(0), invocation.getArgument(1));
+      return true;
+    });
 
     EnchantmentOffer[] offers = new EnchantmentOffer[] {
         new EnchantmentOffer(Enchantment.DIG_SPEED, 5, 1),
@@ -108,11 +113,12 @@ class EnchantingTableUtilTest {
     };
 
     assertDoesNotThrow(() -> EnchantingTable.updateButtons(plugin, player, offers));
-    assertThat("Offer data is sent next tick", offerData, is(anEmptyMap()));
+    assertThat("Offer data is not sent immediately", offerData, is(anEmptyMap()));
+    assertThat("Delay is 1 tick", delayCaptor.getValue(), is(1L));
 
-    BukkitSchedulerMock scheduler = server.getScheduler();
+    Runnable task = taskCaptor.getValue();
 
-    assertDoesNotThrow(() -> scheduler.performTicks(1));
+    assertDoesNotThrow(task::run);
     assertThat("Offer data is sent", offerData, is(not(anEmptyMap())));
 
     // Ensure enchantment level requirements are sent correctly.
@@ -153,22 +159,22 @@ class EnchantingTableUtilTest {
   @DisplayName("Fetching Enchantment ID should not cause errors.")
   @Test
   void testInvalidGetEnchantmentId() {
-    var server = MockBukkit.getMock();
+    var scheduler = mock(BukkitScheduler.class);
+    ArgumentCaptor<Runnable> taskCaptor = ArgumentCaptor.forClass(Runnable.class);
+    when(scheduler.runTaskLater(any(Plugin.class), taskCaptor.capture(), anyLong())).thenReturn(null);
 
-    var plugin = MockBukkit.createMockPlugin("SampleText");
+    var server = ServerMocks.mockServer();
+    when(server.getScheduler()).thenReturn(scheduler);
+    Bukkit.setServer(server);
 
-    var player = new PlayerMock(server, "sampletext") {
-      @Override
-      public boolean setWindowProperty(@NotNull InventoryView.Property prop, int value) {
-        return true;
-      }
-    };
+    var plugin = mock(Plugin.class);
+    var player = mock(Player.class);
 
     String enchantName = "enchant_table_util";
-    var unregisteredEnchantment = new EnchantmentMock(NamespacedKey.minecraft(enchantName + 1), enchantName + 1);
+    var unregisteredEnchantment = new EnchantmentHolder(NamespacedKey.minecraft(enchantName + 1), 1, EnchantmentTarget.VANISHABLE, false, false, List.of());
     var registeredReflectableEnchant = new InternalEnchantmentHolder(NamespacedKey.minecraft(enchantName + 2), 1, value -> value, value -> value);
-    EnchantmentHelper.putEnchant(registeredReflectableEnchant);
-    var registeredUnlistedNonReflectableEnchant = new EnchantmentMock(NamespacedKey.minecraft(enchantName + 3), enchantName + 3);
+    EnchantmentMocks.putEnchant(registeredReflectableEnchant);
+    var registeredUnlistedNonReflectableEnchant = new EnchantmentHolder(NamespacedKey.minecraft(enchantName + 3), 1, EnchantmentTarget.VANISHABLE, false, false, List.of());
 
     EnchantmentOffer[] offers = new EnchantmentOffer[] {
       new EnchantmentOffer(unregisteredEnchantment, 5, 1),
@@ -179,8 +185,8 @@ class EnchantingTableUtilTest {
     // Schedule button update.
     EnchantingTable.updateButtons(plugin, player, offers);
 
-    BukkitSchedulerMock scheduler = server.getScheduler();
-    assertDoesNotThrow(() -> scheduler.performTicks(1));
+    var task = taskCaptor.getValue();
+    assertDoesNotThrow(task::run);
   }
 
 }
