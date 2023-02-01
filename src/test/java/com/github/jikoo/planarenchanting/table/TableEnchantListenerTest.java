@@ -9,6 +9,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -21,6 +22,7 @@ import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -113,7 +115,7 @@ class TableEnchantListenerTest {
     };
 
     var pdc = mock(PersistentDataContainer.class);
-    AtomicReference<Long> value = new AtomicReference<>(0L);
+    AtomicReference<Long> value = new AtomicReference<>(null);
     when(pdc.get(key, PersistentDataType.LONG)).thenAnswer(invocation -> value.get());
     doAnswer(invocation -> {
       value.set(invocation.getArgument(2));
@@ -128,6 +130,13 @@ class TableEnchantListenerTest {
     when(player.getPersistentDataContainer()).thenReturn(pdc);
     var location = mock(Location.class);
     when(player.getLocation()).thenReturn(location);
+    AtomicInteger enchantSeed = new AtomicInteger(0);
+    when(player.getEnchantmentSeed()).thenAnswer(invocation -> enchantSeed.get());
+    doAnswer(invocation -> {
+      // Input number is random - ignore and just increment.
+      enchantSeed.incrementAndGet();
+      return null;
+    }).when(player).setEnchantmentSeed(anyInt());
 
     itemStack = new ItemStack(ENCHANTABLE_MATERIAL);
     key = new NamespacedKey(plugin, "enchanting_table_seed");
@@ -165,9 +174,9 @@ class TableEnchantListenerTest {
         PrepareItemEnchantEvent.getHandlerList().getRegisteredListeners(),
         is(arrayWithSize(1)));
     assertThat(
-        "Handlers for EnchantItemEvent are registered",
+        "Handler for EnchantItemEvent is registered",
         EnchantItemEvent.getHandlerList().getRegisteredListeners(),
-        is(arrayWithSize(2)));
+        is(arrayWithSize(1)));
   }
 
   @Test
@@ -211,7 +220,7 @@ class TableEnchantListenerTest {
 
   @Test
   void testPrepareItemEnchant() {
-    var event = prepareEvent(15);
+    var event = prepareEvent(30);
     assertDoesNotThrow(() -> listener.onPrepareItemEnchant(event));
     assertThat(
         "Seed yielding results yields offers",
@@ -227,34 +236,22 @@ class TableEnchantListenerTest {
   }
 
   @Test
-  void testSeedSetAndConsistent() {
-    player.getPersistentDataContainer().remove(key);
-    assertThat(
-        "Seed is unset",
-        player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
-        is(nullValue()));
+  void testSeedChangedPostEnchant() {
+    int seed = player.getEnchantmentSeed();
+    assertDoesNotThrow(() -> listener.onEnchantItem(enchantEvent(1, 0)));
 
-    assertDoesNotThrow(() -> listener.onPrepareItemEnchant(prepareEvent(0)));
-
-    Long seed = player.getPersistentDataContainer().get(key, PersistentDataType.LONG);
-    assertThat("Seed is set", seed, is(notNullValue()));
-
-    assertDoesNotThrow(() -> listener.onPrepareItemEnchant(prepareEvent(15)));
-
-    assertThat(
-        "Seed is unchanged",
-        player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
-        is(seed));
+    assertThat("Seed is changed", player.getEnchantmentSeed(), is(not(seed)));
   }
 
   @Test
-  void testSeedUnsetPostEnchant() {
+  void testLegacySeedUnsetPostEnchant() {
+    player.getPersistentDataContainer().set(key, PersistentDataType.LONG, 0L);
     assertThat(
         "Seed is set",
         player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
         is(notNullValue()));
 
-    assertDoesNotThrow(() -> listener.afterAnyEnchant(enchantEvent(1, 0)));
+    assertDoesNotThrow(() -> listener.onEnchantItem(enchantEvent(1, 0)));
 
     assertThat(
         "Seed is unset",

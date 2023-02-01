@@ -2,11 +2,10 @@ package com.github.jikoo.planarenchanting.table;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.LongSupplier;
+import java.util.function.IntSupplier;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
@@ -34,13 +33,6 @@ public abstract class TableEnchantListener implements Listener {
   protected TableEnchantListener(@NotNull Plugin plugin) {
     this.plugin = plugin;
     this.key = new NamespacedKey(this.plugin, "enchanting_table_seed");
-  }
-
-  @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-  public final void afterAnyEnchant(@NotNull EnchantItemEvent event) {
-    // Unset seed after every enchantment action.
-    // This mimics vanilla recalculating all enchantments after any enchant action.
-    event.getEnchanter().getPersistentDataContainer().remove(key);
   }
 
   @EventHandler
@@ -93,6 +85,8 @@ public abstract class TableEnchantListener implements Listener {
 
     // Calculate and set enchantments.
     event.getEnchantsToAdd().putAll(table.apply(random, event.getExpLevelCost()));
+
+    randomizeSeed(event.getEnchanter(), TableEnchantListener::getRandomSeed);
   }
 
   /**
@@ -133,6 +127,11 @@ public abstract class TableEnchantListener implements Listener {
       @NotNull Player player,
       @NotNull ItemStack enchanted);
 
+  private void randomizeSeed(@NotNull Player player, @NotNull IntSupplier supplier) {
+    player.getPersistentDataContainer().remove(key);
+    player.setEnchantmentSeed(supplier.getAsInt());
+  }
+
   /**
    * Obtain the enchantment seed from the {@link Player}. Rather than use Minecraft's internal seed
    * (the field's obfuscation is very volatile and there is little benefit because we generate
@@ -143,22 +142,22 @@ public abstract class TableEnchantListener implements Listener {
    * @return the enchantment seed
    */
   private long getSeed(@NotNull Player player, int buttonIndex) {
-    return getEnchantmentSeed(player, TableEnchantListener::getRandomSeed) + buttonIndex;
+    return getEnchantmentSeed(player) + buttonIndex;
   }
 
   /**
    * Obtain the enchantment seed from the {@link Player}. If not present, generates a new seed.
    *
    * @param player the {@link Player}
-   * @param supplier the way to obtain the seed if not present
    * @return the enchantment seed
    */
-  private long getEnchantmentSeed(@NotNull Player player, @NotNull LongSupplier supplier) {
+  private long getEnchantmentSeed(@NotNull Player player) {
+    // Use legacy existing seed if available.
     var seed = player.getPersistentDataContainer().get(key, PersistentDataType.LONG);
 
     if (seed == null) {
-      seed = supplier.getAsLong();
-      player.getPersistentDataContainer().set(key, PersistentDataType.LONG, seed);
+      // If legacy seed is not available, use internal seed.
+      return player.getEnchantmentSeed();
     }
 
     return seed;
@@ -169,8 +168,8 @@ public abstract class TableEnchantListener implements Listener {
    *
    * @return a random seed
    */
-  private static long getRandomSeed() {
-    return ThreadLocalRandom.current().nextLong();
+  private static int getRandomSeed() {
+    return ThreadLocalRandom.current().nextInt();
   }
 
 }
