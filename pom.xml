@@ -6,7 +6,7 @@
 
   <groupId>com.github.jikoo</groupId>
   <artifactId>planarenchanting</artifactId>
-  <version>1.0.2-SNAPSHOT</version>
+  <version>1.0.2</version>
 
   <name>PlanarEnchanting</name>
 
@@ -72,7 +72,7 @@
       <dependency>
         <groupId>com.github.jikoo</groupId>
         <artifactId>planarwrappers</artifactId>
-        <version>2.3.3</version>
+        <version>3.0.0</version>
         <scope>provided</scope>
       </dependency>
       <!-- Tests -->
