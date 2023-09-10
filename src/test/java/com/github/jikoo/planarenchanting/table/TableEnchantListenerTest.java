@@ -279,6 +279,8 @@ class TableEnchantListenerTest {
         itemStack,
         level,
         new HashMap<>(),
+        Enchantment.DURABILITY,
+        0,
         buttonIndex);
   }
 

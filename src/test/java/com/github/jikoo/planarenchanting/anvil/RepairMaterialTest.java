@@ -55,7 +55,8 @@ class RepairMaterialTest {
           FISHING_ROD,
           SHEARS,
           TRIDENT,
-          CROSSBOW -> false;
+          CROSSBOW,
+          BRUSH -> false;
       default -> material.getMaxDurability() > 0;
     };
   }

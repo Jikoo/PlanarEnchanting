@@ -38,7 +38,8 @@ class EnchantabilityTest {
     return switch (material) {
       // Enchanted book is technically not enchantable but for simplicity it's included.
       case BOOK, ENCHANTED_BOOK -> true;
-      case CARROT_ON_A_STICK, WARPED_FUNGUS_ON_A_STICK, ELYTRA, FLINT_AND_STEEL, SHEARS -> false;
+      case CARROT_ON_A_STICK, WARPED_FUNGUS_ON_A_STICK, ELYTRA, FLINT_AND_STEEL, SHEARS, BRUSH ->
+          false;
       default -> Arrays.stream(EnchantmentTarget.values())
           .anyMatch(
               target ->
