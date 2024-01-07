@@ -8,13 +8,18 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -23,6 +28,13 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 @DisplayName("Enchantment utility methods")
 @TestInstance(Lifecycle.PER_CLASS)
 class EnchantmentUtilTest {
+
+  @BeforeAll
+  void beforeAll() {
+    Server server = ServerMocks.mockServer();
+    Bukkit.setServer(server);
+    EnchantmentMocks.init(server);
+  }
 
   @Test
   void testEnchantsEmptyIfNull() {

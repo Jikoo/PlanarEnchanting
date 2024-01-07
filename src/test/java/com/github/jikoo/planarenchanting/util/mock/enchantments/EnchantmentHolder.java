@@ -8,14 +8,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-// Simple data holder is a lot easier to write than mocking every single method
+// TODO remove
 public class EnchantmentHolder extends Enchantment {
 
+  private final NamespacedKey key;
   private final int maxLevel;
   private final @NotNull EnchantmentTarget target;
   private final boolean treasure;
   private final boolean curse;
-  private final @NotNull Collection<Enchantment> conflicts; // TODO more maintainable via multimap? more work to write first time
+  private final @NotNull Collection<Enchantment> conflicts;
 
   public EnchantmentHolder(
       @NotNull NamespacedKey key,
@@ -24,7 +25,7 @@ public class EnchantmentHolder extends Enchantment {
       boolean treasure,
       boolean curse,
       @NotNull Collection<Enchantment> conflicts) {
-    super(key);
+    this.key = key;
     this.maxLevel = maxLevel;
     this.target = target;
     this.treasure = treasure;
@@ -32,10 +33,15 @@ public class EnchantmentHolder extends Enchantment {
     this.conflicts = conflicts;
   }
 
+  @Override
+  public @NotNull NamespacedKey getKey() {
+    return key;
+  }
+
   @Deprecated
   @Override
   public @NotNull String getName() {
-    return getKey().getKey();
+    return key.getKey();
   }
 
   @Override

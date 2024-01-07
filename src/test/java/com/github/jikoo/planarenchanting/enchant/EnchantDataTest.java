@@ -3,10 +3,14 @@ package com.github.jikoo.planarenchanting.enchant;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import com.github.jikoo.planarenchanting.util.mock.enchantments.InternalEnchantmentHolder;
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
-import java.util.Collection;
+import com.github.jikoo.planarenchanting.util.mock.enchantments.InternalEnchantmentHolder;
+import java.util.stream.Stream;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
+import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -21,14 +25,16 @@ class EnchantDataTest {
 
   @BeforeAll
   void beforeAll() {
-    EnchantmentMocks.init();
+    Server server = ServerMocks.mockServer();
+    Bukkit.setServer(server);
+    EnchantmentMocks.init(server);
   }
 
   @DisplayName("Enchantments must be explicitly supported.")
   @ParameterizedTest
   @MethodSource("getEnchants")
   void isPresent(Enchantment enchantment) {
-    assertThat("Enchantment must be supported", EnchantData.isPresent(enchantment));
+    assertThat("Enchantment " + enchantment.getKey() + " must be supported", EnchantData.isPresent(enchantment));
   }
 
   @DisplayName("Unsupported enchantments must be supported via reflection.")
@@ -50,8 +56,8 @@ class EnchantDataTest {
     assertThat("Max quality is expected value", data.getMaxCost(0), is(10));
   }
 
-  static Collection<Enchantment> getEnchants() {
-    return EnchantmentMocks.getRegisteredEnchantments();
+  private static Stream<Enchantment> getEnchants() {
+    return Registry.ENCHANTMENT.stream();
   }
 
 }

@@ -9,16 +9,17 @@ import static org.hamcrest.Matchers.not;
 import static org.mockito.Mockito.when;
 
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
+import com.github.jikoo.planarenchanting.util.mock.TagMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
-import com.github.jikoo.planarenchanting.util.mock.TagMocks;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.AnvilInventory;
@@ -48,13 +49,12 @@ class AnvilOperationTest {
   private static final Material TOOL_REPAIR = Material.DIAMOND;
   public static final Material BOOK = Material.ENCHANTED_BOOK;
   private static final Material INCOMPATIBLE = Material.STONE;
-  public static final Enchantment TOOL_ENCHANTMENT = Enchantment.DIG_SPEED;
+  public static Enchantment toolEnchantment;
 
   private AnvilOperation operation;
 
   @BeforeAll
   void beforeAll() {
-    EnchantmentMocks.init();
     Server server = ServerMocks.mockServer();
 
     ItemFactory factory = ItemFactoryMocks.mockFactory();
@@ -67,6 +67,9 @@ class AnvilOperationTest {
         List.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)); //etc. non-exhaustive list
 
     Bukkit.setServer(server);
+    EnchantmentMocks.init(server);
+
+    toolEnchantment = Enchantment.DIG_SPEED;
   }
 
   @BeforeEach
@@ -77,16 +80,16 @@ class AnvilOperationTest {
   @Test
   void testEnchantmentTarget() {
     var item = new ItemStack(TOOL);
-    assertThat("Enchantment applies to tools", operation.enchantApplies(TOOL_ENCHANTMENT, item));
+    assertThat("Enchantment applies to tools", operation.enchantApplies(toolEnchantment, item));
     item.setType(INCOMPATIBLE);
     assertThat(
         "Enchantment does not apply to non-tools",
-        operation.enchantApplies(TOOL_ENCHANTMENT, item),
+        operation.enchantApplies(toolEnchantment, item),
         is(false));
     operation.setEnchantApplies((enchant, itemStack) -> true);
     assertThat(
         "Enchantment applies with alternate predicate",
-        operation.enchantApplies(TOOL_ENCHANTMENT, item));
+        operation.enchantApplies(toolEnchantment, item));
   }
 
   @Test
@@ -118,8 +121,8 @@ class AnvilOperationTest {
         is((int) Short.MAX_VALUE));
   }
 
-  private static @NotNull Collection<Enchantment> getEnchantments() {
-    return EnchantmentMocks.getRegisteredEnchantments();
+  private static @NotNull Stream<Enchantment> getEnchantments() {
+    return Registry.ENCHANTMENT.stream();
   }
 
   @Test

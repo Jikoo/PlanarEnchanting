@@ -9,7 +9,7 @@ import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import com.github.jikoo.planarenchanting.anvil.mock.ReadableResultState;
@@ -18,10 +18,10 @@ import com.github.jikoo.planarenchanting.enchant.EnchantmentUtil;
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
+import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -46,27 +46,31 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 public class CombineEnchantmentsTest {
 
   private static final Material BASE_MAT = Material.DIAMOND_SHOVEL;
-  private static final Enchantment BASIC_ENCHANT = Enchantment.DIG_SPEED;
-  private static final Enchantment RARE_ENCHANT = Enchantment.LOOT_BONUS_BLOCKS;
-  private static final Enchantment COMMON_TRIDENT_ENCHANT = Enchantment.PROTECTION_ENVIRONMENTAL;
-  private static final Enchantment TRIDENT_ENCHANT = Enchantment.RIPTIDE;
+  private static Enchantment basicEnchant;
+  private static Enchantment rareEnchant;
+  private static Enchantment commonTridentEnchant;
+  private static Enchantment tridentEnchant;
 
   @BeforeAll
   void beforeAll() {
-    EnchantmentMocks.init();
-    // Set up protection as a trident enchantment.
-    // This is necessary because no actual trident enchantments are currently common, so the
-    // defensive code will not be hit in testing normally.
-    Enchantment protection = spy(EnchantmentMocks.getEnchant(Enchantment.PROTECTION_ENVIRONMENTAL.getKey()));
-    when(protection.getItemTarget()).thenReturn(EnchantmentTarget.TRIDENT);
-    EnchantmentMocks.putEnchant(protection);
-
     Server server = ServerMocks.mockServer();
 
     ItemFactory factory = ItemFactoryMocks.mockFactory();
     when(server.getItemFactory()).thenReturn(factory);
 
     Bukkit.setServer(server);
+
+    EnchantmentMocks.init(server);
+
+    basicEnchant = Enchantment.DIG_SPEED;
+    rareEnchant = Enchantment.LOOT_BONUS_BLOCKS;
+    commonTridentEnchant = Enchantment.PROTECTION_ENVIRONMENTAL;
+    tridentEnchant = Enchantment.RIPTIDE;
+
+    // Set up protection as a trident enchantment.
+    // This is necessary because no actual trident enchantments are currently common, so the
+    // defensive code will not be hit in testing normally.
+    doReturn(EnchantmentTarget.TRIDENT).when(commonTridentEnchant).getItemTarget();
   }
 
   abstract static class CombineEnchantsTest {
@@ -140,7 +144,7 @@ public class CombineEnchantmentsTest {
 
     @Test
     void testBookHalfPrice() {
-      EnchantData enchantData = EnchantData.of(RARE_ENCHANT);
+      EnchantData enchantData = EnchantData.of(rareEnchant);
       assertThat(
           "Enchantment must have rarity > 1",
           enchantData.getRarity().getAnvilValue(),
@@ -149,7 +153,7 @@ public class CombineEnchantmentsTest {
 
       ItemStack base = new ItemStack(BASE_MAT);
       Map<Enchantment, Integer> enchantments = new HashMap<>();
-      enchantments.put(RARE_ENCHANT, 1);
+      enchantments.put(rareEnchant, 1);
       ItemStack addition = new ItemStack(BASE_MAT);
       applyEnchantments(addition, enchantments);
       ItemStack bookAddition = new ItemStack(Material.ENCHANTED_BOOK);
@@ -195,7 +199,7 @@ public class CombineEnchantmentsTest {
     @Test
     void testCombineAdd() {
       Map<Enchantment, Integer> enchantments = new HashMap<>();
-      enchantments.put(BASIC_ENCHANT, 1);
+      enchantments.put(basicEnchant, 1);
       ItemStack base = new ItemStack(BASE_MAT);
       applyEnchantments(base, enchantments);
       ItemStack addition = new ItemStack(BASE_MAT);
@@ -215,7 +219,7 @@ public class CombineEnchantmentsTest {
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
       result.modifyResult(state.getResult().getMeta());
 
-      enchantments.put(BASIC_ENCHANT, 2);
+      enchantments.put(basicEnchant, 2);
 
       assertThat("Enchantments must be merged in result",
           EnchantmentUtil.getEnchants(state.getResult().getMeta()).entrySet(),
@@ -232,12 +236,12 @@ public class CombineEnchantmentsTest {
     @Test
     void testMergeInvalid() {
       Map<Enchantment, Integer> enchantments = new HashMap<>();
-      enchantments.put(BASIC_ENCHANT, 1);
+      enchantments.put(basicEnchant, 1);
       ItemStack base = new ItemStack(BASE_MAT);
       applyEnchantments(base, enchantments);
       ItemStack addition = new ItemStack(BASE_MAT);
       Map<Enchantment, Integer> invalidEnchants = new HashMap<>();
-      invalidEnchants.put(RARE_ENCHANT, 1);
+      invalidEnchants.put(rareEnchant, 1);
       applyEnchantments(addition, invalidEnchants);
 
       var anvil = getMockInventory(base, addition);
@@ -269,7 +273,7 @@ public class CombineEnchantmentsTest {
     @Test
     void testCommonTridentEnchant() {
       Map<Enchantment, Integer> enchantments = new HashMap<>();
-      enchantments.put(COMMON_TRIDENT_ENCHANT, 1);
+      enchantments.put(commonTridentEnchant, 1);
       ItemStack addition = new ItemStack(BASE_MAT);
       applyEnchantments(addition, enchantments);
       ItemStack base = new ItemStack(BASE_MAT);
@@ -298,7 +302,7 @@ public class CombineEnchantmentsTest {
     @Test
     void testTridentEnchant() {
       Map<Enchantment, Integer> enchantments = new HashMap<>();
-      enchantments.put(TRIDENT_ENCHANT, 1);
+      enchantments.put(tridentEnchant, 1);
       ItemStack addition = new ItemStack(BASE_MAT);
       applyEnchantments(addition, enchantments);
       ItemStack base = new ItemStack(BASE_MAT);
@@ -356,10 +360,10 @@ public class CombineEnchantmentsTest {
     @Test
     void testNegativeCost() {
       Map<Enchantment, Integer> enchantments = new HashMap<>();
-      enchantments.put(BASIC_ENCHANT, -2);
+      enchantments.put(basicEnchant, -2);
       ItemStack base = new ItemStack(BASE_MAT);
       applyEnchantments(base, enchantments);
-      enchantments.put(BASIC_ENCHANT, -1);
+      enchantments.put(basicEnchant, -1);
       ItemStack addition = new ItemStack(BASE_MAT);
       applyEnchantments(addition, enchantments);
 
@@ -414,10 +418,10 @@ public class CombineEnchantmentsTest {
     @Test
     void testOldLevelHigher() {
       Map<Enchantment, Integer> enchantments = new HashMap<>();
-      enchantments.put(BASIC_ENCHANT, 1);
+      enchantments.put(basicEnchant, 1);
       ItemStack addition = new ItemStack(BASE_MAT);
       applyEnchantments(addition, enchantments);
-      enchantments.put(BASIC_ENCHANT, 2);
+      enchantments.put(basicEnchant, 2);
       ItemStack base = new ItemStack(BASE_MAT);
       applyEnchantments(base, enchantments);
 

@@ -8,11 +8,14 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
 
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,16 +42,19 @@ import org.junit.jupiter.api.TestInstance;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EnchantingTableTest {
 
-  private static final Collection<Enchantment> TOOL_ENCHANTS = List.of(
-      Enchantment.DIG_SPEED,
-      Enchantment.DURABILITY,
-      Enchantment.LOOT_BONUS_BLOCKS,
-      Enchantment.SILK_TOUCH);
   private static final Random RANDOM = new Random(0);
+  private static Collection<Enchantment> toolEnchants;
 
   @BeforeAll
   void beforeAll() {
-    EnchantmentMocks.init();
+    Server server = ServerMocks.mockServer();
+    Bukkit.setServer(server);
+    EnchantmentMocks.init(server);
+    toolEnchants = List.of(
+        Enchantment.DIG_SPEED,
+        Enchantment.DURABILITY,
+        Enchantment.LOOT_BONUS_BLOCKS,
+        Enchantment.SILK_TOUCH);
   }
 
   @DisplayName("Empty enchantment list yields empty enchantments.")
@@ -65,7 +71,7 @@ class EnchantingTableTest {
   @DisplayName("Enchantment incompatibility can be customized.")
   @Test
   void testAllIncompatibleAlwaysSingle() {
-    var operation = new EnchantingTable(TOOL_ENCHANTS, Enchantability.GOLD_ARMOR);
+    var operation = new EnchantingTable(toolEnchants, Enchantability.GOLD_ARMOR);
     operation.setIncompatibility((a, b) -> true);
 
     assertThat(
@@ -98,14 +104,14 @@ class EnchantingTableTest {
 
     @BeforeEach
     void beforeEach() {
-      var operation = new EnchantingTable(TOOL_ENCHANTS, Enchantability.STONE);
+      var operation = new EnchantingTable(toolEnchants, Enchantability.STONE);
       selected = operation.apply(RANDOM, RANDOM.nextInt(1, 31));
     }
 
     @DisplayName("One or more enchantments should be selected.")
     @Test
     void checkSize() {
-      var operation = new EnchantingTable(TOOL_ENCHANTS, Enchantability.STONE);
+      var operation = new EnchantingTable(toolEnchants, Enchantability.STONE);
       selected = operation.apply(RANDOM, 30);
       assertThat(
           "One or more enchantments must be selected",

@@ -57,7 +57,6 @@ class AnvilFunctionTest {
 
   @BeforeAll
   void beforeAll() {
-    EnchantmentMocks.init();
     Server server = ServerMocks.mockServer();
 
     ItemFactory factory = ItemFactoryMocks.mockFactory();
@@ -70,6 +69,7 @@ class AnvilFunctionTest {
         List.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)); //etc. non-exhaustive list
 
     Bukkit.setServer(server);
+    EnchantmentMocks.init(server);
   }
 
   @Nested

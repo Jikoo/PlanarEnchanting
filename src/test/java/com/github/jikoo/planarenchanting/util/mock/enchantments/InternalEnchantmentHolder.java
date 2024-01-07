@@ -5,9 +5,11 @@ import java.util.function.IntUnaryOperator;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantment.Rarity;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.enchantments.EnchantmentTarget;
 import org.jetbrains.annotations.NotNull;
 
+// TODO make interface and mock single additional method
 public class InternalEnchantmentHolder extends EnchantmentHolder {
 
   private final int rarityWeight;
@@ -27,7 +29,7 @@ public class InternalEnchantmentHolder extends EnchantmentHolder {
         enchantment.isCursed(),
         // This is hacky, but it feels better than blindly casting to EnchantmentHolder.
         // At least if I forget to initialize enchantments first this will just cause the conflicts to be empty.
-        EnchantmentMocks.getRegisteredEnchantments().stream().filter(enchantment::conflictsWith).toList());
+        Registry.ENCHANTMENT.stream().filter(enchantment::conflictsWith).toList());
     this.rarityWeight = rarityWeight;
     this.minQuality = minQuality;
     this.maxQuality = maxQuality;

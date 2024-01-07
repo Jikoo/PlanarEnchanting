@@ -23,7 +23,7 @@ public final class TagMocks {
 
     // Server should already be a mock
     when(server.getTag(registry, key, clazz)).thenAnswer(invocation -> {
-      Tag<T> mock = mock(Tag.class);
+      Tag<?> mock = mock(Tag.class);
 
       when(mock.getKey()).thenReturn(key);
       when(mock.isTagged(notNull())).thenAnswer(invocation1 -> {

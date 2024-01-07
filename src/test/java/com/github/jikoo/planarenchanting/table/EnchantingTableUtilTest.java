@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.enchantments.EnchantmentTarget;
@@ -53,7 +54,9 @@ class EnchantingTableUtilTest {
 
   @BeforeAll
   void beforeAll() {
-    EnchantmentMocks.init();
+    Server server = ServerMocks.mockServer();
+    Bukkit.setServer(server);
+    EnchantmentMocks.init(server);
   }
 
   @AfterEach

@@ -56,14 +56,10 @@ import org.junit.jupiter.api.TestInstance;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TableEnchantListenerTest {
 
-  private static final Collection<Enchantment> TOOL_ENCHANTS = List.of(
-      Enchantment.DIG_SPEED,
-      Enchantment.DURABILITY,
-      Enchantment.LOOT_BONUS_BLOCKS,
-      Enchantment.SILK_TOUCH);
   private static final Material ENCHANTABLE_MATERIAL = Material.COAL_ORE;
   private static final Material UNENCHANTABLE_MATERIAL = Material.DIRT;
-  private static final Enchantment VALID_ENCHANT = Enchantment.DIG_SPEED;
+  private static Enchantment validEnchant;
+  private static Collection<Enchantment> toolEnchants;
 
   private Server server;
   private Plugin plugin;
@@ -74,8 +70,6 @@ class TableEnchantListenerTest {
 
   @BeforeAll
   void setUpAll() {
-    EnchantmentMocks.init();
-
     server = ServerMocks.mockServer();
 
     var factory = ItemFactoryMocks.mockFactory();
@@ -91,6 +85,14 @@ class TableEnchantListenerTest {
     when(server.getScheduler()).thenReturn(scheduler);
 
     Bukkit.setServer(server);
+    EnchantmentMocks.init(server);
+
+    validEnchant = Enchantment.DIG_SPEED;
+    toolEnchants = List.of(
+        Enchantment.DIG_SPEED,
+        Enchantment.DURABILITY,
+        Enchantment.LOOT_BONUS_BLOCKS,
+        Enchantment.SILK_TOUCH);
   }
 
   @BeforeEach
@@ -99,7 +101,7 @@ class TableEnchantListenerTest {
     when(plugin.getName()).thenReturn("SampleText");
 
     listener = new TableEnchantListener(plugin) {
-      private final EnchantingTable table = new EnchantingTable(TOOL_ENCHANTS, Enchantability.STONE);
+      private final EnchantingTable table = new EnchantingTable(toolEnchants, Enchantability.STONE);
 
       @Override
       protected boolean isIneligible(@NotNull Player player,
@@ -181,7 +183,7 @@ class TableEnchantListenerTest {
 
   @Test
   void testCanNotEnchantEnchanted() {
-    itemStack.addUnsafeEnchantment(VALID_ENCHANT, 10);
+    itemStack.addUnsafeEnchantment(validEnchant, 10);
     assertThat("Enchanted item cannot be enchanted", listener.canNotEnchant(player, itemStack));
   }
 
