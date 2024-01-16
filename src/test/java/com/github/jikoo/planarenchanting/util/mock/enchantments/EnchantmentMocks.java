@@ -33,29 +33,18 @@ public class EnchantmentMocks {
     // Registry.ENCHANTMENT is initialized during Registry initialization. This means that we must
     // be prepared to initialize enchantments before we can initialize the enchantment registry at
     // all, and can reference neither class until then.
-    // This solution is not compatible with all registries (i.e. structures) and may need to be revisited.
     doAnswer(invocationGetRegistry -> {
-      Registry<?> registry = mock(Registry.class);
       // This must be mocked here or else Registry will be initialized when mocking it.
+      Registry<?> registry = mock();
       doAnswer(invocationGetEntry -> {
         NamespacedKey key = invocationGetEntry.getArgument(0);
-        // Set registry to always return a new enchantment mock.
-        // This allows us to use Bukkit's up-to-date namespaced keys instead of maintaining a listing.
-        if (invocationGetRegistry.getArgument(0).equals(Enchantment.class)) {
-          Enchantment enchant = mock(Enchantment.class);
-          doReturn(key).when(enchant).getKey();
-          doReturn(key.getKey()).when(enchant).getName();
-          return enchant;
-        }
-        // Other unsupported registry type. Try for compatibility with Keyed return, though it will
-        // probably result in a ClassCastException for most uses.
-        return new Keyed() {
-          @NotNull
-          @Override
-          public NamespacedKey getKey() {
-            return key;
-          }
-        };
+        // Set registries to always return a new value.
+        // For enchantments, this allows us to use Bukkit's up-to-date namespaced keys instead of
+        // maintaining a listing.
+        Class<? extends Keyed> arg = invocationGetRegistry.getArgument(0);
+        Keyed keyed = mock(arg);
+        doReturn(key).when(keyed).getKey();
+        return keyed;
       }).when(registry).get(notNull());
       return registry;
     }).when(server).getRegistry(notNull());
@@ -80,9 +69,9 @@ public class EnchantmentMocks {
     setUpEnchant(Enchantment.THORNS, 3, EnchantmentTarget.ARMOR);
 
     setUpEnchant(Enchantment.DEPTH_STRIDER, 3, EnchantmentTarget.ARMOR_FEET, List.of(Enchantment.FROST_WALKER));
-    setUpEnchant(Enchantment.FROST_WALKER, 3, EnchantmentTarget.ARMOR_FEET, true, false, List.of(Enchantment.DEPTH_STRIDER));
+    setUpEnchant(Enchantment.FROST_WALKER, 3, EnchantmentTarget.ARMOR_FEET, true, List.of(Enchantment.DEPTH_STRIDER));
 
-    setUpEnchant(Enchantment.BINDING_CURSE, 1, EnchantmentTarget.WEARABLE, true, true, List.of());
+    setUpEnchant(Enchantment.BINDING_CURSE, 1, EnchantmentTarget.WEARABLE, true, List.of());
 
     setUpEnchant(Enchantment.DAMAGE_ALL, 5, EnchantmentTarget.WEAPON, List.of(Enchantment.DAMAGE_ARTHROPODS, Enchantment.DAMAGE_UNDEAD));
     setUpEnchant(Enchantment.DAMAGE_UNDEAD, 5, EnchantmentTarget.WEAPON, List.of(Enchantment.DAMAGE_ALL, Enchantment.DAMAGE_ARTHROPODS));
@@ -118,18 +107,21 @@ public class EnchantmentMocks {
 
     setUpEnchant(Enchantment.MENDING, 1, EnchantmentTarget.BREAKABLE, List.of(Enchantment.ARROW_INFINITE));
 
-    setUpEnchant(Enchantment.VANISHING_CURSE, 1, EnchantmentTarget.VANISHABLE, true, true, List.of());
+    setUpEnchant(Enchantment.VANISHING_CURSE, 1, EnchantmentTarget.VANISHABLE, true, List.of());
 
-    setUpEnchant(Enchantment.SOUL_SPEED, 3, EnchantmentTarget.ARMOR_FEET, true, false, List.of());
-    setUpEnchant(Enchantment.SWIFT_SNEAK, 3, EnchantmentTarget.ARMOR_LEGS, true, false, List.of());
+    setUpEnchant(Enchantment.SOUL_SPEED, 3, EnchantmentTarget.ARMOR_FEET, true, List.of());
+    setUpEnchant(Enchantment.SWIFT_SNEAK, 3, EnchantmentTarget.ARMOR_LEGS, true, List.of());
 
     Set<String> missingInternalEnchants = new HashSet<>();
     try {
       for (Field field : Enchantment.class.getFields()) {
         if (Modifier.isStatic(field.getModifiers()) && Enchantment.class.equals(field.getType())) {
           Enchantment declaredEnchant = (Enchantment) field.get(null);
-          if (!KEYS_TO_ENCHANTS.containsKey(declaredEnchant.getKey())) {
+          Enchantment stored = KEYS_TO_ENCHANTS.get(declaredEnchant.getKey());
+          if (stored == null) {
             missingInternalEnchants.add(declaredEnchant.getKey().toString());
+          } else {
+            doReturn(field.getName()).when(stored).getName();
           }
         }
       }
@@ -157,7 +149,7 @@ public class EnchantmentMocks {
       @NotNull Enchantment enchantment,
       int maxLevel,
       @NotNull EnchantmentTarget target) {
-    setUpEnchant(enchantment, maxLevel, target, false, false, List.of());
+    setUpEnchant(enchantment, maxLevel, target, false, List.of());
   }
 
   private static void setUpEnchant(
@@ -165,7 +157,7 @@ public class EnchantmentMocks {
       int maxLevel,
       @NotNull EnchantmentTarget target,
       @NotNull Collection<Enchantment> conflicts) {
-    setUpEnchant(enchantment, maxLevel, target, false, false, conflicts);
+    setUpEnchant(enchantment, maxLevel, target, false, conflicts);
   }
 
   private static void setUpEnchant(
@@ -173,7 +165,6 @@ public class EnchantmentMocks {
       int maxLevel,
       @NotNull EnchantmentTarget target,
       boolean treasure,
-      boolean curse,
       @NotNull Collection<Enchantment> conflicts) {
     KEYS_TO_ENCHANTS.put(enchantment.getKey(), enchantment);
 
@@ -185,8 +176,7 @@ public class EnchantmentMocks {
       return item != null && target.includes(item);
     }).when(enchantment).canEnchantItem(any());
     doReturn(treasure).when(enchantment).isTreasure();
-    doReturn(curse).when(enchantment).isCursed();
-    // Note: Usual implementation of equals allows for simple contains check, but as these are
+    // Note: Usual implementation allows contains check, but as these are
     // mocks that cannot be relied on.
     doAnswer(invocation -> conflicts.stream().anyMatch(conflict -> conflict.getKey().equals(invocation.getArgument(0, Enchantment.class).getKey())))
         .when(enchantment).conflictsWith(any());

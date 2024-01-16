@@ -15,20 +15,22 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
-import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentHolder;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
-import com.github.jikoo.planarenchanting.util.mock.enchantments.InternalEnchantmentHolder;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.stream.Stream;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
@@ -38,7 +40,6 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.InventoryView.Property;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,11 +58,6 @@ class EnchantingTableUtilTest {
     Server server = ServerMocks.mockServer();
     Bukkit.setServer(server);
     EnchantmentMocks.init(server);
-  }
-
-  @AfterEach
-  void afterEach() {
-    ServerMocks.unsetBukkitServer();
   }
 
   @DisplayName("Enchanting table button levels should be calculated consistently.")
@@ -97,9 +93,8 @@ class EnchantingTableUtilTest {
     ArgumentCaptor<Long> delayCaptor = ArgumentCaptor.forClass(Long.class);
     when(scheduler.runTaskLater(any(Plugin.class), taskCaptor.capture(), delayCaptor.capture())).thenReturn(null);
 
-    var server = ServerMocks.mockServer();
+    var server = Bukkit.getServer();
     when(server.getScheduler()).thenReturn(scheduler);
-    Bukkit.setServer(server);
 
     var plugin = mock(Plugin.class);
     var player = mock(Player.class);
@@ -152,11 +147,16 @@ class EnchantingTableUtilTest {
         offerData.entrySet(),
         hasItem(Map.entry(Property.ENCHANT_LEVEL3, offers[2].getEnchantmentLevel())));
 
-    // Exact IDs not verified - can't really test this without NMS.
     assertThat(
         "Offer contains enchantment IDs",
         offerData.keySet(),
         hasItems(Property.ENCHANT_ID1, Property.ENCHANT_ID2, Property.ENCHANT_ID3));
+    // Exact IDs not verified - can't really test this without NMS.
+    // If this does break in the future, either it is really broken or protection is no longer ID 0.
+    assertThat(
+        "Offer values are not default",
+        offerData.values(),
+        not(hasItem(0)));
   }
 
   @DisplayName("Fetching Enchantment ID should not cause errors.")
@@ -166,23 +166,28 @@ class EnchantingTableUtilTest {
     ArgumentCaptor<Runnable> taskCaptor = ArgumentCaptor.forClass(Runnable.class);
     when(scheduler.runTaskLater(any(Plugin.class), taskCaptor.capture(), anyLong())).thenReturn(null);
 
-    var server = ServerMocks.mockServer();
+    var server = Bukkit.getServer();
     when(server.getScheduler()).thenReturn(scheduler);
-    Bukkit.setServer(server);
 
     var plugin = mock(Plugin.class);
     var player = mock(Player.class);
 
     String enchantName = "enchant_table_util";
-    var unregisteredEnchantment = new EnchantmentHolder(NamespacedKey.minecraft(enchantName + 1), 1, EnchantmentTarget.VANISHABLE, false, false, List.of());
-    var registeredReflectableEnchant = new InternalEnchantmentHolder(NamespacedKey.minecraft(enchantName + 2), 1, value -> value, value -> value);
-    EnchantmentMocks.putEnchant(registeredReflectableEnchant);
-    var registeredUnlistedNonReflectableEnchant = new EnchantmentHolder(NamespacedKey.minecraft(enchantName + 3), 1, EnchantmentTarget.VANISHABLE, false, false, List.of());
+    var unregistered = enchantment(enchantName + "1");
+    var registered = enchantment(enchantName + "2");
+    EnchantmentMocks.putEnchant(registered);
+    var invalidState = enchantment(enchantName + "3");
+    EnchantmentMocks.putEnchant(invalidState);
+
+    // Return empty iterator for second invocation to hit illegal state.
+    doAnswer(invocation -> Registry.ENCHANTMENT.stream().iterator())
+        .doAnswer(invocation -> Stream.empty().iterator())
+        .when(Registry.ENCHANTMENT).iterator();
 
     EnchantmentOffer[] offers = new EnchantmentOffer[] {
-      new EnchantmentOffer(unregisteredEnchantment, 5, 1),
-      new EnchantmentOffer(registeredReflectableEnchant, 20, 2),
-      new EnchantmentOffer(registeredUnlistedNonReflectableEnchant, 30, 3)
+      new EnchantmentOffer(unregistered, 5, 1),
+      new EnchantmentOffer(registered, 20, 2),
+      new EnchantmentOffer(invalidState, 30, 3)
     };
 
     // Schedule button update.
@@ -190,6 +195,19 @@ class EnchantingTableUtilTest {
 
     var task = taskCaptor.getValue();
     assertDoesNotThrow(task::run);
+
+    // Un-break iterator post-test just in case.
+    doAnswer(invocation -> Registry.ENCHANTMENT.stream().iterator())
+        .when(Registry.ENCHANTMENT).iterator();
+  }
+
+  private Enchantment enchantment(String key) {
+    Enchantment enchantment = mock();
+    doReturn(NamespacedKey.minecraft(key)).when(enchantment).getKey();
+    doReturn(1).when(enchantment).getStartLevel();
+    doReturn(1).when(enchantment).getMaxLevel();
+    doReturn(EnchantmentTarget.VANISHABLE).when(enchantment).getItemTarget();
+    return enchantment;
   }
 
 }

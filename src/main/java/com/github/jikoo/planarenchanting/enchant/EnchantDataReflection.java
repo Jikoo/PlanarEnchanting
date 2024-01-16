@@ -4,6 +4,7 @@ import com.github.jikoo.planarwrappers.function.ThrowingFunction;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.function.IntUnaryOperator;
+import org.bukkit.Registry;
 import org.bukkit.enchantments.Enchantment;
 import org.jetbrains.annotations.NotNull;
 
@@ -108,7 +109,7 @@ public final class EnchantDataReflection {
       @NotNull ThrowingFunction<Object, T, ReflectiveOperationException> function,
       @NotNull T defaultValue) {
     try {
-      Enchantment craftEnchant = Enchantment.getByKey(enchantment.getKey());
+      Enchantment craftEnchant = Registry.ENCHANTMENT.get(enchantment.getKey());
 
       if (craftEnchant == null) {
         return defaultValue;

@@ -2,11 +2,15 @@ package com.github.jikoo.planarenchanting.enchant;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.withSettings;
 
+import com.github.jikoo.planarenchanting.util.mock.impl.InternalObject;
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
-import com.github.jikoo.planarenchanting.util.mock.enchantments.InternalEnchantmentHolder;
 import java.util.stream.Stream;
+import net.minecraft.world.item.enchantment.Enchantment.Rarity;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -40,11 +44,11 @@ class EnchantDataTest {
   @DisplayName("Unsupported enchantments must be supported via reflection.")
   @Test
   void testUnknownEnchant() {
-    var enchant = new InternalEnchantmentHolder(
-        NamespacedKey.minecraft("fake_enchant"),
-        5,
-        value -> 5,
-        value -> 10);
+    var enchant = (Enchantment & InternalObject<?>) mock(Enchantment.class, withSettings().extraInterfaces(InternalObject.class));
+    NamespacedKey key = NamespacedKey.minecraft("fake_enchant");
+    doReturn(key).when(enchant).getKey();
+    doReturn(new net.minecraft.world.item.enchantment.Enchantment(key, value -> 5, value -> 10, new Rarity(5)))
+        .when(enchant).getHandle();
     EnchantmentMocks.putEnchant(enchant);
 
     var data = EnchantData.of(enchant);
