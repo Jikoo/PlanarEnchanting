@@ -3,7 +3,6 @@ package com.github.jikoo.planarenchanting.table;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntSupplier;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,7 +21,6 @@ public abstract class TableEnchantListener implements Listener {
   // We specifically want our own random so we can seed it.
   private final @NotNull Random random = new Random();
   private final @NotNull Plugin plugin;
-  private final NamespacedKey key;
 
   /**
    * Construct a new {@code TableEnchantListener}.
@@ -31,7 +29,6 @@ public abstract class TableEnchantListener implements Listener {
    */
   protected TableEnchantListener(@NotNull Plugin plugin) {
     this.plugin = plugin;
-    this.key = new NamespacedKey(this.plugin, "enchanting_table_seed");
   }
 
   @EventHandler
@@ -127,21 +124,18 @@ public abstract class TableEnchantListener implements Listener {
       @NotNull ItemStack enchanted);
 
   private void randomizeSeed(@NotNull Player player, @NotNull IntSupplier supplier) {
-    player.getPersistentDataContainer().remove(key);
     player.setEnchantmentSeed(supplier.getAsInt());
   }
 
   /**
-   * Obtain the enchantment seed from the {@link Player}. Rather than use Minecraft's internal seed
-   * (the field's obfuscation is very volatile and there is little benefit because we generate
-   * enchantments in a slightly different fashion), this uses a plugin-generated seed.
+   * Obtain the enchantment seed from the {@link Player}.
    *
    * @param player the {@link Player}
    * @param buttonIndex the index of the enchanting button
    * @return the enchantment seed
    */
   private long getSeed(@NotNull Player player, int buttonIndex) {
-    return player.getEnchantmentSeed() + buttonIndex;
+    return ((long) player.getEnchantmentSeed()) + buttonIndex;
   }
 
   /**

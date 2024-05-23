@@ -243,22 +243,6 @@ class TableEnchantListenerTest {
     assertThat("Seed is changed", player.getEnchantmentSeed(), is(not(seed)));
   }
 
-  @Test
-  void testLegacySeedUnsetPostEnchant() {
-    player.getPersistentDataContainer().set(key, PersistentDataType.LONG, 0L);
-    assertThat(
-        "Seed is set",
-        player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
-        is(notNullValue()));
-
-    assertDoesNotThrow(() -> listener.onEnchantItem(enchantEvent(1, 0)));
-
-    assertThat(
-        "Seed is unset",
-        player.getPersistentDataContainer().get(key, PersistentDataType.LONG),
-        is(nullValue()));
-  }
-
   @Contract("_ -> new")
   private @NotNull PrepareItemEnchantEvent prepareEvent(int bonus) {
     return new PrepareItemEnchantEvent(
