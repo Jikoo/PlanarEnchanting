@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.jetbrains.annotations.NotNull;
@@ -48,12 +47,11 @@ class EnchantingTableTest {
   @BeforeAll
   void beforeAll() {
     Server server = ServerMocks.mockServer();
-    Bukkit.setServer(server);
     EnchantmentMocks.init(server);
     toolEnchants = List.of(
-        Enchantment.DIG_SPEED,
-        Enchantment.DURABILITY,
-        Enchantment.LOOT_BONUS_BLOCKS,
+        Enchantment.EFFICIENCY,
+        Enchantment.UNBREAKING,
+        Enchantment.FORTUNE,
         Enchantment.SILK_TOUCH);
   }
 
@@ -83,7 +81,7 @@ class EnchantingTableTest {
   @DisplayName("Enchantment level max can be modified.")
   @Test
   void testSetMaxLevel() {
-    Enchantment enchant = Enchantment.DIG_SPEED;
+    Enchantment enchant = Enchantment.EFFICIENCY;
     var operation = new EnchantingTable(List.of(enchant), Enchantability.GOLD_ARMOR);
     // Double max level for enchants that go over 1.
     operation.setMaxLevel(enchant1 -> enchant1.getMaxLevel() > 1 ? enchant1.getMaxLevel() * 2 : 1);

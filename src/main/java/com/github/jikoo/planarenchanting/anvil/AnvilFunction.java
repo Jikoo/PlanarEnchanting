@@ -1,18 +1,16 @@
 package com.github.jikoo.planarenchanting.anvil;
 
 import com.github.jikoo.planarenchanting.enchant.EnchantData;
-import com.github.jikoo.planarenchanting.enchant.EnchantRarity;
 import com.github.jikoo.planarenchanting.util.ItemUtil;
 import com.github.jikoo.planarenchanting.util.MetaCachedStack;
+import java.util.Objects;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.Objects;
 
 /**
  * An interface representing a portion of the functionality of an anvil. By using several in
@@ -240,19 +238,16 @@ public interface AnvilFunction {
   /** Constant for combining enchantments from source and target like Bedrock Edition. */
   AnvilFunction COMBINE_ENCHANTMENTS_BEDROCK_EDITION = new CombineEnchantments() {
     @Override
-    protected EnchantRarity getRarity(Enchantment enchantment) {
+    protected int getAnvilCost(Enchantment enchantment, boolean isFromBook) {
+      EnchantData enchantData = EnchantData.of(enchantment);
+      if (!enchantData.getSecondaryItems().isTagged(Material.TRIDENT)) {
+        return super.getAnvilCost(enchantment, isFromBook);
+      }
+
+      int base = enchantData.getAnvilCost();
+
       // Bedrock Edition rarity is 1 tier lower for trident enchantments.
-      if (enchantment.getItemTarget() != EnchantmentTarget.TRIDENT) {
-        return super.getRarity(enchantment);
-      }
-
-      EnchantRarity rarity = EnchantData.of(enchantment).getRarity();
-
-      if (rarity.ordinal() < 1) {
-        return rarity;
-      }
-
-      return EnchantRarity.values()[rarity.ordinal() - 1];
+      return Math.max(1, isFromBook ? base / 4 : base / 2);
     }
 
     @Override

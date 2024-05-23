@@ -2,14 +2,12 @@ package com.github.jikoo.planarenchanting.anvil;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.doReturn;
 
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
-import com.github.jikoo.planarenchanting.util.mock.TagMocks;
-import java.util.List;
-import org.bukkit.Bukkit;
+import java.util.Set;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Server;
+import org.bukkit.Tag;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
@@ -23,15 +21,15 @@ class RepairMaterialTest {
 
   @BeforeAll
   void beforeAll() {
-    Server server = ServerMocks.mockServer();
+    ServerMocks.mockServer();
 
     // RepairMaterial requires these tags.
-    TagMocks.mockTag(server, "items", NamespacedKey.minecraft("stone_tool_materials"), Material.class,
-        List.of(Material.STONE, Material.ANDESITE, Material.GRANITE, Material.DIORITE));
-    TagMocks.mockTag(server, "blocks", NamespacedKey.minecraft("planks"), Material.class,
-        List.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)); //etc. non-exhaustive list
-
-    Bukkit.setServer(server);
+    Tag<Material> tag = Tag.ITEMS_STONE_TOOL_MATERIALS;
+    doReturn(Set.of(Material.STONE, Material.ANDESITE, Material.GRANITE, Material.DIORITE))
+        .when(tag).getValues();
+    tag = Tag.PLANKS;
+    doReturn(Set.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)) //etc. non-exhaustive list
+        .when(tag).getValues();
   }
 
   @ParameterizedTest
@@ -54,7 +52,8 @@ class RepairMaterialTest {
           SHEARS,
           TRIDENT,
           CROSSBOW,
-          BRUSH -> false;
+          BRUSH,
+          WOLF_ARMOR-> false;
       default -> material.getMaxDurability() > 0;
     };
   }

@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -84,14 +83,13 @@ class TableEnchantListenerTest {
         });
     when(server.getScheduler()).thenReturn(scheduler);
 
-    Bukkit.setServer(server);
     EnchantmentMocks.init(server);
 
-    validEnchant = Enchantment.DIG_SPEED;
+    validEnchant = Enchantment.EFFICIENCY;
     toolEnchants = List.of(
-        Enchantment.DIG_SPEED,
-        Enchantment.DURABILITY,
-        Enchantment.LOOT_BONUS_BLOCKS,
+        Enchantment.EFFICIENCY,
+        Enchantment.UNBREAKING,
+        Enchantment.FORTUNE,
         Enchantment.SILK_TOUCH);
   }
 
@@ -281,7 +279,7 @@ class TableEnchantListenerTest {
         itemStack,
         level,
         new HashMap<>(),
-        Enchantment.DURABILITY,
+        Enchantment.UNBREAKING,
         0,
         buttonIndex);
   }

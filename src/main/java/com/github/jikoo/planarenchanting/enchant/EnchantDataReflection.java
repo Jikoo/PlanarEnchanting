@@ -14,20 +14,25 @@ import org.jetbrains.annotations.NotNull;
 public final class EnchantDataReflection {
 
   /**
-   * Fetch an {@link Enchantment Enchantment's} internal rarity.
+   * Fetch an {@link Enchantment Enchantment's} internal weight.
    *
    * @param enchantment the {@code Enchantment}
-   * @return the rarity or UNKNOWN if unable to fetch
+   * @return the weight or 0 if unknown
    */
-  public static EnchantRarity getRarity(Enchantment enchantment) {
-    return nmsHandler(enchantment, nmsEnchant -> {
-      // NMSREF net.minecraft.world.item.enchantment.Enchantment#getRarity()
-      Object enchantmentRarity = nmsEnchant.getClass().getDeclaredMethod("d").invoke(nmsEnchant);
-      // NMSREF net.minecraft.world.item.enchantment.Enchantment$EnchantRarity#getWeight()
-      int weight = (int) enchantmentRarity.getClass().getDeclaredMethod("a")
-          .invoke(enchantmentRarity);
-      return EnchantRarity.of(weight);
-    }, EnchantRarity.UNKNOWN);
+  public static int getWeight(@NotNull Enchantment enchantment) {
+    // NMSREF net.minecraft.world.item.enchantment.Enchantment#getWeight
+    return nmsHandler(enchantment, nmsEnchant -> (int) nmsEnchant.getClass().getMethod("d").invoke(nmsEnchant), 0);
+  }
+
+  /**
+   * Fetch an {@link Enchantment Enchantment's} internal anvil cost multiplier.
+   *
+   * @param enchantment the {@code Enchantment}
+   * @return the anvil cost multiplier or 40 if unknown
+   */
+  public static int getAnvilCost(@NotNull Enchantment enchantment) {
+    // NMSREF net.minecraft.world.item.enchantment.Enchantment#getAnvilCost
+    return nmsHandler(enchantment, nmsEnchant -> (int) nmsEnchant.getClass().getMethod("e").invoke(nmsEnchant), 40);
   }
 
   /**
@@ -38,7 +43,7 @@ public final class EnchantDataReflection {
    */
   public static IntUnaryOperator getMinCost(Enchantment enchantment) {
     // NMSREF net.minecraft.world.item.enchantment.Enchantment#getMinCost(int)
-    return nmsIntUnaryOperator(enchantment, "a", EnchantDataReflection::defaultMinEnchantQuality);
+    return nmsIntUnaryOperator(enchantment, "c", EnchantDataReflection::defaultMinEnchantQuality);
   }
 
   /**
@@ -59,7 +64,7 @@ public final class EnchantDataReflection {
    */
   public static IntUnaryOperator getMaxCost(Enchantment enchantment) {
     // NMSREF net.minecraft.world.item.enchantment.Enchantment#getMaxCost(int)
-    return nmsIntUnaryOperator(enchantment, "b", EnchantDataReflection::defaultMaxEnchantQuality);
+    return nmsIntUnaryOperator(enchantment, "d", EnchantDataReflection::defaultMaxEnchantQuality);
   }
 
 
@@ -84,7 +89,7 @@ public final class EnchantDataReflection {
   private static IntUnaryOperator nmsIntUnaryOperator(@NotNull Enchantment enchantment,
       @NotNull String methodName, @NotNull IntUnaryOperator defaultOperator) {
     return nmsHandler(enchantment, nmsEnchant -> {
-      Method method = nmsEnchant.getClass().getDeclaredMethod(methodName, int.class);
+      Method method = nmsEnchant.getClass().getMethod(methodName, int.class);
       return level -> {
         try {
           return (int) method.invoke(nmsEnchant, level);

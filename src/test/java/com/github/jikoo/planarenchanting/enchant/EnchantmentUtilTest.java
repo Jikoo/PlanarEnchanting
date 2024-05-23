@@ -14,7 +14,6 @@ import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -32,7 +31,6 @@ class EnchantmentUtilTest {
   @BeforeAll
   void beforeAll() {
     Server server = ServerMocks.mockServer();
-    Bukkit.setServer(server);
     EnchantmentMocks.init(server);
   }
 
@@ -48,8 +46,8 @@ class EnchantmentUtilTest {
     assertThat("Meta is empty", EnchantmentUtil.getEnchants(meta), is(anEmptyMap()));
 
     Map<Enchantment, Integer> enchantments = new HashMap<>();
-    enchantments.put(Enchantment.DIG_SPEED, 10);
-    enchantments.put(Enchantment.LUCK, 5);
+    enchantments.put(Enchantment.EFFICIENCY, 10);
+    enchantments.put(Enchantment.LUCK_OF_THE_SEA, 5);
 
     for (Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
       meta.addStoredEnchant(enchant.getKey(), enchant.getValue(), true);
@@ -68,8 +66,8 @@ class EnchantmentUtilTest {
     assertThat("Meta is empty", EnchantmentUtil.getEnchants(meta), is(anEmptyMap()));
 
     Map<Enchantment, Integer> enchantments = new HashMap<>();
-    enchantments.put(Enchantment.DIG_SPEED, 10);
-    enchantments.put(Enchantment.LUCK, 5);
+    enchantments.put(Enchantment.EFFICIENCY, 10);
+    enchantments.put(Enchantment.LUCK_OF_THE_SEA, 5);
 
     EnchantmentUtil.addEnchants(meta, enchantments);
 
@@ -86,8 +84,8 @@ class EnchantmentUtilTest {
     assertThat("Meta is empty", EnchantmentUtil.getEnchants(meta), is(anEmptyMap()));
 
     Map<Enchantment, Integer> enchantments = new HashMap<>();
-    enchantments.put(Enchantment.DIG_SPEED, 10);
-    enchantments.put(Enchantment.LUCK, 5);
+    enchantments.put(Enchantment.EFFICIENCY, 10);
+    enchantments.put(Enchantment.LUCK_OF_THE_SEA, 5);
 
     for (Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
       meta.addEnchant(enchant.getKey(), enchant.getValue(), true);
@@ -106,8 +104,8 @@ class EnchantmentUtilTest {
     assertThat("Meta is empty", EnchantmentUtil.getEnchants(meta), is(anEmptyMap()));
 
     Map<Enchantment, Integer> enchantments = new HashMap<>();
-    enchantments.put(Enchantment.DIG_SPEED, 10);
-    enchantments.put(Enchantment.LUCK, 5);
+    enchantments.put(Enchantment.EFFICIENCY, 10);
+    enchantments.put(Enchantment.LUCK_OF_THE_SEA, 5);
 
     EnchantmentUtil.addEnchants(meta, enchantments);
 

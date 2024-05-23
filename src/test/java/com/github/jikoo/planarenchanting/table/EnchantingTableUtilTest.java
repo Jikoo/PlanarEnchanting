@@ -34,7 +34,6 @@ import org.bukkit.Registry;
 import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
-import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.InventoryView.Property;
@@ -56,7 +55,6 @@ class EnchantingTableUtilTest {
   @BeforeAll
   void beforeAll() {
     Server server = ServerMocks.mockServer();
-    Bukkit.setServer(server);
     EnchantmentMocks.init(server);
   }
 
@@ -105,8 +103,8 @@ class EnchantingTableUtilTest {
     });
 
     EnchantmentOffer[] offers = new EnchantmentOffer[] {
-        new EnchantmentOffer(Enchantment.DIG_SPEED, 5, 1),
-        new EnchantmentOffer(Enchantment.DURABILITY, 20, 2),
+        new EnchantmentOffer(Enchantment.EFFICIENCY, 5, 1),
+        new EnchantmentOffer(Enchantment.UNBREAKING, 20, 2),
         new EnchantmentOffer(Enchantment.SILK_TOUCH, 30, 3)
     };
 
@@ -206,7 +204,6 @@ class EnchantingTableUtilTest {
     doReturn(NamespacedKey.minecraft(key)).when(enchantment).getKey();
     doReturn(1).when(enchantment).getStartLevel();
     doReturn(1).when(enchantment).getMaxLevel();
-    doReturn(EnchantmentTarget.VANISHABLE).when(enchantment).getItemTarget();
     return enchantment;
   }
 

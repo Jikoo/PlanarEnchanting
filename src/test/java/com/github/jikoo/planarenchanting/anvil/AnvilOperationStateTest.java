@@ -5,20 +5,19 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import com.github.jikoo.planarenchanting.anvil.mock.ReadableResultState;
 import com.github.jikoo.planarenchanting.util.MetaCachedStack;
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
-import com.github.jikoo.planarenchanting.util.mock.TagMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
-import java.util.List;
-import org.bukkit.Bukkit;
+import java.util.Set;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
+import org.bukkit.Tag;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
@@ -47,12 +46,13 @@ class AnvilOperationStateTest {
     when(server.getItemFactory()).thenReturn(factory);
 
     // RepairMaterial requires these tags to be set up.
-    TagMocks.mockTag(server, "items", NamespacedKey.minecraft("stone_tool_materials"), Material.class,
-        List.of(Material.STONE, Material.ANDESITE, Material.GRANITE, Material.DIORITE));
-    TagMocks.mockTag(server, "blocks", NamespacedKey.minecraft("planks"), Material.class,
-        List.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)); //etc. non-exhaustive list
+    Tag<Material> tag = Tag.ITEMS_STONE_TOOL_MATERIALS;
+    doReturn(Set.of(Material.STONE, Material.ANDESITE, Material.GRANITE, Material.DIORITE))
+        .when(tag).getValues();
+    tag = Tag.PLANKS;
+    doReturn(Set.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)) //etc. non-exhaustive list
+        .when(tag).getValues();
 
-    Bukkit.setServer(server);
     EnchantmentMocks.init(server);
   }
 

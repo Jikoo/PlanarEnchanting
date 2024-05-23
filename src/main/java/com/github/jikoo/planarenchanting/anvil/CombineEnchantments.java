@@ -1,16 +1,15 @@
 package com.github.jikoo.planarenchanting.anvil;
 
 import com.github.jikoo.planarenchanting.enchant.EnchantData;
-import com.github.jikoo.planarenchanting.enchant.EnchantRarity;
 import com.github.jikoo.planarenchanting.enchant.EnchantmentUtil;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 abstract class CombineEnchantments implements AnvilFunction {
 
@@ -77,12 +76,8 @@ abstract class CombineEnchantments implements AnvilFunction {
 
   }
 
-  protected EnchantRarity getRarity(Enchantment enchantment) {
-    return EnchantData.of(enchantment).getRarity();
-  }
-
-  private int getAnvilCost(Enchantment enchantment, boolean isFromBook) {
-    int value = getRarity(enchantment).getAnvilValue();
+  protected int getAnvilCost(Enchantment enchantment, boolean isFromBook) {
+    int value = EnchantData.of(enchantment).getAnvilCost();
     return isFromBook ? Math.max(1, value / 2) : value;
   }
 

@@ -7,19 +7,19 @@ public record Enchantment(
     NamespacedKey key,
     IntUnaryOperator minCost,
     IntUnaryOperator maxCost,
-    Rarity d) {
+    // NMSREF \nnet\.minecraft\.world\.item\.enchantment\.Enchantment(.|\n)*?int getWeight\(\)
+    int d,
+    // NMSREF \nnet\.minecraft\.world\.item\.enchantment\.Enchantment(.|\n)*?int getAnvilCost\(\)
+    int e) {
 
   // NMSREF \nnet\.minecraft\.world\.item\.enchantment\.Enchantment(.|\n)*?int getMinCost\(int\)
-  public int a(int level) {
+  public int c(int level) {
     return minCost().applyAsInt(level);
   }
 
   // NMSREF \nnet\.minecraft\.world\.item\.enchantment\.Enchantment(.|\n)*?int getMaxCost\(int\)
-  public int b(int level) {
+  public int d(int level) {
     return maxCost().applyAsInt(level);
   }
-
-  // NMSREF \nnet\.minecraft\.world\.item\.enchantment\.Enchantment\$Rarity(.|\n)*?int getWeight\(\)
-  public record Rarity(int a) {}
 
 }

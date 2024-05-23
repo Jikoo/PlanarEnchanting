@@ -10,7 +10,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -142,25 +141,7 @@ public abstract class TableEnchantListener implements Listener {
    * @return the enchantment seed
    */
   private long getSeed(@NotNull Player player, int buttonIndex) {
-    return getEnchantmentSeed(player) + buttonIndex;
-  }
-
-  /**
-   * Obtain the enchantment seed from the {@link Player}. If not present, generates a new seed.
-   *
-   * @param player the {@link Player}
-   * @return the enchantment seed
-   */
-  private long getEnchantmentSeed(@NotNull Player player) {
-    // Use legacy existing seed if available.
-    var seed = player.getPersistentDataContainer().get(key, PersistentDataType.LONG);
-
-    if (seed == null) {
-      // If legacy seed is not available, use internal seed.
-      return player.getEnchantmentSeed();
-    }
-
-    return seed;
+    return player.getEnchantmentSeed() + buttonIndex;
   }
 
   /**

@@ -10,23 +10,27 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 import com.github.jikoo.planarenchanting.anvil.mock.ReadableResultState;
 import com.github.jikoo.planarenchanting.enchant.EnchantData;
 import com.github.jikoo.planarenchanting.enchant.EnchantmentUtil;
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
+import com.github.jikoo.planarenchanting.util.mock.impl.InternalObject;
 import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
+import org.bukkit.Tag;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.enchantments.EnchantmentTarget;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
@@ -58,19 +62,33 @@ public class CombineEnchantmentsTest {
     ItemFactory factory = ItemFactoryMocks.mockFactory();
     when(server.getItemFactory()).thenReturn(factory);
 
-    Bukkit.setServer(server);
-
     EnchantmentMocks.init(server);
 
-    basicEnchant = Enchantment.DIG_SPEED;
-    rareEnchant = Enchantment.LOOT_BONUS_BLOCKS;
-    commonTridentEnchant = Enchantment.PROTECTION_ENVIRONMENTAL;
+    Tag<Material> tag = Tag.ITEMS_ENCHANTABLE_TRIDENT;
+    doReturn(Set.of(Material.TRIDENT)).when(tag).getValues();
+    doReturn(true).when(tag).isTagged(Material.TRIDENT);
+
+    basicEnchant = Enchantment.EFFICIENCY;
+    rareEnchant = Enchantment.FORTUNE;
     tridentEnchant = Enchantment.RIPTIDE;
 
-    // Set up protection as a trident enchantment.
+    // Set up a fake common-rarity trident enchantment.
     // This is necessary because no actual trident enchantments are currently common, so the
     // defensive code will not be hit in testing normally.
-    doReturn(EnchantmentTarget.TRIDENT).when(commonTridentEnchant).getItemTarget();
+    var commonTrident = (Enchantment & InternalObject<?>) mock(Enchantment.class, withSettings().extraInterfaces(InternalObject.class));
+    NamespacedKey key = NamespacedKey.minecraft("common_trident");
+    doReturn(key).when(commonTrident).getKey();
+    doReturn(
+        new net.minecraft.world.item.enchantment.Enchantment(
+            key,
+            value -> 1,
+            value -> 21,
+            10,
+            1
+        )
+    ).when(commonTrident).getHandle();
+    EnchantmentMocks.putEnchant(commonTrident);
+    commonTridentEnchant = commonTrident;
   }
 
   abstract static class CombineEnchantsTest {
@@ -117,7 +135,7 @@ public class CombineEnchantmentsTest {
     @Test
     void testBasicAdd() {
       Map<Enchantment, Integer> enchantments = new HashMap<>();
-      enchantments.put(Enchantment.DIG_SPEED, 1);
+      enchantments.put(Enchantment.EFFICIENCY, 1);
       ItemStack addition = new ItemStack(BASE_MAT);
       applyEnchantments(addition, enchantments);
 
@@ -147,7 +165,7 @@ public class CombineEnchantmentsTest {
       EnchantData enchantData = EnchantData.of(rareEnchant);
       assertThat(
           "Enchantment must have rarity > 1",
-          enchantData.getRarity().getAnvilValue(),
+          enchantData.getAnvilCost(),
           greaterThan(1));
 
 

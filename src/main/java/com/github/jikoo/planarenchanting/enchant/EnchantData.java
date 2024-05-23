@@ -1,120 +1,106 @@
 package com.github.jikoo.planarenchanting.enchant;
 
+import com.github.jikoo.planarenchanting.util.ItemUtil;
 import com.github.jikoo.planarwrappers.util.WeightedRandom;
-import org.bukkit.enchantments.Enchantment;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.IntUnaryOperator;
+import org.bukkit.Material;
+import org.bukkit.Tag;
+import org.bukkit.enchantments.Enchantment;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class EnchantData implements WeightedRandom.Choice {
 
   private static final Map<Enchantment, EnchantData> ENCHANT_DATA = new HashMap<>();
 
   static {
-    IntUnaryOperator modLootBonus = modLvl(15, 9);
-    IntUnaryOperator modLootMax = level -> modLootBonus.applyAsInt(level) + 50;
-    addLoot(Enchantment.LOOT_BONUS_MOBS, modLootBonus, modLootMax);
-    addLoot(Enchantment.LOOT_BONUS_BLOCKS, modLootBonus, modLootMax);
-    addLoot(Enchantment.LUCK, modLootBonus, modLootMax);
-    addLoot(Enchantment.LURE, modLootBonus, modLootMax);
-
-    addProtection(Enchantment.PROTECTION_ENVIRONMENTAL, EnchantRarity.COMMON, 1, 11);
-    addProtection(Enchantment.PROTECTION_FIRE, EnchantRarity.UNCOMMON, 10, 8);
-    addProtection(Enchantment.PROTECTION_FALL, EnchantRarity.UNCOMMON, 5, 6);
-    addProtection(Enchantment.PROTECTION_EXPLOSIONS, EnchantRarity.RARE, 5, 8);
-    addProtection(Enchantment.PROTECTION_PROJECTILE, EnchantRarity.UNCOMMON, 3, 6);
-
-    IntUnaryOperator lvlTimes10 = level -> level * 10;
-
-    add(Enchantment.OXYGEN, EnchantRarity.RARE, lvlTimes10, 30);
-    add(Enchantment.WATER_WORKER, EnchantRarity.RARE, flat(1), 40);
-    add(Enchantment.THORNS, EnchantRarity.VERY_RARE, modLvl(10, 20));
-    add(Enchantment.DEPTH_STRIDER, EnchantRarity.RARE, lvlTimes10, 15);
-    add(Enchantment.FROST_WALKER, EnchantRarity.RARE, lvlTimes10, 15);
-    add(Enchantment.SOUL_SPEED, EnchantRarity.VERY_RARE, lvlTimes10, 15);
-    IntUnaryOperator lvlTimes25 = level -> level * 25;
-    add(Enchantment.SWIFT_SNEAK, EnchantRarity.VERY_RARE, lvlTimes25, 50);
-
-    add(Enchantment.DAMAGE_ALL, EnchantRarity.COMMON, modLvl(1, 11), 20);
-    add(Enchantment.DAMAGE_UNDEAD, EnchantRarity.UNCOMMON, modLvl(5, 8), 20);
-    add(Enchantment.DAMAGE_ARTHROPODS, EnchantRarity.UNCOMMON, modLvl(5, 8), 20);
-    add(Enchantment.KNOCKBACK, EnchantRarity.UNCOMMON, modLvl(5, 20));
-    add(Enchantment.FIRE_ASPECT, EnchantRarity.RARE, modLvl(10, 20));
-    add(Enchantment.SWEEPING_EDGE, EnchantRarity.RARE, modLvl(5, 9), 15);
-
-    add(Enchantment.DIG_SPEED, EnchantRarity.COMMON, modLvl(1, 10));
-    add(Enchantment.SILK_TOUCH, EnchantRarity.VERY_RARE, flat(15), modLvl(61, 10));
-    add(Enchantment.DURABILITY, EnchantRarity.UNCOMMON, modLvl(5, 8));
-
-    IntUnaryOperator flat25 = flat(25);
-    IntUnaryOperator flat50 = flat(50);
-
-    add(Enchantment.VANISHING_CURSE, EnchantRarity.VERY_RARE, flat25, flat50);
-    add(Enchantment.BINDING_CURSE, EnchantRarity.VERY_RARE, flat25, flat50);
-
-    IntUnaryOperator flat20 = flat(20);
-
-    add(Enchantment.ARROW_DAMAGE, EnchantRarity.COMMON, modLvl(1, 10), 15);
-    add(Enchantment.ARROW_KNOCKBACK, EnchantRarity.RARE, modLvl(12, 20), 25);
-    add(Enchantment.ARROW_FIRE, EnchantRarity.RARE, flat20, flat50);
-    add(Enchantment.ARROW_INFINITE, EnchantRarity.VERY_RARE, flat20, flat50);
-    add(Enchantment.LOYALTY, EnchantRarity.UNCOMMON, modLvl(12, 7), flat50);
-    add(Enchantment.IMPALING, EnchantRarity.RARE, modLvl(1, 8), 20);
-    add(Enchantment.RIPTIDE, EnchantRarity.RARE, modLvl(17, 7), flat50);
-    add(Enchantment.CHANNELING, EnchantRarity.VERY_RARE, flat25, flat50);
-    add(Enchantment.MULTISHOT, EnchantRarity.RARE, flat20, flat50);
-    add(Enchantment.QUICK_CHARGE, EnchantRarity.UNCOMMON, level -> 12 + (level - 1) * 20, flat50);
-    add(Enchantment.PIERCING, EnchantRarity.COMMON, modLvl(1, 10), flat50);
-    add(Enchantment.MENDING, EnchantRarity.RARE, lvlTimes25);
+    // NMSREF net.minecraft.world.item.enchantment.Enchantments
+    // Armor
+    add(Enchantment.PROTECTION, Tag.ITEMS_ENCHANTABLE_ARMOR, 10, 1, perLvl(1, 11), perLvl(12, 11));
+    add(Enchantment.FIRE_PROTECTION, Tag.ITEMS_ENCHANTABLE_ARMOR, 5, 2, perLvl(10, 8), perLvl(18, 8));
+    add(Enchantment.FEATHER_FALLING, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, 5, 2, perLvl(5, 6), perLvl(11, 6));
+    add(Enchantment.BLAST_PROTECTION, Tag.ITEMS_ENCHANTABLE_ARMOR, 2, 4, perLvl(1, 11), perLvl(12, 11));
+    add(Enchantment.PROJECTILE_PROTECTION, Tag.ITEMS_ENCHANTABLE_ARMOR, 5, 2, perLvl(3, 6), perLvl(9, 6));
+    add(Enchantment.RESPIRATION, Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR, 2, 4, perLvl(10, 10), perLvl(40, 10));
+    add(Enchantment.AQUA_AFFINITY, Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR, 2, 4, flat(1), flat(41));
+    add(Enchantment.THORNS, Tag.ITEMS_ENCHANTABLE_CHEST_ARMOR, 1, 8, perLvl(10, 20), perLvl(60, 20));
+    add(Enchantment.DEPTH_STRIDER, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, 2, 4, perLvl(10, 10), perLvl(25, 10));
+    add(Enchantment.FROST_WALKER, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, 2, 4, perLvl(10, 10), perLvl(25, 10));
+    add(Enchantment.BINDING_CURSE, Tag.ITEMS_ENCHANTABLE_EQUIPPABLE, 1, 8, flat(25), flat(50));
+    add(Enchantment.SOUL_SPEED, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, 1, 8, perLvl(10, 10), perLvl(25, 10));
+    add(Enchantment.SWIFT_SNEAK, Tag.ITEMS_ENCHANTABLE_LEG_ARMOR, 1, 8, perLvl(25, 25), perLvl(75, 25));
+    // Melee weapon
+    add(Enchantment.SHARPNESS, Tag.ITEMS_ENCHANTABLE_SHARP_WEAPON, Tag.ITEMS_ENCHANTABLE_SWORD, 10, 1, perLvl(1, 11), perLvl(21, 11));
+    add(Enchantment.SMITE, Tag.ITEMS_ENCHANTABLE_WEAPON, Tag.ITEMS_ENCHANTABLE_SWORD, 5, 2, perLvl(5, 8), perLvl(25, 8));
+    add(Enchantment.BANE_OF_ARTHROPODS, Tag.ITEMS_ENCHANTABLE_WEAPON, Tag.ITEMS_ENCHANTABLE_SWORD, 5, 2, perLvl(5, 8), perLvl(25, 8));
+    add(Enchantment.KNOCKBACK, Tag.ITEMS_ENCHANTABLE_SWORD, 5, 2, perLvl(5, 20), perLvl(55, 20));
+    add(Enchantment.FIRE_ASPECT, Tag.ITEMS_ENCHANTABLE_FIRE_ASPECT, 2, 4, perLvl(10, 20), perLvl(60, 20));
+    add(Enchantment.LOOTING, Tag.ITEMS_ENCHANTABLE_SWORD, 2, 4, perLvl(15, 9), perLvl(65, 9));
+    add(Enchantment.SWEEPING_EDGE, Tag.ITEMS_ENCHANTABLE_SWORD, 2, 4, perLvl(5, 9), perLvl(20, 9));
+    // Tool
+    add(Enchantment.EFFICIENCY, Tag.ITEMS_ENCHANTABLE_MINING, 10, 1, perLvl(1, 10), perLvl(51, 10));
+    add(Enchantment.SILK_TOUCH, Tag.ITEMS_ENCHANTABLE_MINING_LOOT, 1, 8, flat(15), flat(65));
+    add(Enchantment.UNBREAKING, Tag.ITEMS_ENCHANTABLE_DURABILITY, 5, 2, perLvl(5, 8), perLvl(55, 8));
+    add(Enchantment.FORTUNE, Tag.ITEMS_ENCHANTABLE_MINING_LOOT, 2, 4, perLvl(15, 9), perLvl(65, 9));
+    // Bow
+    add(Enchantment.POWER, Tag.ITEMS_ENCHANTABLE_BOW, 10, 1, perLvl(1, 10), perLvl(16, 10));
+    add(Enchantment.PUNCH, Tag.ITEMS_ENCHANTABLE_BOW, 2, 4, perLvl(12, 20), perLvl(37, 20));
+    add(Enchantment.FLAME, Tag.ITEMS_ENCHANTABLE_BOW, 2, 4, flat(20), flat(50));
+    add(Enchantment.INFINITY, Tag.ITEMS_ENCHANTABLE_BOW, 1, 8, flat(20), flat(50));
+    // Fishing rod
+    add(Enchantment.LUCK_OF_THE_SEA, Tag.ITEMS_ENCHANTABLE_FISHING, 2, 4, perLvl(15, 9), perLvl(65, 9));
+    add(Enchantment.LURE, Tag.ITEMS_ENCHANTABLE_FISHING, 2, 4, perLvl(15, 9), perLvl(65, 9));
+    // Trident
+    add(Enchantment.LOYALTY, Tag.ITEMS_ENCHANTABLE_TRIDENT, 5, 2, perLvl(12, 7), flat(50));
+    add(Enchantment.IMPALING, Tag.ITEMS_ENCHANTABLE_TRIDENT, 2, 4, perLvl(1, 8), perLvl(21, 8));
+    add(Enchantment.RIPTIDE, Tag.ITEMS_ENCHANTABLE_TRIDENT, 2, 4, perLvl(17, 7), flat(50));
+    add(Enchantment.CHANNELING, Tag.ITEMS_ENCHANTABLE_TRIDENT, 1, 8, flat(25), flat(50));
+    // Crossbow
+    add(Enchantment.MULTISHOT, Tag.ITEMS_ENCHANTABLE_CROSSBOW, 2, 4, flat(20), flat(50));
+    add(Enchantment.QUICK_CHARGE, Tag.ITEMS_ENCHANTABLE_CROSSBOW, 5, 2, perLvl(12, 20), flat(50));
+    add(Enchantment.PIERCING, Tag.ITEMS_ENCHANTABLE_CROSSBOW, 10, 1, perLvl(1, 10), flat(50));
+    // General
+    add(Enchantment.MENDING, Tag.ITEMS_ENCHANTABLE_DURABILITY, 2, 4, perLvl(25, 25), perLvl(75, 25));
+    add(Enchantment.VANISHING_CURSE, Tag.ITEMS_ENCHANTABLE_VANISHING, 1, 8, flat(25), flat(50));
+    // Mace
+    // NMSREF net.minecraft.world.item.enchantment.BreachEnchantment
+    add(Enchantment.BREACH, Tag.ITEMS_ENCHANTABLE_MACE, 2, 4, perLvl(15, 9), perLvl(65, 9));
+    // NMSREF net.minecraft.world.item.enchantment.DensityEnchantment
+    add(Enchantment.DENSITY, Tag.ITEMS_ENCHANTABLE_MACE, 10, 1, perLvl(1, 11), perLvl(21, 11));
+    // NMSREF net.minecraft.world.item.enchantment.WindBurstEnchantment
+    add(Enchantment.WIND_BURST, Tag.ITEMS_ENCHANTABLE_MACE, 2, 4, perLvl(15, 9), perLvl(65, 9));
   }
 
-  private static @NotNull IntUnaryOperator modLvl(int base, int levelMod) {
-    return level -> base + (level - 1) * levelMod;
+  private static void add(
+      @NotNull Enchantment enchant,
+      @Nullable Tag<Material> primaryItems,
+      @NotNull Tag<Material> secondaryItems,
+      int weight,
+      int anvilCost,
+      @NotNull IntUnaryOperator minEnchantQuality,
+      @NotNull IntUnaryOperator maxEnchantQuality) {
+    ENCHANT_DATA.put(enchant, new EnchantData(enchant, primaryItems, secondaryItems, weight, anvilCost, minEnchantQuality, maxEnchantQuality));
+  }
+
+  private static void add(
+      @NotNull Enchantment enchant,
+      @NotNull Tag<Material> items,
+      int weight,
+      int anvilCost,
+      @NotNull IntUnaryOperator minEnchantQuality,
+      @NotNull IntUnaryOperator maxEnchantQuality) {
+    ENCHANT_DATA.put(enchant, new EnchantData(enchant, enchant.isTreasure() ? ItemUtil.TAG_EMPTY : null, items, weight, anvilCost, minEnchantQuality, maxEnchantQuality));
+  }
+
+  private static @NotNull IntUnaryOperator perLvl(int base, int perLevel) {
+    return level -> base + (level - 1) * perLevel;
   }
 
   private static @NotNull IntUnaryOperator flat(int value) {
     return integer -> value;
-  }
-
-  private static void add(
-      @NotNull Enchantment enchantment,
-      @NotNull EnchantRarity enchantRarity,
-      @NotNull IntUnaryOperator min,
-      @NotNull IntUnaryOperator max) {
-    EnchantData data = new EnchantData(enchantment, enchantRarity, min, max);
-    ENCHANT_DATA.put(data.getEnchantment(), data);
-  }
-
-  private static void add(
-      @NotNull Enchantment enchantment,
-      @NotNull EnchantRarity enchantRarity,
-      @NotNull IntUnaryOperator min,
-      int maxMod) {
-    add(enchantment, enchantRarity, min, level -> min.applyAsInt(level) + maxMod);
-  }
-
-  private static void add(
-      @NotNull Enchantment enchantment,
-      @NotNull EnchantRarity enchantRarity,
-      @NotNull IntUnaryOperator min) {
-    add(enchantment, enchantRarity, min, 50);
-  }
-
-  private static void addProtection(
-      @NotNull Enchantment enchantment,
-      @NotNull EnchantRarity enchantRarity,
-      int base,
-      int levelMod) {
-    add(enchantment, enchantRarity, modLvl(base, levelMod), levelMod);
-  }
-
-  private static void addLoot(
-      @NotNull Enchantment enchantment,
-      @NotNull IntUnaryOperator min,
-      @NotNull IntUnaryOperator max) {
-    add(enchantment, EnchantRarity.RARE, min, max);
   }
 
   @TestOnly
@@ -127,38 +113,69 @@ public class EnchantData implements WeightedRandom.Choice {
   }
 
   private final @NotNull Enchantment enchantment;
-  private final @NotNull EnchantRarity enchantRarity;
+  private final @Nullable Tag<Material> primaryItems;
+  private final @NotNull Tag<Material> secondaryItems;
+  private final int weight;
+  private final int anvilCost;
   private final @NotNull IntUnaryOperator minCost;
   private final @NotNull IntUnaryOperator maxCost;
 
   private EnchantData(@NotNull Enchantment enchantment) {
-    this(enchantment, EnchantDataReflection.getRarity(enchantment),
+    this(enchantment,
+        null, // TODO
+        Tag.WALL_SIGNS, // TODO
+        EnchantDataReflection.getWeight(enchantment),
+        EnchantDataReflection.getAnvilCost(enchantment),
         EnchantDataReflection.getMinCost(enchantment),
         EnchantDataReflection.getMaxCost(enchantment));
   }
 
   private EnchantData(
       @NotNull Enchantment enchantment,
-      @NotNull EnchantRarity enchantRarity,
+      @Nullable Tag<Material> primaryItems,
+      @NotNull Tag<Material> secondaryItems,
+      int weight,
+      int anvilCost,
       @NotNull IntUnaryOperator minEnchantQuality,
       @NotNull IntUnaryOperator maxEnchantQuality) {
     this.enchantment = enchantment;
-    this.enchantRarity = enchantRarity;
+    this.primaryItems = primaryItems;
+    this.secondaryItems = secondaryItems;
+    this.weight = weight;
+    this.anvilCost = anvilCost;
     this.minCost = minEnchantQuality;
     this.maxCost = maxEnchantQuality;
   }
 
   public @NotNull Enchantment getEnchantment() {
-    return this.enchantment;
+    return enchantment;
   }
 
-  public @NotNull EnchantRarity getRarity() {
-    return this.enchantRarity;
+  /**
+   * Get a {@link Tag} containing the items this enchantment is intended to apply to from an enchanting table.
+   *
+   * <p>In vanilla, this is used specifically for enchantments that can be applied to different
+   * items by a table and anvil, i.e. sharpness. Enchantments with identical table and anvil lists
+   * report their secondary list as being the primary. For treasure enchantments, the primary tag is
+   * empty if not available (unlike vanilla).
+   *
+   * @return
+   */
+  public @NotNull Tag<Material> getPrimaryItems() {
+    return primaryItems == null ? secondaryItems : primaryItems;
+  }
+
+  public @NotNull Tag<Material> getSecondaryItems() {
+    return secondaryItems;
   }
 
   @Override
   public int getWeight() {
-    return this.getRarity().getWeight();
+    return this.weight;
+  }
+
+  public int getAnvilCost() {
+    return this.anvilCost;
   }
 
   public int getMinCost(int level) {

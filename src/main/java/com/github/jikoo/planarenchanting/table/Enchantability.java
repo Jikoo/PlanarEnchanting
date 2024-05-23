@@ -33,6 +33,7 @@ public record Enchantability(@Range(from = 1, to = Integer.MAX_VALUE) int value)
   public static final Enchantability GOLD_TOOL;
   public static final Enchantability BOOK;
   public static final Enchantability TRIDENT;
+  public static final Enchantability MACE;
 
   /**
    * Get the {@code Enchantability} of a {@link Material}. Will return {@code null} if not
@@ -78,6 +79,7 @@ public record Enchantability(@Range(from = 1, to = Integer.MAX_VALUE) int value)
     BOOK = addMaterial(Material.BOOK, new Enchantability(1));
     BY_MATERIAL.put(Material.ENCHANTED_BOOK, BOOK);
     TRIDENT = addMaterial(Material.TRIDENT, BOOK);
+    MACE = addMaterial(Material.MACE, LEATHER);
   }
 
   @Contract("_, _ -> param2")

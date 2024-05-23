@@ -1,6 +1,6 @@
 package com.github.jikoo.planarenchanting.anvil;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.bukkit.Material;
@@ -30,8 +30,7 @@ public final class RepairMaterial {
     return recipeChoice != null && recipeChoice.test(addition);
   }
 
-  private static final Map<Material, RecipeChoice> MATERIALS_TO_REPAIRABLE
-      = new EnumMap<>(Material.class);
+  private static final Map<Material, RecipeChoice> MATERIALS_TO_REPAIRABLE = new HashMap<>();
 
   static {
     String[] armor = new String[] { "_HELMET", "_CHESTPLATE", "_LEGGINGS", "_BOOTS" };
@@ -62,8 +61,9 @@ public final class RepairMaterial {
     addGear("NETHERITE", armortools, Material.NETHERITE_INGOT);
 
     // Misc. repairable items
-    MATERIALS_TO_REPAIRABLE.put(Material.TURTLE_HELMET, singleChoice(Material.SCUTE));
+    MATERIALS_TO_REPAIRABLE.put(Material.TURTLE_HELMET, singleChoice(Material.TURTLE_SCUTE));
     MATERIALS_TO_REPAIRABLE.put(Material.ELYTRA, singleChoice(Material.PHANTOM_MEMBRANE));
+    MATERIALS_TO_REPAIRABLE.put(Material.MACE, singleChoice(Material.BREEZE_ROD));
   }
 
   private static void addGear(String type, String[] gearType, RecipeChoice repairChoice) {
