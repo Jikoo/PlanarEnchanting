@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,8 +45,8 @@ class EnchantingTableTest {
 
   @BeforeAll
   void beforeAll() {
-    Server server = ServerMocks.mockServer();
-    EnchantmentMocks.init(server);
+    ServerMocks.mockServer();
+    EnchantmentMocks.init();
     toolEnchants = List.of(
         Enchantment.EFFICIENCY,
         Enchantment.UNBREAKING,

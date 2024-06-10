@@ -69,7 +69,7 @@ class AnvilFunctionTest {
     doReturn(Set.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)) //etc. non-exhaustive list
         .when(tag).getValues();
 
-    EnchantmentMocks.init(server);
+    EnchantmentMocks.init();
   }
 
   @Nested

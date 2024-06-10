@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
-import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.Player;
@@ -54,8 +53,8 @@ class EnchantingTableUtilTest {
 
   @BeforeAll
   void beforeAll() {
-    Server server = ServerMocks.mockServer();
-    EnchantmentMocks.init(server);
+    ServerMocks.mockServer();
+    EnchantmentMocks.init();
   }
 
   @DisplayName("Enchanting table button levels should be calculated consistently.")

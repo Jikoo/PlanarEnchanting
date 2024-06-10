@@ -8,6 +8,7 @@ import com.github.jikoo.planarenchanting.util.ItemUtil;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,7 +17,6 @@ import java.util.Set;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
-import org.bukkit.Server;
 import org.bukkit.Tag;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -26,11 +26,7 @@ import org.mockito.ArgumentMatchers;
 public class EnchantmentMocks {
   private static final Map<NamespacedKey, Enchantment> KEYS_TO_ENCHANTS = new HashMap<>();
 
-  public static void init(Server server) {
-    Registry<?> registry = Registry.ENCHANTMENT;
-    // Redirect enchantment registry back so that our modified version is always returned.
-    doReturn(registry).when(server).getRegistry(Enchantment.class);
-
+  public static void init() {
     List<Enchantment> protections = List.of(Enchantment.PROTECTION, Enchantment.FIRE_PROTECTION, Enchantment.BLAST_PROTECTION, Enchantment.PROJECTILE_PROTECTION);
     setUpEnchant(Enchantment.PROTECTION, 4, Tag.ITEMS_ENCHANTABLE_ARMOR, protections);
     setUpEnchant(Enchantment.FIRE_PROTECTION, 4, Tag.ITEMS_ENCHANTABLE_ARMOR, protections);
@@ -96,8 +92,6 @@ public class EnchantmentMocks {
           Enchantment stored = KEYS_TO_ENCHANTS.get(declaredEnchant.getKey());
           if (stored == null) {
             missingInternalEnchants.add(declaredEnchant.getKey().toString());
-          } else {
-            doReturn(field.getName()).when(stored).getName();
           }
         }
       }
@@ -109,12 +103,13 @@ public class EnchantmentMocks {
       throw new IllegalStateException("Missing enchantment declarations for " + missingInternalEnchants);
     }
 
-    // When all enchantments are initialized using Bukkit keys, redirect registry to our map
-    // so that invalid keys result in the expected null response.
+    Registry<Enchantment> registry = Registry.ENCHANTMENT;
+    // When all enchantments are initialized, redirect registry to our map.
+    // This allows us to add and test custom enchantments much more easily.
     doAnswer(invocation -> KEYS_TO_ENCHANTS.get(invocation.getArgument(0, NamespacedKey.class)))
         .when(registry).get(ArgumentMatchers.notNull());
     doAnswer(invocation -> KEYS_TO_ENCHANTS.values().stream()).when(registry).stream();
-    doAnswer(invocation -> KEYS_TO_ENCHANTS.values().iterator()).when(registry).iterator();
+    doAnswer(invocation -> Collections.unmodifiableCollection(KEYS_TO_ENCHANTS.values()).iterator()).when(registry).iterator();
   }
 
   public static void putEnchant(@NotNull Enchantment enchantment) {

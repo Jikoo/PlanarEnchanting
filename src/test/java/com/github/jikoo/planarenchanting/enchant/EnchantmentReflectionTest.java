@@ -14,7 +14,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
-import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -44,8 +43,8 @@ class EnchantmentReflectionTest {
 
   @BeforeAll
   void beforeAll() {
-    Server server = ServerMocks.mockServer();
-    EnchantmentMocks.init(server);
+    ServerMocks.mockServer();
+    EnchantmentMocks.init();
 
     Registry.ENCHANTMENT.stream().map(enchantment -> {
       // Keep mending default to check fallthrough.

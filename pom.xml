@@ -13,8 +13,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
   </properties>
 
   <profiles>
@@ -68,7 +68,7 @@
       <dependency>
         <groupId>com.github.jikoo</groupId>
         <artifactId>planarwrappers</artifactId>
-        <version>3.2.2</version>
+        <version>3.2.3</version>
         <scope>provided</scope>
       </dependency>
       <!-- Tests -->
@@ -143,6 +143,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.2.5</version>
           <configuration>
+            <argLine>-XX:+EnableDynamicAgentLoading -Xshare:off</argLine>
             <!-- Github Actions offers 2 cores for Linux. -->
             <forkCount>2</forkCount>
             <!-- Bukkit initializes so many static objects that we cannot reasonably reuse forks. -->

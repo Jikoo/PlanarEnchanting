@@ -62,7 +62,7 @@ public class CombineEnchantmentsTest {
     ItemFactory factory = ItemFactoryMocks.mockFactory();
     when(server.getItemFactory()).thenReturn(factory);
 
-    EnchantmentMocks.init(server);
+    EnchantmentMocks.init();
 
     Tag<Material> tag = Tag.ITEMS_ENCHANTABLE_TRIDENT;
     doReturn(Set.of(Material.TRIDENT)).when(tag).getValues();

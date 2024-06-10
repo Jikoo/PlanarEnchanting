@@ -12,7 +12,6 @@ import com.github.jikoo.planarenchanting.util.mock.impl.InternalObject;
 import java.util.stream.Stream;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
-import org.bukkit.Server;
 import org.bukkit.enchantments.Enchantment;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -27,8 +26,8 @@ class EnchantDataTest {
 
   @BeforeAll
   void beforeAll() {
-    Server server = ServerMocks.mockServer();
-    EnchantmentMocks.init(server);
+    ServerMocks.mockServer();
+    EnchantmentMocks.init();
   }
 
   @DisplayName("Enchantments must be explicitly supported.")

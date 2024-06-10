@@ -83,7 +83,7 @@ class TableEnchantListenerTest {
         });
     when(server.getScheduler()).thenReturn(scheduler);
 
-    EnchantmentMocks.init(server);
+    EnchantmentMocks.init();
 
     validEnchant = Enchantment.EFFICIENCY;
     toolEnchants = List.of(
