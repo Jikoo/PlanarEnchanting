@@ -159,7 +159,7 @@ public class EnchantData implements WeightedRandom.Choice {
    * report their secondary list as being the primary. For treasure enchantments, the primary tag is
    * empty if not available (unlike vanilla).
    *
-   * @return
+   * @return the corresponding tag
    */
   public @NotNull Tag<Material> getPrimaryItems() {
     return primaryItems == null ? secondaryItems : primaryItems;

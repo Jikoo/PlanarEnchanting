@@ -1,8 +1,7 @@
 # PlanarEnchanting
 
-![Build](https://github.com/Jikoo/PlanarEnchanting/workflows/Build/badge.svg)
+[![Build](https://github.com/Jikoo/PlanarEnchanting/actions/workflows/ci.yml/badge.svg)](https://github.com/Jikoo/PlanarEnchanting/actions/workflows/ci.yml)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Jikoo_PlanarEnchanting&metric=coverage)](https://sonarcloud.io/dashboard?id=Jikoo_PlanarEnchanting)  
-Yet another Bukkit-related library.
 
 ## About
 

@@ -35,6 +35,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.view.EnchantmentView;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
@@ -247,7 +248,7 @@ class TableEnchantListenerTest {
   private @NotNull PrepareItemEnchantEvent prepareEvent(int bonus) {
     return new PrepareItemEnchantEvent(
         player,
-        player.getOpenInventory(),
+        (EnchantmentView) player.getOpenInventory(),
         player.getLocation().getBlock(),
         itemStack,
         new EnchantmentOffer[3],
