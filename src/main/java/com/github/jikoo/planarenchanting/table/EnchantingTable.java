@@ -17,8 +17,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.view.EnchantmentView;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -255,27 +254,14 @@ public class EnchantingTable {
    * problems that prevent the client from enchanting ordinarily un-enchantable objects.
    *
    * @param plugin the plugin sending the update
-   * @param player the player enchanting
+   * @param view the view of the enchantment table
    * @param offers the enchantment offers
    */
-  public static void updateButtons(@NotNull Plugin plugin, @NotNull Player player,
+  public static void updateButtons(
+      @NotNull Plugin plugin,
+      @NotNull EnchantmentView view,
       @Nullable EnchantmentOffer @NotNull [] offers) {
-    Bukkit.getScheduler().runTaskLater(plugin, () -> {
-      for (int i = 1; i <= 3; ++i) {
-        EnchantmentOffer offer = offers[i - 1];
-        if (offer != null) {
-          player.setWindowProperty(
-              InventoryView.Property.valueOf("ENCHANT_BUTTON" + i),
-              offer.getCost());
-          player.setWindowProperty(
-              InventoryView.Property.valueOf("ENCHANT_LEVEL" + i),
-              offer.getEnchantmentLevel());
-          player.setWindowProperty(
-              InventoryView.Property.valueOf("ENCHANT_ID" + i),
-              getEnchantmentId(offer.getEnchantment()));
-        }
-      }
-    }, 1L);
+    Bukkit.getScheduler().runTaskLater(plugin, () -> view.setOffers(offers), 1L);
   }
 
   /**

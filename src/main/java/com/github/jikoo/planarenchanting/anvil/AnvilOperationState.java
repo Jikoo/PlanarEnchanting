@@ -3,9 +3,9 @@ package com.github.jikoo.planarenchanting.anvil;
 import com.github.jikoo.planarenchanting.util.ItemUtil;
 import com.github.jikoo.planarenchanting.util.MetaCachedStack;
 import org.bukkit.Bukkit;
-import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
+import org.bukkit.inventory.view.AnvilView;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 public class AnvilOperationState {
 
   private final @NotNull AnvilOperation operation;
-  private final @NotNull AnvilInventory inventory;
+  private final @NotNull AnvilView view;
   private final @NotNull MetaCachedStack base;
   private final @NotNull MetaCachedStack addition;
   protected final @NotNull MetaCachedStack result;
@@ -25,27 +25,27 @@ public class AnvilOperationState {
    * Create an {@code AnvilOperationState} instance for the given operation and inventory.
    *
    * @param operation the {@link AnvilOperation} mutating the state
-   * @param inventory the {@link AnvilInventory} the state is derived from
+   * @param view the {@link AnvilView} the state is derived from
    */
-  public AnvilOperationState(@NotNull AnvilOperation operation, @NotNull AnvilInventory inventory) {
+  public AnvilOperationState(@NotNull AnvilOperation operation, @NotNull AnvilView view) {
     this.operation = operation;
-    this.inventory = inventory;
-    this.base = new MetaCachedStack(this.inventory.getItem(0));
-    this.addition = new MetaCachedStack(this.inventory.getItem(1));
+    this.view = view;
+    this.base = new MetaCachedStack(this.view.getItem(0));
+    this.addition = new MetaCachedStack(this.view.getItem(1));
     this.result = new MetaCachedStack(this.base.getItem().clone());
   }
 
   /**
-   * Get the {@link AnvilInventory} the state is derived from.
+   * Get the {@link AnvilView} the state is derived from.
    *
-   * @return the {@code AnvilInventory}
+   * @return the {@code AnvilView}
    */
-  public AnvilInventory getAnvil() {
-    return this.inventory;
+  public AnvilView getAnvil() {
+    return this.view;
   }
 
   /**
-   * Get the base input item from the {@link AnvilInventory}.
+   * Get the base input item from the {@link AnvilView}.
    *
    * @return the base input item
    */
@@ -54,7 +54,7 @@ public class AnvilOperationState {
   }
 
   /**
-   * Get the secondary input item from the {@link AnvilInventory}.
+   * Get the secondary input item from the {@link AnvilView}.
    *
    * @return the secondary input item
    */

@@ -1,12 +1,12 @@
 package com.github.jikoo.planarenchanting.anvil;
 
+import com.github.jikoo.planarenchanting.util.ItemUtil;
 import java.util.function.BiPredicate;
 import java.util.function.ToIntFunction;
-import com.github.jikoo.planarenchanting.util.ItemUtil;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.view.AnvilView;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -130,7 +130,7 @@ public class AnvilOperation {
   /**
    * Set the method determining whether an item is repaired by another item. This is not the same as
    * a repair via combination of like items! Like items always attempt to combine durability. If
-   * you require different behavior, override {@link #apply(AnvilInventory)} and do not call
+   * you require different behavior, override {@link #apply(AnvilView)} and do not call
    * {@link AnvilFunction#REPAIR_WITH_COMBINATION}.
    *
    * <p>N.B. Only {@link org.bukkit.inventory.meta.Damageable Damageable} items can be repaired.
@@ -148,8 +148,8 @@ public class AnvilOperation {
    *
    * @return the {@code AnvilResult}
    */
-  public @NotNull AnvilResult apply(@NotNull AnvilInventory inventory) {
-    AnvilOperationState state = new AnvilOperationState(this, inventory);
+  public @NotNull AnvilResult apply(@NotNull AnvilView view) {
+    AnvilOperationState state = new AnvilOperationState(this, view);
 
     if (ItemUtil.isEmpty(state.getBase().getItem())) {
       return AnvilResult.EMPTY;

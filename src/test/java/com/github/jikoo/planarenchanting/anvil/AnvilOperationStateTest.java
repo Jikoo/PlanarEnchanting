@@ -5,7 +5,11 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.github.jikoo.planarenchanting.anvil.mock.ReadableResultState;
@@ -18,11 +22,11 @@ import java.util.Set;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.Tag;
-import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
+import org.bukkit.inventory.view.AnvilView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
@@ -36,7 +40,7 @@ import org.junit.jupiter.api.TestInstance;
 class AnvilOperationStateTest {
 
   private AnvilOperation operation;
-  private AnvilInventory inventory;
+  private AnvilView view;
 
   @BeforeAll
   void beforeAll() {
@@ -59,34 +63,42 @@ class AnvilOperationStateTest {
   @BeforeEach
   void beforeEach() {
     operation = new AnvilOperation();
-    inventory = InventoryMocks.newAnvilMock();
+
+    var anvil = InventoryMocks.newAnvilMock();
+    view = mock(AnvilView.class);
+    doAnswer(params -> anvil.getItem(params.getArgument(0)))
+        .when(view).getItem(anyInt());
+    doAnswer(params -> {
+      anvil.setItem(params.getArgument(0), params.getArgument(1));
+      return null;
+    }).when(view).setItem(anyInt(), any());
   }
 
   @Test
   void testGetAnvil() {
-    var state = new AnvilOperationState(operation, inventory);
-    assertThat("Anvil must be provided instance", state.getAnvil(), is(inventory));
+    var state = new AnvilOperationState(operation, view);
+    assertThat("Anvil must be provided instance", state.getAnvil(), is(view));
   }
 
   @Test
   void testBase() {
     var base = new ItemStack(Material.DIRT);
-    inventory.setItem(0, base);
-    var state = new AnvilOperationState(operation, inventory);
+    view.setItem(0, base);
+    var state = new AnvilOperationState(operation, view);
     assertThat("Base item must match", state.getBase().getItem(), is(base));
   }
 
   @Test
   void testAddition() {
     var addition = new ItemStack(Material.DIRT);
-    inventory.setItem(1, addition);
-    var state = new AnvilOperationState(operation, inventory);
+    view.setItem(1, addition);
+    var state = new AnvilOperationState(operation, view);
     assertThat("Addition item must match", state.getAddition().getItem(), is(addition));
   }
 
   @Test
   void testGetSetLevelCost() {
-    var state = new AnvilOperationState(operation, inventory);
+    var state = new AnvilOperationState(operation, view);
     assertThat("Level cost starts at 0", state.getLevelCost(), is(0));
     int value = 10;
     state.setLevelCost(value);
@@ -95,7 +107,7 @@ class AnvilOperationStateTest {
 
   @Test
   void testGetSetMaterialCost() {
-    var state = new AnvilOperationState(operation, inventory);
+    var state = new AnvilOperationState(operation, view);
     assertThat("Material cost starts at 0", state.getMaterialCost(), is(0));
     int value = 10;
     state.setMaterialCost(value);
@@ -130,7 +142,7 @@ class AnvilOperationStateTest {
       }
     };
 
-    var state = new AnvilOperationState(operation, inventory);
+    var state = new AnvilOperationState(operation, view);
     assertThat(
         "Non-applicable function does not apply",
         state.apply(function),
@@ -168,7 +180,7 @@ class AnvilOperationStateTest {
       }
     };
 
-    var state = new AnvilOperationState(operation, inventory);
+    var state = new AnvilOperationState(operation, view);
 
     assertThat("Applicable function applies", state.apply(function));
     assertThat("Level cost is added", state.getLevelCost(), is(value));
@@ -181,21 +193,21 @@ class AnvilOperationStateTest {
 
   @Test
   void testForgeNullBaseMeta() {
-    inventory.setItem(0, new ItemStack(Material.AIR) {
+    view.setItem(0, new ItemStack(Material.AIR) {
       @Override
       public @Nullable ItemMeta getItemMeta() {
         return null;
       }
     });
 
-    var state = new AnvilOperationState(operation, inventory);
+    var state = new AnvilOperationState(operation, view);
 
     assertThat("AnvilResult must be empty constant", state.forge(), is(AnvilResult.EMPTY));
   }
 
   @Test
   void testForgeNullResultMeta() {
-    inventory.setItem(0, new ItemStack(Material.AIR) {
+    view.setItem(0, new ItemStack(Material.AIR) {
       @Override
       public @Nullable ItemMeta getItemMeta() {
         return null;
@@ -212,7 +224,7 @@ class AnvilOperationStateTest {
       }
     });
 
-    var state = new AnvilOperationState(operation, inventory) {
+    var state = new AnvilOperationState(operation, view) {
       private final MetaCachedStack fakeBase = new MetaCachedStack(new ItemStack(Material.DIRT));
       @Override
       public @NotNull MetaCachedStack getBase() {
@@ -225,9 +237,9 @@ class AnvilOperationStateTest {
 
   @Test
   void testForgeIgnoreRepairCost() {
-    inventory.setItem(0, new ItemStack(Material.DIRT));
+    view.setItem(0, new ItemStack(Material.DIRT));
 
-    var state = new ReadableResultState(operation, inventory);
+    var state = new ReadableResultState(operation, view);
     var meta = state.getResult().getMeta();
 
     assertThat("Meta must not be null", meta, notNullValue());
@@ -240,10 +252,10 @@ class AnvilOperationStateTest {
 
   @Test
   void testForgeIgnoreDisplayNameWithAddition() {
-    inventory.setItem(0, new ItemStack(Material.DIRT));
-    inventory.setItem(1, new ItemStack(Material.DIRT));
+    view.setItem(0, new ItemStack(Material.DIRT));
+    view.setItem(1, new ItemStack(Material.DIRT));
 
-    var state = new ReadableResultState(operation, inventory);
+    var state = new ReadableResultState(operation, view);
     var meta = state.getResult().getMeta();
 
     assertThat("Meta must not be null", meta, notNullValue());
@@ -255,9 +267,9 @@ class AnvilOperationStateTest {
 
   @Test
   void testForge() {
-    inventory.setItem(0, new ItemStack(Material.DIRT));
+    view.setItem(0, new ItemStack(Material.DIRT));
 
-    var state = new ReadableResultState(operation, inventory);
+    var state = new ReadableResultState(operation, view);
     var meta = state.getResult().getMeta();
 
     assertThat("Meta must not be null", meta, notNullValue());

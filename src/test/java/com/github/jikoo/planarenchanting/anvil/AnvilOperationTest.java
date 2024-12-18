@@ -6,7 +6,11 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
@@ -21,11 +25,11 @@ import org.bukkit.Registry;
 import org.bukkit.Server;
 import org.bukkit.Tag;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.view.AnvilView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
@@ -161,21 +165,21 @@ class AnvilOperationTest {
 
   @Test
   void testEmptyBaseIsEmpty() {
-    var anvil = InventoryMocks.newAnvilMock();
+    var anvil = getMockView(null, null);
     var result = operation.apply(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
 
   @Test
   void testEmptyAdditionIsEmpty() {
-    var anvil = getMockInventory(new ItemStack(TOOL), null);
+    var anvil = getMockView(new ItemStack(TOOL), null);
     var result = operation.apply(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
 
   @Test
   void testEmptyAdditionRenameNotEmpty() {
-    var anvil = getMockInventory(new ItemStack(TOOL), null);
+    var anvil = getMockView(new ItemStack(TOOL), null);
     when(anvil.getRenameText()).thenReturn("Sample Text");
     var result = operation.apply(anvil);
     assertThat("Result must not be empty", result, not(AnvilResult.EMPTY));
@@ -186,7 +190,7 @@ class AnvilOperationTest {
     var base = new ItemStack(TOOL);
     base.setAmount(2);
     var addition = new ItemStack(TOOL);
-    var anvil = getMockInventory(base, addition);
+    var anvil = getMockView(base, addition);
     var result = operation.apply(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
@@ -207,7 +211,7 @@ class AnvilOperationTest {
 
     assertThat("Base must be repairable by addition", operation.itemRepairedBy(base, addition));
 
-    var anvil = getMockInventory(base, addition);
+    var anvil = getMockView(base, addition);
     var result = operation.apply(anvil);
 
     assertThat("Result must not be empty", result, is(not(AnvilResult.EMPTY)));
@@ -235,7 +239,7 @@ class AnvilOperationTest {
     base.setItemMeta(damageable);
 
     var addition = base.clone();
-    var anvil = getMockInventory(base, addition);
+    var anvil = getMockView(base, addition);
     var result = operation.apply(anvil);
 
     assertThat("Result must not be empty", result, is(not(AnvilResult.EMPTY)));
@@ -250,14 +254,22 @@ class AnvilOperationTest {
         lessThan(damageable.getDamage()));
   }
 
-  private static @NotNull AnvilInventory getMockInventory(
+  private static @NotNull AnvilView getMockView(
       @Nullable ItemStack base,
       @Nullable ItemStack addition) {
     var anvil = InventoryMocks.newAnvilMock();
     anvil.setItem(0, base);
     anvil.setItem(1, addition);
 
-    return anvil;
+    var view = mock(AnvilView.class);
+    doAnswer(params -> anvil.getItem(params.getArgument(0)))
+        .when(view).getItem(anyInt());
+    doAnswer(params -> {
+      anvil.setItem(params.getArgument(0), params.getArgument(1));
+      return null;
+    }).when(view).setItem(anyInt(), any());
+
+    return view;
   }
 
 }

@@ -7,9 +7,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A container for the result of an anvil operation.
  *
- * @see org.bukkit.inventory.AnvilInventory#setItem(int, ItemStack)
- * @see org.bukkit.inventory.AnvilInventory#setRepairCost(int)
- * @see org.bukkit.inventory.AnvilInventory#setRepairCostAmount(int)
+ * @see org.bukkit.inventory.view.AnvilView#setItem(int, ItemStack)
+ * @see org.bukkit.inventory.view.AnvilView#setRepairCost(int)
+ * @see org.bukkit.inventory.view.AnvilView#setRepairItemCountCost(int)
  * @param item the result slot {@link ItemStack}
  * @param levelCost the number of levels to be consumed by the operation
  * @param materialCost the amount of items to be consumed from the addition slot

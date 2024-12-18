@@ -60,7 +60,7 @@ public abstract class TableEnchantListener implements Listener {
     }
 
     // Force button refresh. This is required for normally unenchantable items.
-    EnchantingTable.updateButtons(plugin, event.getEnchanter(), event.getOffers());
+    EnchantingTable.updateButtons(plugin, event.getView(), event.getOffers());
   }
 
   @EventHandler

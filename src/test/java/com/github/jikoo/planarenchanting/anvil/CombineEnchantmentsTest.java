@@ -9,6 +9,9 @@ import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -31,11 +34,11 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
 import org.bukkit.Tag;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.view.AnvilView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
@@ -101,7 +104,7 @@ public class CombineEnchantmentsTest {
 
     @Test
     void testAppliesIfNotCombine() {
-      var anvil = getMockInventory(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
+      var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> false));
       var state = new AnvilOperationState(operation, anvil);
@@ -111,7 +114,7 @@ public class CombineEnchantmentsTest {
 
     @Test
     void testAppliesIfCombine() {
-      var anvil = getMockInventory(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
+      var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
       var state = new AnvilOperationState(operation, anvil);
@@ -121,7 +124,7 @@ public class CombineEnchantmentsTest {
 
     @Test
     void testNoEnchantsAdded() {
-      var anvil = getMockInventory(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
+      var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
       var state = new AnvilOperationState(operation, anvil);
@@ -139,7 +142,7 @@ public class CombineEnchantmentsTest {
       ItemStack addition = new ItemStack(BASE_MAT);
       applyEnchantments(addition, enchantments);
 
-      var anvil = getMockInventory(new ItemStack(BASE_MAT), addition);
+      var anvil = getMockView(new ItemStack(BASE_MAT), addition);
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
       operation.setEnchantApplies((enchantment, item) -> true);
@@ -177,8 +180,8 @@ public class CombineEnchantmentsTest {
       ItemStack bookAddition = new ItemStack(Material.ENCHANTED_BOOK);
       applyEnchantments(bookAddition, enchantments);
 
-      var anvil = getMockInventory(base, addition);
-      var bookAnvil = getMockInventory(base, bookAddition);
+      var anvil = getMockView(base, addition);
+      var bookAnvil = getMockView(base, bookAddition);
 
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
@@ -223,7 +226,7 @@ public class CombineEnchantmentsTest {
       ItemStack addition = new ItemStack(BASE_MAT);
       applyEnchantments(addition, enchantments);
 
-      var anvil = getMockInventory(base, addition);
+      var anvil = getMockView(base, addition);
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
       operation.setEnchantApplies((enchantment, item) -> true);
@@ -262,7 +265,7 @@ public class CombineEnchantmentsTest {
       invalidEnchants.put(rareEnchant, 1);
       applyEnchantments(addition, invalidEnchants);
 
-      var anvil = getMockInventory(base, addition);
+      var anvil = getMockView(base, addition);
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
       operation.setEnchantApplies((enchantment, item) -> true);
@@ -296,7 +299,7 @@ public class CombineEnchantmentsTest {
       applyEnchantments(addition, enchantments);
       ItemStack base = new ItemStack(BASE_MAT);
 
-      var anvil = getMockInventory(base, addition);
+      var anvil = getMockView(base, addition);
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
       operation.setEnchantApplies((enchantment, item) -> true);
@@ -325,7 +328,7 @@ public class CombineEnchantmentsTest {
       applyEnchantments(addition, enchantments);
       ItemStack base = new ItemStack(BASE_MAT);
 
-      var anvil = getMockInventory(base, addition);
+      var anvil = getMockView(base, addition);
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
       operation.setEnchantApplies((enchantment, item) -> true);
@@ -385,7 +388,7 @@ public class CombineEnchantmentsTest {
       ItemStack addition = new ItemStack(BASE_MAT);
       applyEnchantments(addition, enchantments);
 
-      var anvil = getMockInventory(base, addition);
+      var anvil = getMockView(base, addition);
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
       operation.setEnchantApplies((enchantment, item) -> true);
@@ -443,7 +446,7 @@ public class CombineEnchantmentsTest {
       ItemStack base = new ItemStack(BASE_MAT);
       applyEnchantments(base, enchantments);
 
-      var anvil = getMockInventory(base, addition);
+      var anvil = getMockView(base, addition);
       var operation = new AnvilOperation();
       operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
       operation.setEnchantApplies((enchantment, item) -> true);
@@ -466,14 +469,22 @@ public class CombineEnchantmentsTest {
 
   }
 
-  private static @NotNull AnvilInventory getMockInventory(
+  private static @NotNull AnvilView getMockView(
       @Nullable ItemStack base,
       @Nullable ItemStack addition) {
     var anvil = InventoryMocks.newAnvilMock();
     anvil.setItem(0, base);
     anvil.setItem(1, addition);
 
-    return anvil;
+    var view = mock(AnvilView.class);
+    doAnswer(params -> anvil.getItem(params.getArgument(0)))
+        .when(view).getItem(anyInt());
+    doAnswer(params -> {
+      anvil.setItem(params.getArgument(0), params.getArgument(1));
+      return null;
+    }).when(view).setItem(anyInt(), any());
+
+    return view;
   }
 
   private static void applyEnchantments(
