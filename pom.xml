@@ -15,6 +15,8 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
+    <!-- Required so ${argLine} can be evaluated and edited by plugins (i.e. jacoco) before surefire -->
+    <argLine/>
   </properties>
 
   <profiles>
@@ -140,10 +142,21 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <executions>
+            <execution>
+              <goals>
+                <goal>properties</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.5.2</version>
           <configuration>
-            <argLine>-XX:+EnableDynamicAgentLoading -Xshare:off</argLine>
+            <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Xshare:off</argLine>
             <!-- Github Actions offers 2 cores for Linux. -->
             <forkCount>2</forkCount>
             <!-- Bukkit initializes so many static objects that we cannot reasonably reuse forks. -->
@@ -175,6 +188,9 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
