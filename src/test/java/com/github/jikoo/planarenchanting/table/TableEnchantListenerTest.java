@@ -155,8 +155,17 @@ class TableEnchantListenerTest {
 
     // Plugin must be enabled to register events
     when(plugin.isEnabled()).thenReturn(true);
-    var loader = new JavaPluginLoader(server);
+
+    // Avoid explicit usage of deprecated constructor to silence static analysis whinge.
+    // The constructor is deprecated because plugins are not supposed to construct
+    // JavaPluginLoaders, not because it will be removed or is bad to use in tests.
+    // The entire goal of this test is to ensure that the JavaPluginLoader is capable of registering
+    // our event listeners; stubbing out a PluginLoader would completely negate it.
+    // This is actually a concern: JavaPluginLoader does not check private methods of superclasses
+    // for event handlers, but does check private methods of the actual class.
+    var loader = assertDoesNotThrow(() -> JavaPluginLoader.class.getConstructor(Server.class).newInstance(server));
     when(plugin.getPluginLoader()).thenReturn(loader);
+
     var description = new PluginDescriptionFile(plugin.getName(), "1.2.3", "cool.beans");
     when(plugin.getDescription()).thenReturn(description);
 
