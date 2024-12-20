@@ -11,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A mutable data holder similar to an {@link AnvilResult}.
  */
-public class AnvilOperationState {
+public class AnvilState {
 
-  private final @NotNull AnvilOperation operation;
+  private final @NotNull AnvilBehavior behavior;
   private final @NotNull AnvilView view;
   private final @NotNull MetaCachedStack base;
   private final @NotNull MetaCachedStack addition;
@@ -24,11 +24,11 @@ public class AnvilOperationState {
   /**
    * Create an {@code AnvilOperationState} instance for the given operation and inventory.
    *
-   * @param operation the {@link AnvilOperation} mutating the state
+   * @param behavior the {@link AnvilBehavior} mutating the state
    * @param view the {@link AnvilView} the state is derived from
    */
-  public AnvilOperationState(@NotNull AnvilOperation operation, @NotNull AnvilView view) {
-    this.operation = operation;
+  public AnvilState(@NotNull AnvilBehavior behavior, @NotNull AnvilView view) {
+    this.behavior = behavior;
     this.view = view;
     this.base = new MetaCachedStack(this.view.getItem(0));
     this.addition = new MetaCachedStack(this.view.getItem(1));
@@ -103,16 +103,16 @@ public class AnvilOperationState {
    * Note that a function reporting itself applicable does not guarantee that the result or costs
    * will actually differ.
    *
-   * @see AnvilFunction#canApply(AnvilOperation, AnvilOperationState)
+   * @see AnvilFunction#canApply(AnvilBehavior, AnvilState)
    * @param function the {@code AnvilFunction} to apply
    * @return whether the {@link AnvilFunction} could apply
    */
   public boolean apply(@NotNull AnvilFunction function) {
-    if (!function.canApply(this.operation, this)) {
+    if (!function.canApply(this.behavior, this)) {
       return false;
     }
 
-    AnvilFunctionResult anvilResult = function.getResult(this.operation, this);
+    AnvilFunctionResult anvilResult = function.getResult(this.behavior, this);
 
     anvilResult.modifyResult(this.result.getMeta());
     this.levelCost += anvilResult.getLevelCostIncrease();

@@ -14,14 +14,14 @@ import org.jetbrains.annotations.Nullable;
 abstract class CombineEnchantments implements AnvilFunction {
 
   @Override
-  public boolean canApply(@NotNull AnvilOperation operation, @NotNull AnvilOperationState state) {
-    return operation.itemsCombineEnchants(state.getBase().getItem(), state.getAddition().getItem());
+  public boolean canApply(@NotNull AnvilBehavior behavior, @NotNull AnvilState state) {
+    return behavior.itemsCombineEnchants(state.getBase(), state.getAddition());
   }
 
   @Override
   public final @NotNull AnvilFunctionResult getResult(
-      @NotNull AnvilOperation operation,
-      @NotNull AnvilOperationState state) {
+      @NotNull AnvilBehavior behavior,
+      @NotNull AnvilState state) {
     Map<Enchantment, Integer> baseEnchants = EnchantmentUtil.getEnchants(
         state.getBase().getMeta());
     Map<Enchantment, Integer> additionEnchants = EnchantmentUtil.getEnchants(
@@ -39,15 +39,15 @@ abstract class CombineEnchantments implements AnvilFunction {
       Enchantment newEnchantment = enchantEntry.getKey();
       int oldLevel = baseEnchants.getOrDefault(newEnchantment, 0);
       int baseCost = getAnvilCost(newEnchantment, isFromBook);
-      if (operation.enchantApplies(newEnchantment, state.getBase().getItem())
+      if (behavior.enchantApplies(newEnchantment, state.getBase())
           && baseEnchants.keySet().stream()
               .noneMatch(existingEnchant ->
                   !existingEnchant.getKey().equals(newEnchantment.getKey())
-                      && operation.enchantsConflict(existingEnchant, newEnchantment))) {
+                      && behavior.enchantsConflict(existingEnchant, newEnchantment))) {
 
         int addedLevel = enchantEntry.getValue();
         int newLevel = oldLevel == addedLevel ? addedLevel + 1 : Math.max(oldLevel, addedLevel);
-        newLevel = Math.min(newLevel, operation.getEnchantMaxLevel(newEnchantment));
+        newLevel = Math.min(newLevel, behavior.getEnchantMaxLevel(newEnchantment));
         newEnchants.put(newEnchantment, newLevel);
 
         levelCost += getTotalCost(baseCost, oldLevel, newLevel);

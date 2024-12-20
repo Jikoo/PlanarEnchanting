@@ -37,9 +37,9 @@ import org.junit.jupiter.api.TestInstance;
 
 @DisplayName("Verify AnvilOperationState functionality")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AnvilOperationStateTest {
+class AnvilStateTest {
 
-  private AnvilOperation operation;
+  private AnvilBehavior operation;
   private AnvilView view;
 
   @BeforeAll
@@ -62,7 +62,7 @@ class AnvilOperationStateTest {
 
   @BeforeEach
   void beforeEach() {
-    operation = new AnvilOperation();
+    operation = VanillaAnvil.BEHAVIOR;
 
     var anvil = InventoryMocks.newAnvilMock();
     view = mock(AnvilView.class);
@@ -76,7 +76,7 @@ class AnvilOperationStateTest {
 
   @Test
   void testGetAnvil() {
-    var state = new AnvilOperationState(operation, view);
+    var state = new AnvilState(operation, view);
     assertThat("Anvil must be provided instance", state.getAnvil(), is(view));
   }
 
@@ -84,7 +84,7 @@ class AnvilOperationStateTest {
   void testBase() {
     var base = new ItemStack(Material.DIRT);
     view.setItem(0, base);
-    var state = new AnvilOperationState(operation, view);
+    var state = new AnvilState(operation, view);
     assertThat("Base item must match", state.getBase().getItem(), is(base));
   }
 
@@ -92,13 +92,13 @@ class AnvilOperationStateTest {
   void testAddition() {
     var addition = new ItemStack(Material.DIRT);
     view.setItem(1, addition);
-    var state = new AnvilOperationState(operation, view);
+    var state = new AnvilState(operation, view);
     assertThat("Addition item must match", state.getAddition().getItem(), is(addition));
   }
 
   @Test
   void testGetSetLevelCost() {
-    var state = new AnvilOperationState(operation, view);
+    var state = new AnvilState(operation, view);
     assertThat("Level cost starts at 0", state.getLevelCost(), is(0));
     int value = 10;
     state.setLevelCost(value);
@@ -107,7 +107,7 @@ class AnvilOperationStateTest {
 
   @Test
   void testGetSetMaterialCost() {
-    var state = new AnvilOperationState(operation, view);
+    var state = new AnvilState(operation, view);
     assertThat("Material cost starts at 0", state.getMaterialCost(), is(0));
     int value = 10;
     state.setMaterialCost(value);
@@ -119,15 +119,15 @@ class AnvilOperationStateTest {
     var function = new AnvilFunction() {
       @Override
       public boolean canApply(
-          @NotNull AnvilOperation operation,
-          @NotNull AnvilOperationState state) {
+          @NotNull AnvilBehavior behavior,
+          @NotNull AnvilState state) {
         return false;
       }
 
       @Override
       public @NotNull AnvilFunctionResult getResult(
-          @NotNull AnvilOperation operation,
-          @NotNull AnvilOperationState state) {
+          @NotNull AnvilBehavior behavior,
+          @NotNull AnvilState state) {
         return new AnvilFunctionResult() {
           @Override
           public int getLevelCostIncrease() {
@@ -142,7 +142,7 @@ class AnvilOperationStateTest {
       }
     };
 
-    var state = new AnvilOperationState(operation, view);
+    var state = new AnvilState(operation, view);
     assertThat(
         "Non-applicable function does not apply",
         state.apply(function),
@@ -157,15 +157,15 @@ class AnvilOperationStateTest {
     var function = new AnvilFunction() {
       @Override
       public boolean canApply(
-          @NotNull AnvilOperation operation,
-          @NotNull AnvilOperationState state) {
+          @NotNull AnvilBehavior behavior,
+          @NotNull AnvilState state) {
         return true;
       }
 
       @Override
       public @NotNull AnvilFunctionResult getResult(
-          @NotNull AnvilOperation operation,
-          @NotNull AnvilOperationState state) {
+          @NotNull AnvilBehavior behavior,
+          @NotNull AnvilState state) {
         return new AnvilFunctionResult() {
           @Override
           public int getLevelCostIncrease() {
@@ -180,7 +180,7 @@ class AnvilOperationStateTest {
       }
     };
 
-    var state = new AnvilOperationState(operation, view);
+    var state = new AnvilState(operation, view);
 
     assertThat("Applicable function applies", state.apply(function));
     assertThat("Level cost is added", state.getLevelCost(), is(value));
@@ -200,7 +200,7 @@ class AnvilOperationStateTest {
       }
     });
 
-    var state = new AnvilOperationState(operation, view);
+    var state = new AnvilState(operation, view);
 
     assertThat("AnvilResult must be empty constant", state.forge(), is(AnvilResult.EMPTY));
   }
@@ -224,7 +224,7 @@ class AnvilOperationStateTest {
       }
     });
 
-    var state = new AnvilOperationState(operation, view) {
+    var state = new AnvilState(operation, view) {
       private final MetaCachedStack fakeBase = new MetaCachedStack(new ItemStack(Material.DIRT));
       @Override
       public @NotNull MetaCachedStack getBase() {

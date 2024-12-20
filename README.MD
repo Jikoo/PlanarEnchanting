@@ -17,50 +17,50 @@ systems and divide them up into readable, manageable, customizable segments.
 ### Anvil Enchanting
 
 Anvil enchanting is primarily accessed via the
-[`AnvilOperation`](src/main/java/com/github/jikoo/planarenchanting/anvil/AnvilOperation.java).
+[`VanillaAnvil`](src/main/java/com/github/jikoo/planarenchanting/anvil/VanillaAnvil.java).
 This is a class containing several simple ways to modify anvil behaviors.
 
-For basic vanilla-style combination, all you need is an ordinary `AnvilOperation`.
+For basic vanilla-style combination, all you need is an ordinary `VanillaAnvil`.
 
 ```java
 class MyAnvilHandler implements Listener {
   @EventHandler
   private void onPrepareAnvil(PrepareAnvilEvent event) {
-    AnvilView view = event.getView();
-    AnvilOperation operation = new AnvilOperation();
-    AnvilResult result = operation.apply(view);
+    VanillaAnvil anvil = new VanillaAnvil();
+    AnvilResult result = anvil.getResult(event.getView());
 
     event.setResult(result.item());
     inventory.setRepairCostAmount(result.materialCost());
 
     // Note: depending on how anvil actually functions, may need to update cost on a 0-tick delay.
-    // May also need to set relevant window property for client.
     inventory.setRepairCost(result.levelCost());
   }
 }
 ```
 
-For specific use cases (i.e. removing or changing enchantment level cap) you can provide the
-`AnvilOperation` with different functions which will be used by the default `AnvilFunction`
-implementations.
+For specific tweaks (i.e. removing or changing enchantment level cap) you can provide the
+`VanillaAnvil` with a different `AnvilBehavior` implementation.
 
 Allowing conflicting enchantments to be added:
+
 ```java
-AnvilOperation operation = new AnvilOperation();
-operation.setEnchantsConflict((enchant1, enchant2) -> false);
+VanillaAnvil anvil = new VanillaAnvil(new AnvilBehavior() {
+  @Override
+  public boolean getEnchantsConflict(Enchantment enchant1, Enchantment enchant2) {
+    return false;
+  }
+});
 ```
 
 If you have even more specific needs but still want to leverage certain vanilla-style functionality,
-you can write your own `AnvilOperation` and override `AnvilOperation#apply` to set your own
-operation order.
+you can write your own anvil functionality.
 
-A custom `AnvilOperation` that only performs rename operations:
+An implementation that only allows the input to be renamed:
 
 ```java
-class RenameOperation extends AnvilOperation {
-  @Override
-  public void apply(@NotNull AnvilView view) {
-    AnvilOperationState state = new AnvilOperationState(this, view);
+class RenameOnlyAnvil {
+  public void getResult(@NotNull AnvilView view) {
+    AnvilState state = new AnvilState(VanillaAnvil.BEHAVIOR, view);
 
     // Require first item to be set, second item to be unset.
     if (ItemUtil.isEmpty(state.getBase().getItem())
@@ -69,9 +69,9 @@ class RenameOperation extends AnvilOperation {
     }
 
     // Apply base cost.
-    state.apply(AnvilFunction.PRIOR_WORK_LEVEL_COST);
+    state.apply(AnvilFunctions.PRIOR_WORK_LEVEL_COST);
     // Apply rename.
-    state.apply(AnvilFunction.RENAME);
+    state.apply(AnvilFunctions.RENAME);
 
     return state.forge();
   }

@@ -11,9 +11,11 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
@@ -105,33 +107,33 @@ public class CombineEnchantmentsTest {
     @Test
     void testAppliesIfNotCombine() {
       var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> false));
-      var state = new AnvilOperationState(operation, anvil);
+      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      doReturn(false).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      var state = new AnvilState(behavior, anvil);
 
-      assertThat("Combination must not apply", function.canApply(operation, state), is(false));
+      assertThat("Combination must not apply", function.canApply(behavior, state), is(false));
     }
 
     @Test
     void testAppliesIfCombine() {
       var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
-      var state = new AnvilOperationState(operation, anvil);
+      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      var state = new AnvilState(behavior, anvil);
 
-      assertThat("Combination must apply", function.canApply(operation, state));
+      assertThat("Combination must apply", function.canApply(behavior, state));
     }
 
     @Test
     void testNoEnchantsAdded() {
       var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
-      var state = new AnvilOperationState(operation, anvil);
+      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      var state = new AnvilState(behavior, anvil);
 
       assertThat(
           "No enchants added yields empty result",
-          function.getResult(operation, state),
+          function.getResult(behavior, state),
           is(AnvilFunctionResult.EMPTY));
     }
 
@@ -143,15 +145,15 @@ public class CombineEnchantmentsTest {
       applyEnchantments(addition, enchantments);
 
       var anvil = getMockView(new ItemStack(BASE_MAT), addition);
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
-      operation.setEnchantApplies((enchantment, item) -> true);
-      operation.setEnchantMaxLevel(enchantment -> Short.MAX_VALUE);
-      var state = new ReadableResultState(operation, anvil);
+      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
+      doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
+      var state = new ReadableResultState(behavior, anvil);
 
-      assertThat("Combination must apply", function.canApply(operation, state));
+      assertThat("Combination must apply", function.canApply(behavior, state));
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
       result.modifyResult(state.getResult().getMeta());
 
@@ -183,22 +185,21 @@ public class CombineEnchantmentsTest {
       var anvil = getMockView(base, addition);
       var bookAnvil = getMockView(base, bookAddition);
 
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
-      operation.setEnchantApplies((enchantment, item) -> true);
-      operation.setEnchantMaxLevel(enchantment -> Short.MAX_VALUE);
-      operation.setEnchantsConflict((enchantment1, enchantment2) -> false);
+      var behavior = mock(AnvilBehavior.class);
+      doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
+      doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
 
-      var state = new ReadableResultState(operation, anvil);
-      var bookState = new ReadableResultState(operation, bookAnvil);
+      var state = new ReadableResultState(behavior, anvil);
+      var bookState = new ReadableResultState(behavior, bookAnvil);
 
-      assertThat("Combination must apply", function.canApply(operation, state));
-      assertThat("Book combination must apply", function.canApply(operation, bookState));
+      assertThat("Combination must apply", function.canApply(behavior, state));
+      assertThat("Book combination must apply", function.canApply(behavior, bookState));
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
       result.modifyResult(state.getResult().getMeta());
-      AnvilFunctionResult bookResult = function.getResult(operation, bookState);
+      AnvilFunctionResult bookResult = function.getResult(behavior, bookState);
       assertThat("Book material cost is unchanged", bookResult.getMaterialCostIncrease(), is(0));
       bookResult.modifyResult(bookState.getResult().getMeta());
 
@@ -227,16 +228,15 @@ public class CombineEnchantmentsTest {
       applyEnchantments(addition, enchantments);
 
       var anvil = getMockView(base, addition);
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
-      operation.setEnchantApplies((enchantment, item) -> true);
-      operation.setEnchantMaxLevel(enchantment -> Short.MAX_VALUE);
-      operation.setEnchantsConflict((enchantment1, enchantment2) -> false);
-      var state = new ReadableResultState(operation, anvil);
+      var behavior = mock(AnvilBehavior.class);
+      doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
+      doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
+      var state = new ReadableResultState(behavior, anvil);
 
-      assertThat("Combination must apply", function.canApply(operation, state));
+      assertThat("Combination must apply", function.canApply(behavior, state));
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
       result.modifyResult(state.getResult().getMeta());
 
@@ -266,16 +266,16 @@ public class CombineEnchantmentsTest {
       applyEnchantments(addition, invalidEnchants);
 
       var anvil = getMockView(base, addition);
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
-      operation.setEnchantApplies((enchantment, item) -> true);
-      operation.setEnchantMaxLevel(enchantment -> Short.MAX_VALUE);
-      operation.setEnchantsConflict((enchantment1, enchantment2) -> true);
-      var state = new ReadableResultState(operation, anvil);
+      var behavior = mock(AnvilBehavior.class);
+      doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
+      doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
+      doReturn(true).when(behavior).enchantsConflict(notNull(), notNull());
+      var state = new ReadableResultState(behavior, anvil);
 
-      assertThat("Combination must apply", function.canApply(operation, state));
+      assertThat("Combination must apply", function.canApply(behavior, state));
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
       result.modifyResult(state.getResult().getMeta());
 
@@ -300,16 +300,15 @@ public class CombineEnchantmentsTest {
       ItemStack base = new ItemStack(BASE_MAT);
 
       var anvil = getMockView(base, addition);
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
-      operation.setEnchantApplies((enchantment, item) -> true);
-      operation.setEnchantMaxLevel(enchantment -> Short.MAX_VALUE);
-      operation.setEnchantsConflict((enchantment1, enchantment2) -> false);
-      var state = new ReadableResultState(operation, anvil);
+      var behavior = mock(AnvilBehavior.class);
+      doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
+      doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
+      var state = new ReadableResultState(behavior, anvil);
 
-      assertThat("Combination must apply", function.canApply(operation, state));
+      assertThat("Combination must apply", function.canApply(behavior, state));
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
       result.modifyResult(state.getResult().getMeta());
 
@@ -329,16 +328,15 @@ public class CombineEnchantmentsTest {
       ItemStack base = new ItemStack(BASE_MAT);
 
       var anvil = getMockView(base, addition);
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
-      operation.setEnchantApplies((enchantment, item) -> true);
-      operation.setEnchantMaxLevel(enchantment -> Short.MAX_VALUE);
-      operation.setEnchantsConflict((enchantment1, enchantment2) -> false);
-      var state = new ReadableResultState(operation, anvil);
+      var behavior = mock(AnvilBehavior.class);
+      doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
+      doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
+      var state = new ReadableResultState(behavior, anvil);
 
-      assertThat("Combination must apply", function.canApply(operation, state));
+      assertThat("Combination must apply", function.canApply(behavior, state));
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
       result.modifyResult(state.getResult().getMeta());
 
@@ -360,7 +358,7 @@ public class CombineEnchantmentsTest {
   class CombineEnchantsJavaEdition extends CombineEnchantsTest {
 
     protected CombineEnchantsJavaEdition() {
-      super(AnvilFunction.COMBINE_ENCHANTMENTS_JAVA_EDITION);
+      super(AnvilFunctions.COMBINE_ENCHANTMENTS_JAVA_EDITION);
     }
 
     @Override
@@ -389,16 +387,15 @@ public class CombineEnchantmentsTest {
       applyEnchantments(addition, enchantments);
 
       var anvil = getMockView(base, addition);
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
-      operation.setEnchantApplies((enchantment, item) -> true);
-      operation.setEnchantMaxLevel(enchantment -> Short.MAX_VALUE);
-      operation.setEnchantsConflict((enchantment1, enchantment2) -> false);
-      var state = new ReadableResultState(operation, anvil);
+      var behavior = mock(AnvilBehavior.class);
+      doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
+      doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
+      var state = new ReadableResultState(behavior, anvil);
 
-      assertThat("Combination must apply", function.canApply(operation, state));
+      assertThat("Combination must apply", function.canApply(behavior, state));
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
       result.modifyResult(state.getResult().getMeta());
 
@@ -418,7 +415,7 @@ public class CombineEnchantmentsTest {
   class CombineEnchantsBedrockEdition extends CombineEnchantsTest {
 
     protected CombineEnchantsBedrockEdition() {
-      super(AnvilFunction.COMBINE_ENCHANTMENTS_BEDROCK_EDITION);
+      super(AnvilFunctions.COMBINE_ENCHANTMENTS_BEDROCK_EDITION);
     }
 
     @Override
@@ -447,16 +444,15 @@ public class CombineEnchantmentsTest {
       applyEnchantments(base, enchantments);
 
       var anvil = getMockView(base, addition);
-      var operation = new AnvilOperation();
-      operation.setItemsCombineEnchants(((itemStack, itemStack2) -> true));
-      operation.setEnchantApplies((enchantment, item) -> true);
-      operation.setEnchantMaxLevel(enchantment -> Short.MAX_VALUE);
-      operation.setEnchantsConflict((enchantment1, enchantment2) -> false);
-      var state = new ReadableResultState(operation, anvil);
+      var behavior = mock(AnvilBehavior.class);
+      doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
+      doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
+      doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
+      var state = new ReadableResultState(behavior, anvil);
 
-      assertThat("Combination must apply", function.canApply(operation, state));
+      assertThat("Combination must apply", function.canApply(behavior, state));
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
       result.modifyResult(state.getResult().getMeta());
 

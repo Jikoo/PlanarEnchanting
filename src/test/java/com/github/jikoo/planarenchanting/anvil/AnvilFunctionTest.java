@@ -12,9 +12,11 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.github.jikoo.planarenchanting.anvil.mock.ReadableResultState;
@@ -79,15 +81,15 @@ class AnvilFunctionTest {
   @Nested
   class PriorWorkLevelCost {
 
-    private final AnvilFunction function =  AnvilFunction.PRIOR_WORK_LEVEL_COST;
+    private final AnvilFunction function =  AnvilFunctions.PRIOR_WORK_LEVEL_COST;
 
     @Test
     void testPriorWorkLevelCostApplies() {
       var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
-      var operation = new AnvilOperation();
-      var state = new AnvilOperationState(operation, anvil);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new AnvilState(behavior, anvil);
 
-      assertThat("Prior work level cost always applies", function.canApply(operation, state));
+      assertThat("Prior work level cost always applies", function.canApply(behavior, state));
     }
 
     @ParameterizedTest
@@ -97,12 +99,12 @@ class AnvilFunctionTest {
       var anvil = getMockView(
           prepareItem(baseItem, 0, baseWork),
           prepareItem(new ItemStack(BASE_MAT), 0, addedWork));
-      var operation = new AnvilOperation();
-      var state = new ReadableResultState(operation, anvil);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new ReadableResultState(behavior, anvil);
 
-      assertThat("Prior work level cost always applies", function.canApply(operation, state));
+      assertThat("Prior work level cost always applies", function.canApply(behavior, state));
 
-      var result = function.getResult(operation, state);
+      var result = function.getResult(behavior, state);
       assertThat(
           "Cost must be total prior work",
           result.getLevelCostIncrease(),
@@ -135,18 +137,18 @@ class AnvilFunctionTest {
   @TestInstance(Lifecycle.PER_CLASS) // Should be inherited but isn't for whatever reason
   class Rename {
 
-    private final AnvilFunction function = AnvilFunction.RENAME;
+    private final AnvilFunction function = AnvilFunctions.RENAME;
 
     @DisplayName("Rename requires ItemMeta")
     @Test
     void testRenameRequiresMeta() {
       var base = getNullMetaItem();
       var inventory = getMockView(base, null);
-      var operation = new AnvilOperation();
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new AnvilState(behavior, inventory);
 
       assertThat("Base meta is null", state.getBase().getMeta(), is(nullValue()));
-      assertThat("Rename requires meta", function.canApply(operation, state), is(false));
+      assertThat("Rename requires meta", function.canApply(behavior, state), is(false));
     }
 
     @DisplayName("Rename requires different name")
@@ -157,14 +159,14 @@ class AnvilFunctionTest {
         boolean canApply) {
       var base = new ItemStack(BASE_MAT);
       var inventory = getMockView(base, null);
-      var operation = new AnvilOperation();
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new AnvilState(behavior, inventory);
 
       assertThat("Base meta is not null", state.getBase().getMeta(), is(notNullValue()));
 
       setup.accept(state.getBase().getMeta(), inventory);
 
-      assertThat("Rename requires different name", function.canApply(operation, state), is(canApply));
+      assertThat("Rename requires different name", function.canApply(behavior, state), is(canApply));
     }
 
     @DisplayName("Rename applies name and cost")
@@ -179,10 +181,10 @@ class AnvilFunctionTest {
       base.setItemMeta(baseMeta);
       inventory.setItem(0, base);
 
-      var operation = new AnvilOperation();
-      var state = new ReadableResultState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new ReadableResultState(behavior, inventory);
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Level cost increase is 1", result.getLevelCostIncrease(), is(1));
 
       result.modifyResult(state.getResult().getMeta());
@@ -236,18 +238,18 @@ class AnvilFunctionTest {
   @Nested
   class UpdatePriorWorkCost {
 
-    private final AnvilFunction function =  AnvilFunction.UPDATE_PRIOR_WORK_COST;
+    private final AnvilFunction function =  AnvilFunctions.UPDATE_PRIOR_WORK_COST;
 
     @Test
     void testBaseNotRepairable() {
       var base = getNullMetaItem();
       var inventory = getMockView(base, null);
-      var operation = new AnvilOperation();
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new AnvilState(behavior, inventory);
 
       assertThat(
           "Base must be repairable",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(false));
     }
 
@@ -256,12 +258,12 @@ class AnvilFunctionTest {
       var base = new ItemStack(BASE_MAT);
       var addition = getNullMetaItem();
       var inventory = getMockView(base, addition);
-      var operation = new AnvilOperation();
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new AnvilState(behavior, inventory);
 
       assertThat(
           "Repairable base is acceptable",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(true));
     }
 
@@ -272,12 +274,12 @@ class AnvilFunctionTest {
       var anvil = getMockView(
           prepareItem(baseItem, 0, baseWork),
           prepareItem(new ItemStack(BASE_MAT), 0, addedWork));
-      var operation = new AnvilOperation();
-      var state = new ReadableResultState(operation, anvil);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new ReadableResultState(behavior, anvil);
 
-      assertThat("Prior work level cost always applies", function.canApply(operation, state));
+      assertThat("Prior work level cost always applies", function.canApply(behavior, state));
 
-      var result = function.getResult(operation, state);
+      var result = function.getResult(behavior, state);
       assertThat("Cost must be unchanged", result.getLevelCostIncrease(), is(0));
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
 
@@ -302,10 +304,10 @@ class AnvilFunctionTest {
     void testMetaNotRepairable() {
       var base = getNullMetaItem();
       var inventory = getMockView(base, null);
-      var operation = new AnvilOperation();
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new AnvilState(behavior, inventory);
 
-      var result = function.getResult(operation, state);
+      var result = function.getResult(behavior, state);
       assertDoesNotThrow(() -> result.modifyResult(base.getItemMeta()));
     }
 
@@ -314,31 +316,31 @@ class AnvilFunctionTest {
   @Nested
   class RepairWithMaterial {
 
-    private final AnvilFunction function = AnvilFunction.REPAIR_WITH_MATERIAL;
+    private final AnvilFunction function = AnvilFunctions.REPAIR_WITH_MATERIAL;
 
     @Test
     void testCanApplyNotRepairedBy() {
       var inventory = getMockView(null, null);
-      var operation = new AnvilOperation();
-      operation.setItemRepairedBy((item1, item2) -> false);
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      doReturn(false).when(behavior).itemRepairedBy(notNull(), notNull());
+      var state = new AnvilState(behavior, inventory);
 
       assertThat(
           "Must be repairable by item",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(false));
     }
 
     @Test
     void testCanApplyNotDurable() {
       var inventory = getMockView(null, null);
-      var operation = new AnvilOperation();
-      operation.setItemRepairedBy((item1, item2) -> true);
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      doReturn(true).when(behavior).itemRepairedBy(notNull(), notNull());
+      var state = new AnvilState(behavior, inventory);
 
       assertThat(
           "Must have durability",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(false));
     }
 
@@ -347,34 +349,34 @@ class AnvilFunctionTest {
       var base = getNullMetaItem();
       base.setType(BASE_MAT);
       var inventory = getMockView(base, null);
-      var operation = new AnvilOperation();
-      operation.setItemRepairedBy((item1, item2) -> true);
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      doReturn(true).when(behavior).itemRepairedBy(notNull(), notNull());
+      var state = new AnvilState(behavior, inventory);
 
       assertThat(
           "Must have Damageable meta",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(false));
       assertThat(
           "Non-Damageable must return empty result",
-          function.getResult(operation, state),
+          function.getResult(behavior, state),
           is(AnvilFunctionResult.EMPTY));
     }
 
     @Test
     void testCanApplyNotDamaged() {
       var inventory = getMockView(new ItemStack(BASE_MAT), null);
-      var operation = new AnvilOperation();
-      operation.setItemRepairedBy((item1, item2) -> true);
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      doReturn(true).when(behavior).itemRepairedBy(notNull(), notNull());
+      var state = new AnvilState(behavior, inventory);
 
       assertThat(
           "Must be damaged",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(false));
       assertThat(
           "Undamaged must return empty result",
-          function.getResult(operation, state),
+          function.getResult(behavior, state),
           is(AnvilFunctionResult.EMPTY));
     }
 
@@ -383,16 +385,16 @@ class AnvilFunctionTest {
     void testRepair(int repairMats) {
       var baseItem = getMaxDamageItem();
       var inventory = getMockView(baseItem, new ItemStack(REPAIR_MAT, repairMats));
-      var operation = new AnvilOperation();
-      operation.setItemRepairedBy((item1, item2) -> true);
-      var state = new ReadableResultState(operation, inventory);
+      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      doReturn(true).when(behavior).itemRepairedBy(notNull(), notNull());
+      var state = new ReadableResultState(behavior, inventory);
 
       assertThat(
           "Must be applicable",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(true));
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
 
       result.modifyResult(state.getResult().getMeta());
 
@@ -428,29 +430,29 @@ class AnvilFunctionTest {
   @Nested
   class RepairWithCombination {
 
-    private final AnvilFunction function = AnvilFunction.REPAIR_WITH_COMBINATION;
+    private final AnvilFunction function = AnvilFunctions.REPAIR_WITH_COMBINATION;
 
     @Test
     void testCanApplyNotRepairedBy() {
       var inventory = getMockView(new ItemStack(BASE_MAT), new ItemStack(REPAIR_MAT));
-      var operation = new AnvilOperation();
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new AnvilState(behavior, inventory);
 
       assertThat(
           "Must be same item",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(false));
     }
 
     @Test
     void testCanApplyNotDurable() {
       var inventory = getMockView(null, null);
-      var operation = new AnvilOperation();
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new AnvilState(behavior, inventory);
 
       assertThat(
           "Must have durability",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(false));
     }
 
@@ -460,39 +462,38 @@ class AnvilFunctionTest {
       nullMetaItem.setType(BASE_MAT);
       ItemStack normalItem = new ItemStack(BASE_MAT);
       var inventory = getMockView(nullMetaItem, normalItem);
-      var operation = new AnvilOperation();
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new AnvilState(behavior, inventory);
 
       assertThat(
           "Must have Damageable meta",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(false));
       assertThat(
           "Non-Damageable base must return empty result",
-          function.getResult(operation, state),
+          function.getResult(behavior, state),
           is(AnvilFunctionResult.EMPTY));
       inventory = getMockView(normalItem, nullMetaItem);
-      operation = new AnvilOperation();
-      state = new AnvilOperationState(operation, inventory);
+      state = new AnvilState(behavior, inventory);
       assertThat(
           "Non-Damageable addition must return empty result",
-          function.getResult(operation, state),
+          function.getResult(behavior, state),
           is(AnvilFunctionResult.EMPTY));
     }
 
     @Test
     void testCanApplyNotDamaged() {
       var inventory = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
-      var operation = new AnvilOperation();
-      var state = new AnvilOperationState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new AnvilState(behavior, inventory);
 
       assertThat(
           "Must be damaged",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(false));
       assertThat(
           "Undamaged must return empty result",
-          function.getResult(operation, state),
+          function.getResult(behavior, state),
           is(AnvilFunctionResult.EMPTY));
     }
 
@@ -500,15 +501,15 @@ class AnvilFunctionTest {
     void testRepair() {
       var baseItem = getMaxDamageItem();
       var inventory = getMockView(baseItem, baseItem.clone());
-      var operation = new AnvilOperation();
-      var state = new ReadableResultState(operation, inventory);
+      var behavior = VanillaAnvil.BEHAVIOR;
+      var state = new ReadableResultState(behavior, inventory);
 
       assertThat(
           "Must be applicable",
-          function.canApply(operation, state),
+          function.canApply(behavior, state),
           is(true));
 
-      AnvilFunctionResult result = function.getResult(operation, state);
+      AnvilFunctionResult result = function.getResult(behavior, state);
 
       result.modifyResult(state.getResult().getMeta());
 

@@ -13,6 +13,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.github.jikoo.planarenchanting.util.MetaCachedStack;
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
@@ -33,7 +34,6 @@ import org.bukkit.inventory.view.AnvilView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -44,17 +44,15 @@ import org.junit.jupiter.params.provider.MethodSource;
  * Note: These tests are only supposed to cover the functionality of the AnvilOperation class.
  * Specific operations are not verified, that is handled in more specific and thorough tests.
  */
-@DisplayName("Verify AnvilOperation application")
+@DisplayName("Verify VanillaAnvil application")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AnvilOperationTest {
+class VanillaAnvilTest {
 
   private static final Material TOOL = Material.DIAMOND_SHOVEL;
   private static final Material TOOL_REPAIR = Material.DIAMOND;
   public static final Material BOOK = Material.ENCHANTED_BOOK;
   private static final Material INCOMPATIBLE = Material.STONE;
   public static Enchantment toolEnchantment;
-
-  private AnvilOperation operation;
 
   @BeforeAll
   void beforeAll() {
@@ -78,38 +76,27 @@ class AnvilOperationTest {
     doReturn(Set.of(TOOL)).when(tag).getValues();
   }
 
-  @BeforeEach
-  void beforeEach() {
-    operation = new AnvilOperation();
-  }
-
   @Test
   void testEnchantmentTarget() {
-    var item = new ItemStack(TOOL);
-    assertThat("Enchantment applies to tools", operation.enchantApplies(toolEnchantment, item));
-    item.setType(INCOMPATIBLE);
+    var item = new MetaCachedStack(new ItemStack(TOOL));
+    assertThat(
+        "Enchantment applies to tools",
+        VanillaAnvil.BEHAVIOR.enchantApplies(toolEnchantment, item));
+    item.getItem().setType(INCOMPATIBLE);
     assertThat(
         "Enchantment does not apply to non-tools",
-        operation.enchantApplies(toolEnchantment, item),
+        VanillaAnvil.BEHAVIOR.enchantApplies(toolEnchantment, item),
         is(false));
-    operation.setEnchantApplies((enchant, itemStack) -> true);
-    assertThat(
-        "Enchantment applies with alternate predicate",
-        operation.enchantApplies(toolEnchantment, item));
   }
 
   @Test
   void testEnchantmentConflict() {
-    Enchantment conflict1 = Enchantment.SILK_TOUCH;
-    Enchantment conflict2 = Enchantment.FORTUNE;
-
     assertThat(
         "Vanilla enchantments conflict",
-        operation.enchantsConflict(conflict1, conflict2));
-    operation.setEnchantsConflict(((enchantment, enchantment2) -> false));
+        VanillaAnvil.BEHAVIOR.enchantsConflict(Enchantment.SILK_TOUCH, Enchantment.FORTUNE));
     assertThat(
-        "Enchantments do not conflict with alternate predicate",
-        operation.enchantsConflict(conflict1, conflict2),
+        "Nonconflicting enchantments do not conflict",
+        VanillaAnvil.BEHAVIOR.enchantsConflict(Enchantment.EFFICIENCY, Enchantment.FORTUNE),
         is(false));
   }
 
@@ -118,13 +105,8 @@ class AnvilOperationTest {
   void testEnchantmentMaxLevel(Enchantment enchantment) {
     assertThat(
         "Enchantment max level must be vanilla",
-        operation.getEnchantMaxLevel(enchantment),
+        VanillaAnvil.BEHAVIOR.getEnchantMaxLevel(enchantment),
         is(enchantment.getMaxLevel()));
-    operation.setEnchantMaxLevel(enchant -> Short.MAX_VALUE);
-    assertThat(
-        "Enchantment max level must set as expected",
-        operation.getEnchantMaxLevel(enchantment),
-        is((int) Short.MAX_VALUE));
   }
 
   private static @NotNull Stream<Enchantment> getEnchantments() {
@@ -133,47 +115,43 @@ class AnvilOperationTest {
 
   @Test
   void testSameMaterialEnchantCombination() {
-    ItemStack base = new ItemStack(TOOL);
-    ItemStack addition = new ItemStack(TOOL);
+    var base = new MetaCachedStack(new ItemStack(TOOL));
+    var addition = new MetaCachedStack(new ItemStack(TOOL));
     assertThat(
         "Same type combine enchantments",
-        operation.itemsCombineEnchants(base, addition));
+        VanillaAnvil.BEHAVIOR.itemsCombineEnchants(base, addition));
   }
 
   @Test
   void testEnchantedBookEnchantCombination() {
-    ItemStack base = new ItemStack(TOOL);
-    ItemStack addition = new ItemStack(BOOK);
+    var base = new MetaCachedStack(new ItemStack(TOOL));
+    var addition = new MetaCachedStack(new ItemStack(BOOK));
     assertThat(
         "Enchanted books combine enchantments",
-        operation.itemsCombineEnchants(base, addition));
+        VanillaAnvil.BEHAVIOR.itemsCombineEnchants(base, addition));
   }
 
   @Test
   void testDifferentMaterialEnchantCombination() {
-    ItemStack base = new ItemStack(TOOL);
-    ItemStack addition = new ItemStack(INCOMPATIBLE);
+    var base = new MetaCachedStack(new ItemStack(TOOL));
+    var addition = new MetaCachedStack(new ItemStack(INCOMPATIBLE));
     assertThat(
         "Incompatible materials do not combine enchantments",
-        operation.itemsCombineEnchants(base, addition),
-        not(true));
-    operation.setItemsCombineEnchants((itemStack, itemStack2) -> true);
-    assertThat(
-        "Enchantments combine with alternate predicate",
-        operation.itemsCombineEnchants(base, addition));
+        VanillaAnvil.BEHAVIOR.itemsCombineEnchants(base, addition),
+        is(false));
   }
 
   @Test
   void testEmptyBaseIsEmpty() {
     var anvil = getMockView(null, null);
-    var result = operation.apply(anvil);
+    var result = new VanillaAnvil().getResult(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
 
   @Test
   void testEmptyAdditionIsEmpty() {
     var anvil = getMockView(new ItemStack(TOOL), null);
-    var result = operation.apply(anvil);
+    var result = new VanillaAnvil().getResult(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
 
@@ -181,7 +159,7 @@ class AnvilOperationTest {
   void testEmptyAdditionRenameNotEmpty() {
     var anvil = getMockView(new ItemStack(TOOL), null);
     when(anvil.getRenameText()).thenReturn("Sample Text");
-    var result = operation.apply(anvil);
+    var result = new VanillaAnvil().getResult(anvil);
     assertThat("Result must not be empty", result, not(AnvilResult.EMPTY));
   }
 
@@ -191,7 +169,7 @@ class AnvilOperationTest {
     base.setAmount(2);
     var addition = new ItemStack(TOOL);
     var anvil = getMockView(base, addition);
-    var result = operation.apply(anvil);
+    var result = new VanillaAnvil().getResult(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
 
@@ -209,10 +187,10 @@ class AnvilOperationTest {
 
     var addition = new ItemStack(TOOL_REPAIR);
 
-    assertThat("Base must be repairable by addition", operation.itemRepairedBy(base, addition));
+    assertThat("Base must be repairable by addition", VanillaAnvil.BEHAVIOR.itemRepairedBy(new MetaCachedStack(base), new MetaCachedStack(addition)));
 
     var anvil = getMockView(base, addition);
-    var result = operation.apply(anvil);
+    var result = new VanillaAnvil().getResult(anvil);
 
     assertThat("Result must not be empty", result, is(not(AnvilResult.EMPTY)));
 
@@ -240,7 +218,7 @@ class AnvilOperationTest {
 
     var addition = base.clone();
     var anvil = getMockView(base, addition);
-    var result = operation.apply(anvil);
+    var result = new VanillaAnvil().getResult(anvil);
 
     assertThat("Result must not be empty", result, is(not(AnvilResult.EMPTY)));
 
