@@ -26,9 +26,9 @@ For basic vanilla-style combination, all you need is an ordinary `AnvilOperation
 class MyAnvilHandler implements Listener {
   @EventHandler
   private void onPrepareAnvil(PrepareAnvilEvent event) {
-    AnvilInventory inventory = event.getInventory();
+    AnvilView view = event.getView();
     AnvilOperation operation = new AnvilOperation();
-    AnvilResult result = operation.apply(inventory);
+    AnvilResult result = operation.apply(view);
 
     event.setResult(result.item());
     inventory.setRepairCostAmount(result.materialCost());
@@ -59,10 +59,12 @@ A custom `AnvilOperation` that only performs rename operations:
 ```java
 class RenameOperation extends AnvilOperation {
   @Override
-  public void apply(@NotNull AnvilInventory inventory) {
-    AnvilOperationState state = new AnvilOperationState(this, inventory);
+  public void apply(@NotNull AnvilView view) {
+    AnvilOperationState state = new AnvilOperationState(this, view);
 
-    if (ItemUtil.isEmpty(state.getBase().getItem())) {
+    // Require first item to be set, second item to be unset.
+    if (ItemUtil.isEmpty(state.getBase().getItem())
+        || !ItemUtil.isEmpty(state.getAddition().getItem())) {
       return AnvilResult.EMPTY;
     }
 
