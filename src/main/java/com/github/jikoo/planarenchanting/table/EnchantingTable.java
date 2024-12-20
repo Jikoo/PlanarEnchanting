@@ -2,19 +2,14 @@ package com.github.jikoo.planarenchanting.table;
 
 import com.github.jikoo.planarenchanting.enchant.EnchantData;
 import com.github.jikoo.planarwrappers.util.WeightedRandom;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.BiPredicate;
 import java.util.function.ToIntFunction;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.inventory.view.EnchantmentView;
@@ -26,8 +21,6 @@ import org.jetbrains.annotations.Nullable;
  * A container for data required to calculate enchantments.
  */
 public class EnchantingTable {
-
-  private static final @NotNull Map<NamespacedKey, Integer> ENCHANTMENT_IDS = new HashMap<>();
 
   private final @NotNull Collection<@NotNull Enchantment> enchantments;
   private final @NotNull Enchantability enchantability;
@@ -262,74 +255,6 @@ public class EnchantingTable {
       @NotNull EnchantmentView view,
       @Nullable EnchantmentOffer @NotNull [] offers) {
     Bukkit.getScheduler().runTaskLater(plugin, () -> view.setOffers(offers), 1L);
-  }
-
-  /**
-   * Get an {@link Enchantment Enchantment's} magic ID for use in packets.
-   *
-   * @param enchantment the {@code Enchantment}
-   * @return the magic value or 0 if the value cannot be obtained
-   */
-  private static int getEnchantmentId(@NotNull Enchantment enchantment) {
-    populateIds();
-    return ENCHANTMENT_IDS.computeIfAbsent(enchantment.getKey(), EnchantingTable::loadEnchantmentId);
-  }
-
-  /**
-   * Attempt to initialize enchantment IDs if they are not already loaded.
-   */
-  private static void populateIds() {
-    // If enchantments are already initialized, do nothing.
-    if (!ENCHANTMENT_IDS.isEmpty()) {
-      return;
-    }
-
-    // Populate from the enchantment registry. On modern versions this is correct.
-    Iterator<Enchantment> enchantments = Registry.ENCHANTMENT.iterator();
-    for (int i = 0; enchantments.hasNext(); i++) {
-      ENCHANTMENT_IDS.put(enchantments.next().getKey(), i);
-    }
-
-    // Bukkit's constant declaration order matches Minecraft registry values.
-    try {
-      int enchantIndex = 0;
-      for (Field field : Enchantment.class.getFields()) {
-        if (Modifier.isStatic(field.getModifiers()) && Enchantment.class.equals(field.getType())) {
-          Enchantment enchantField = (Enchantment) field.get(null);
-          ENCHANTMENT_IDS.put(enchantField.getKey(), enchantIndex);
-          ++enchantIndex;
-        }
-      }
-    } catch (IllegalAccessException ignored) {
-      // If we are unable to use the constants, that's okay. This may yield incorrect indices on
-      // some versions, but it is consistent.
-      // Clever players can assemble their own knowledge base of which means which.
-    }
-  }
-
-  /**
-   * Determine an {@link Enchantment Enchantment's} magic ID for use in packets.
-   *
-   * @param enchantmentKey the {@link NamespacedKey} of the enchantment
-   * @return the magic value or 0 if the value cannot be obtained
-   */
-  private static int loadEnchantmentId(@NotNull NamespacedKey enchantmentKey) {
-    // Obtain from registry to ensure we have the internal enchantment.
-    Enchantment enchantment = Registry.ENCHANTMENT.get(enchantmentKey);
-    if (enchantment == null) {
-      // If the enchantment isn't registered, it won't have an ID anyway.
-      return 0;
-    }
-
-    Iterator<Enchantment> enchantments = Registry.ENCHANTMENT.iterator();
-    for (int i = 0; enchantments.hasNext(); i++) {
-      if (enchantments.next().getKey().equals(enchantmentKey)) {
-        return i;
-      }
-    }
-
-    // Impossible to hit - if enchantment is in the registry, it is in the registry iterator.
-    return 0;
   }
 
 }
