@@ -23,6 +23,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.AxolotlBucketMeta;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
@@ -39,8 +40,10 @@ import org.bukkit.inventory.meta.KnowledgeBookMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.MusicInstrumentMeta;
+import org.bukkit.inventory.meta.OminousBottleMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.Repairable;
+import org.bukkit.inventory.meta.ShieldMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.meta.SpawnEggMeta;
 import org.bukkit.inventory.meta.SuspiciousStewMeta;
@@ -90,65 +93,75 @@ public final class ItemFactoryMocks {
     if (material == Material.AIR) {
       return null;
     }
-    if (material == Material.WRITTEN_BOOK || material == Material.WRITABLE_BOOK) {
-      // Note: Internally 2 separate implementations, but the API doesn't differentiate
-      return copyDetails(createMeta(BookMeta.class), meta);
-    }
-    if (material.name().endsWith("_HEAD") || material.name().endsWith("_SKULL")) {
-      return copyDetails(createMeta(SkullMeta.class), meta);
-    }
     if (material.name().startsWith("LEATHER_")) {
       return copyDetails(createMeta(LeatherArmorMeta.class), meta);
     }
-    if (material.name().endsWith("POTION") || material == Material.TIPPED_ARROW) {
-      return copyDetails(createMeta(PotionMeta.class), meta);
+    if (material == Material.SHIELD) {
+      return copyDetails(createMeta(ShieldMeta.class), meta);
     }
-    if (material == Material.FILLED_MAP) {
-      return copyDetails(createMeta(MapMeta.class), meta);
-    }
-    if (material == Material.FIREWORK_ROCKET) {
-      return copyDetails(createMeta(FireworkMeta.class), meta);
-    }
-    if (material == Material.FIREWORK_STAR) {
-      return copyDetails(createMeta(FireworkEffectMeta.class), meta);
-    }
-    if (material == Material.ENCHANTED_BOOK) {
-      return copyDetails(createMeta(EnchantmentStorageMeta.class), meta);
-    }
-    if (material.name().endsWith("_BANNER")) {
-      return copyDetails(createMeta(BannerMeta.class), meta);
-    }
-    if (material.name().endsWith("_SPAWN_EGG")) {
-      return copyDetails(createMeta(SpawnEggMeta.class), meta);
-    }
-    // CB has a different meta for Armor Stands and one for things like fish buckets but there's no API for in-inventory entities.
-    if (material == Material.KNOWLEDGE_BOOK) {
-      return copyDetails(createMeta(KnowledgeBookMeta.class), meta);
-    }
-    if (material.data != null && BlockData.class.isAssignableFrom(material.data)
-        || List.of(Material.SPAWNER, Material.ENCHANTING_TABLE, Material.BEACON, Material.SHIELD).contains(material)) {
-      return copyDetails(createMeta(BlockStateMeta.class), meta);
-    }
-    if (material == Material.TROPICAL_FISH_BUCKET) {
-      return copyDetails(createMeta(TropicalFishBucketMeta.class), meta);
+    if (material.name().endsWith("_BOOTS") || material.name().endsWith("_CHESTPLATE") || material.name().endsWith("_HELMET") || material.name().endsWith("_LEGGINGS")) {
+      return copyDetails(createMeta(ArmorMeta.class), meta);
     }
     if (material == Material.AXOLOTL_BUCKET) {
       return copyDetails(createMeta(AxolotlBucketMeta.class), meta);
     }
-    if (material == Material.CROSSBOW) {
-      return copyDetails(createMeta(CrossbowMeta.class), meta);
+    if (material.name().endsWith("_BANNER")) {
+      return copyDetails(createMeta(BannerMeta.class), meta);
     }
-    if (material == Material.SUSPICIOUS_STEW) {
-      return copyDetails(createMeta(SuspiciousStewMeta.class), meta);
+    if (material.name().endsWith("_HEAD") || material.name().endsWith("_SKULL")) {
+      return copyDetails(createMeta(SkullMeta.class), meta);
     }
-    if (material == Material.COMPASS) {
-      return copyDetails(createMeta(CompassMeta.class), meta);
+    // Perhaps a generic BlockStateMeta+BlockDataMeta if material.isBlock()?
+    if (material.data != null && BlockData.class.isAssignableFrom(material.data)
+        || List.of(Material.SPAWNER, Material.ENCHANTING_TABLE, Material.BEACON).contains(material)) {
+      return copyDetails(createMeta(BlockStateMeta.class), meta);
     }
     if (material == Material.BUNDLE) {
       return copyDetails(createMeta(BundleMeta.class), meta);
     }
+    // ColorableArmorMeta only cases are also LeatherArmorMeta, which is a subclass.
+    if (material == Material.COMPASS) {
+      return copyDetails(createMeta(CompassMeta.class), meta);
+    }
+    if (material == Material.CROSSBOW) {
+      return copyDetails(createMeta(CrossbowMeta.class), meta);
+    }
+    if (material == Material.ENCHANTED_BOOK) {
+      return copyDetails(createMeta(EnchantmentStorageMeta.class), meta);
+    }
+    if (material == Material.FIREWORK_STAR) {
+      return copyDetails(createMeta(FireworkEffectMeta.class), meta);
+    }
+    if (material == Material.FIREWORK_ROCKET) {
+      return copyDetails(createMeta(FireworkMeta.class), meta);
+    }
+    if (material == Material.KNOWLEDGE_BOOK) {
+      return copyDetails(createMeta(KnowledgeBookMeta.class), meta);
+    }
+    if (material == Material.FILLED_MAP) {
+      return copyDetails(createMeta(MapMeta.class), meta);
+    }
     if (material == Material.GOAT_HORN) {
       return copyDetails(createMeta(MusicInstrumentMeta.class), meta);
+    }
+    if (material == Material.OMINOUS_BOTTLE) {
+      return copyDetails(createMeta(OminousBottleMeta.class), meta);
+    }
+    if (material.name().endsWith("POTION") || material == Material.TIPPED_ARROW) {
+      return copyDetails(createMeta(PotionMeta.class), meta);
+    }
+    if (material.name().endsWith("_SPAWN_EGG")) {
+      return copyDetails(createMeta(SpawnEggMeta.class), meta);
+    }
+    if (material == Material.SUSPICIOUS_STEW) {
+      return copyDetails(createMeta(SuspiciousStewMeta.class), meta);
+    }
+    if (material == Material.TROPICAL_FISH_BUCKET) {
+      return copyDetails(createMeta(TropicalFishBucketMeta.class), meta);
+    }
+    if (material == Material.WRITTEN_BOOK || material == Material.WRITABLE_BOOK) {
+      // Note: Internally 2 separate implementations, but the API doesn't differentiate
+      return copyDetails(createMeta(BookMeta.class), meta);
     }
     return copyDetails(createMeta(ItemMeta.class), meta);
   }
@@ -314,7 +327,7 @@ public final class ItemFactoryMocks {
       }).when(cloneHelper).setEnchants(any());
     }
 
-    // TODO lore
+    // Doesn't set up lore, unnecessary here.
   }
 
   private static void repairable(@NotNull ItemMeta meta) {
