@@ -16,7 +16,7 @@ public enum AnvilFunctions {
   ; // Empty enum to hold constants.
 
   /** Constant for adding the level cost from prior work. */
-  public static AnvilFunction PRIOR_WORK_LEVEL_COST = new AnvilFunction() {
+  public static final AnvilFunction PRIOR_WORK_LEVEL_COST = new AnvilFunction() {
     @Override
     public boolean canApply(@NotNull AnvilBehavior behavior, @NotNull AnvilState state) {
       return true;
@@ -37,7 +37,7 @@ public enum AnvilFunctions {
   };
 
   /** Constant for adding the level cost for a renaming operation. */
-  public static AnvilFunction RENAME = new AnvilFunction() {
+  public static final AnvilFunction RENAME = new AnvilFunction() {
     @Override
     public boolean canApply(@NotNull AnvilBehavior behavior, @NotNull AnvilState state) {
       var itemMeta = state.getBase().getMeta();
@@ -77,7 +77,7 @@ public enum AnvilFunctions {
   };
 
   /** Constant for updating prior work to new value. */
-  public static AnvilFunction UPDATE_PRIOR_WORK_COST = new AnvilFunction() {
+  public static final AnvilFunction UPDATE_PRIOR_WORK_COST = new AnvilFunction() {
     @Override
     public boolean canApply(@NotNull AnvilBehavior behavior, @NotNull AnvilState state) {
       return state.getBase().getMeta() instanceof Repairable;
@@ -108,7 +108,7 @@ public enum AnvilFunctions {
   };
 
   /** Constant for using materials to restore durability to the base item. */
-  public static AnvilFunction REPAIR_WITH_MATERIAL = new AnvilFunction() {
+  public static final AnvilFunction REPAIR_WITH_MATERIAL = new AnvilFunction() {
     @Override
     public boolean canApply(@NotNull AnvilBehavior behavior, @NotNull AnvilState state) {
       MetaCachedStack base = state.getBase();
@@ -169,7 +169,7 @@ public enum AnvilFunctions {
   };
 
   /** Constant for using identical materials to restore durability. */
-  public static AnvilFunction REPAIR_WITH_COMBINATION = new AnvilFunction() {
+  public static final AnvilFunction REPAIR_WITH_COMBINATION = new AnvilFunction() {
     @Override
     public boolean canApply(@NotNull AnvilBehavior behavior, @NotNull AnvilState state) {
       Material baseType = state.getBase().getItem().getType();
@@ -220,7 +220,7 @@ public enum AnvilFunctions {
   };
 
   /** Constant for combining enchantments from source and target like Java Edition. */
-  public static AnvilFunction COMBINE_ENCHANTMENTS_JAVA_EDITION = new CombineEnchantments() {
+  public static final AnvilFunction COMBINE_ENCHANTMENTS_JAVA_EDITION = new CombineEnchantments() {
     @Override
     protected int getTotalCost(int baseCost, int oldLevel, int newLevel) {
       return baseCost * newLevel;
@@ -233,7 +233,7 @@ public enum AnvilFunctions {
   };
 
   /** Constant for combining enchantments from source and target like Bedrock Edition. */
-  public static AnvilFunction COMBINE_ENCHANTMENTS_BEDROCK_EDITION = new CombineEnchantments() {
+  public static final AnvilFunction COMBINE_ENCHANTMENTS_BEDROCK_EDITION = new CombineEnchantments() {
     @Override
     protected int getAnvilCost(Enchantment enchantment, boolean isFromBook) {
       EnchantData enchantData = EnchantData.of(enchantment);
