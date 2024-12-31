@@ -54,7 +54,7 @@ public interface AnvilBehavior {
   /**
    * Get whether an item is repaired by another item. This is not the same as a repair via
    * combination of like items! Like items always attempt to combine durability. If you require
-   * different behavior, override {@link VanillaAnvil#getResult(org.bukkit.inventory.view.AnvilView)}
+   * different behavior, override {@link Anvil#getResult(org.bukkit.inventory.view.AnvilView)}
    * and do not call {@link AnvilFunctions#REPAIR_WITH_COMBINATION}.
    *
    * @param repaired the item repaired

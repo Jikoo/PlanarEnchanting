@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
@@ -30,6 +31,7 @@ import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.Repairable;
 import org.bukkit.inventory.view.AnvilView;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,9 +46,9 @@ import org.junit.jupiter.params.provider.MethodSource;
  * Note: These tests are only supposed to cover the functionality of the AnvilOperation class.
  * Specific operations are not verified, that is handled in more specific and thorough tests.
  */
-@DisplayName("Verify VanillaAnvil application")
+@DisplayName("Verify Anvil application")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class VanillaAnvilTest {
+class AnvilTest {
 
   private static final Material TOOL = Material.DIAMOND_SHOVEL;
   private static final Material TOOL_REPAIR = Material.DIAMOND;
@@ -74,6 +76,171 @@ class VanillaAnvilTest {
     toolEnchantment = Enchantment.EFFICIENCY;
     tag = Tag.ITEMS_ENCHANTABLE_MINING;
     doReturn(Set.of(TOOL)).when(tag).getValues();
+  }
+
+  @Test
+  void testApplyNonApplicable() {
+    var function = new AnvilFunction() {
+      @Override
+      public boolean canApply(
+          @NotNull AnvilBehavior behavior,
+          @NotNull AnvilState state) {
+        return false;
+      }
+
+      @Override
+      public @NotNull AnvilFunctionResult getResult(
+          @NotNull AnvilBehavior behavior,
+          @NotNull AnvilState state) {
+        return new AnvilFunctionResult() {
+          @Override
+          public int getLevelCostIncrease() {
+            return 10;
+          }
+
+          @Override
+          public int getMaterialCostIncrease() {
+            return 10;
+          }
+        };
+      }
+    };
+
+    var anvil = new Anvil();
+    var state = new AnvilState(getMockView(null, null));
+    assertThat(
+        "Non-applicable function does not apply",
+        anvil.apply(state, function),
+        is(false));
+    assertThat("Level cost is unchanged", state.getLevelCost(), is(0));
+    assertThat("Material cost is unchanged", state.getMaterialCost(), is(0));
+  }
+
+  @Test
+  void testApply() {
+    final int value = 10;
+    var function = new AnvilFunction() {
+      @Override
+      public boolean canApply(
+          @NotNull AnvilBehavior behavior,
+          @NotNull AnvilState state) {
+        return true;
+      }
+
+      @Override
+      public @NotNull AnvilFunctionResult getResult(
+          @NotNull AnvilBehavior behavior,
+          @NotNull AnvilState state) {
+        return new AnvilFunctionResult() {
+          @Override
+          public int getLevelCostIncrease() {
+            return value;
+          }
+
+          @Override
+          public int getMaterialCostIncrease() {
+            return value;
+          }
+        };
+      }
+    };
+
+    var anvil = new Anvil();
+    var state = new AnvilState(getMockView(null, null));
+
+    assertThat("Applicable function applies", anvil.apply(state, function));
+    assertThat("Level cost is added", state.getLevelCost(), is(value));
+    assertThat("Material cost is added", state.getMaterialCost(), is(value));
+
+    anvil.apply(state, function);
+    assertThat("Level cost is added again", state.getLevelCost(), is(value * 2));
+    assertThat("Material cost is added again", state.getMaterialCost(), is(value * 2));
+  }
+
+  @Test
+  void testForgeNullBaseMeta() {
+    var anvil = new Anvil();
+    var state = new AnvilState(
+        getMockView(new ItemStack(Material.AIR) {
+          @Override
+          public @Nullable ItemMeta getItemMeta() {
+            return null;
+          }
+        }, null));
+
+    assertThat("AnvilResult must be empty constant", anvil.forge(state), is(AnvilResult.EMPTY));
+  }
+
+  @Test
+  void testForgeNullResultMeta() {
+    var state = new AnvilState(
+        getMockView(new ItemStack(Material.AIR) {
+          @Override
+          public @Nullable ItemMeta getItemMeta() {
+            return null;
+          }
+
+          @Override
+          public @NotNull ItemStack clone() {
+            // Silence compiler warning.
+            super.clone();
+            // Return same instance when cloning - this makes the result have a null meta.
+            return this;
+          }
+        }, null)) {
+      private final MetaCachedStack fakeBase = new MetaCachedStack(new ItemStack(Material.DIRT));
+      @Override
+      public @NotNull MetaCachedStack getBase() {
+        return this.fakeBase;
+      }
+    };
+    var anvil = new Anvil();
+
+    assertThat("AnvilResult must be empty constant", anvil.forge(state), is(AnvilResult.EMPTY));
+  }
+
+  @Test
+  void testForgeIgnoreRepairCost() {
+    var state = new AnvilState(getMockView(new ItemStack(Material.DIRT), null));
+    var meta = state.result.getMeta();
+
+    assertThat("Meta must not be null", meta, notNullValue());
+    assertThat("Meta must be Repairable", meta, instanceOf(Repairable.class));
+
+    ((Repairable) meta).setRepairCost(100);
+
+    var anvil = new Anvil();
+    assertThat("AnvilResult must be empty constant", anvil.forge(state), is(AnvilResult.EMPTY));
+  }
+
+  @Test
+  void testForgeIgnoreDisplayNameWithAddition() {
+    var state = new AnvilState(
+        getMockView(new ItemStack(Material.DIRT), new ItemStack(Material.DIRT)));
+    var meta = state.result.getMeta();
+
+    assertThat("Meta must not be null", meta, notNullValue());
+
+    meta.setDisplayName("Cool beans");
+
+    var anvil = new Anvil();
+    assertThat("AnvilResult must be empty constant", anvil.forge(state), is(AnvilResult.EMPTY));
+  }
+
+  @Test
+  void testForge() {
+    var state = new AnvilState(getMockView(new ItemStack(Material.DIRT), null));
+    var meta = state.result.getMeta();
+
+    assertThat("Meta must not be null", meta, notNullValue());
+
+    meta.setDisplayName("Cool beans");
+
+    var anvil = new Anvil();
+    assertThat(
+        "AnvilResult must not be empty constant",
+        anvil.forge(state),
+        is(not(AnvilResult.EMPTY)));
   }
 
   @Test
@@ -144,14 +311,14 @@ class VanillaAnvilTest {
   @Test
   void testEmptyBaseIsEmpty() {
     var anvil = getMockView(null, null);
-    var result = new VanillaAnvil().getResult(anvil);
+    var result = new Anvil().getResult(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
 
   @Test
   void testEmptyAdditionIsEmpty() {
     var anvil = getMockView(new ItemStack(TOOL), null);
-    var result = new VanillaAnvil().getResult(anvil);
+    var result = new Anvil().getResult(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
 
@@ -159,7 +326,7 @@ class VanillaAnvilTest {
   void testEmptyAdditionRenameNotEmpty() {
     var anvil = getMockView(new ItemStack(TOOL), null);
     when(anvil.getRenameText()).thenReturn("Sample Text");
-    var result = new VanillaAnvil().getResult(anvil);
+    var result = new Anvil().getResult(anvil);
     assertThat("Result must not be empty", result, not(AnvilResult.EMPTY));
   }
 
@@ -169,7 +336,7 @@ class VanillaAnvilTest {
     base.setAmount(2);
     var addition = new ItemStack(TOOL);
     var anvil = getMockView(base, addition);
-    var result = new VanillaAnvil().getResult(anvil);
+    var result = new Anvil().getResult(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
 
@@ -190,7 +357,7 @@ class VanillaAnvilTest {
     assertThat("Base must be repairable by addition", AnvilBehavior.VANILLA.itemRepairedBy(new MetaCachedStack(base), new MetaCachedStack(addition)));
 
     var anvil = getMockView(base, addition);
-    var result = new VanillaAnvil().getResult(anvil);
+    var result = new Anvil().getResult(anvil);
 
     assertThat("Result must not be empty", result, is(not(AnvilResult.EMPTY)));
 
@@ -218,7 +385,7 @@ class VanillaAnvilTest {
 
     var addition = base.clone();
     var anvil = getMockView(base, addition);
-    var result = new VanillaAnvil().getResult(anvil);
+    var result = new Anvil().getResult(anvil);
 
     assertThat("Result must not be empty", result, is(not(AnvilResult.EMPTY)));
 

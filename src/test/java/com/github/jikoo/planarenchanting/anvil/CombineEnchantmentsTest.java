@@ -19,7 +19,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
-import com.github.jikoo.planarenchanting.anvil.mock.ReadableResultState;
 import com.github.jikoo.planarenchanting.enchant.EnchantData;
 import com.github.jikoo.planarenchanting.enchant.EnchantmentUtil;
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
@@ -109,7 +108,7 @@ public class CombineEnchantmentsTest {
       var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
       var behavior = spy(AnvilBehavior.VANILLA);
       doReturn(false).when(behavior).itemsCombineEnchants(notNull(), notNull());
-      var state = new AnvilState(behavior, anvil);
+      var state = new AnvilState(anvil);
 
       assertThat("Combination must not apply", function.canApply(behavior, state), is(false));
     }
@@ -119,7 +118,7 @@ public class CombineEnchantmentsTest {
       var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
       var behavior = spy(AnvilBehavior.VANILLA);
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
-      var state = new AnvilState(behavior, anvil);
+      var state = new AnvilState(anvil);
 
       assertThat("Combination must apply", function.canApply(behavior, state));
     }
@@ -129,7 +128,7 @@ public class CombineEnchantmentsTest {
       var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
       var behavior = spy(AnvilBehavior.VANILLA);
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
-      var state = new AnvilState(behavior, anvil);
+      var state = new AnvilState(anvil);
 
       assertThat(
           "No enchants added yields empty result",
@@ -149,16 +148,16 @@ public class CombineEnchantmentsTest {
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
       doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
       doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
-      var state = new ReadableResultState(behavior, anvil);
+      var state = new AnvilState(anvil);
 
       assertThat("Combination must apply", function.canApply(behavior, state));
 
       AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
-      result.modifyResult(state.getResult().getMeta());
+      result.modifyResult(state.result.getMeta());
 
       assertThat("Enchantments must be added to result",
-          EnchantmentUtil.getEnchants(state.getResult().getMeta()).entrySet(),
+          EnchantmentUtil.getEnchants(state.result.getMeta()).entrySet(),
           both(everyItem(is(in(enchantments.entrySet())))).and(
               containsInAnyOrder(enchantments.entrySet().toArray())));
 
@@ -190,25 +189,25 @@ public class CombineEnchantmentsTest {
       doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
       doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
 
-      var state = new ReadableResultState(behavior, anvil);
-      var bookState = new ReadableResultState(behavior, bookAnvil);
+      var state = new AnvilState(anvil);
+      var bookState = new AnvilState(bookAnvil);
 
       assertThat("Combination must apply", function.canApply(behavior, state));
       assertThat("Book combination must apply", function.canApply(behavior, bookState));
 
       AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
-      result.modifyResult(state.getResult().getMeta());
+      result.modifyResult(state.result.getMeta());
       AnvilFunctionResult bookResult = function.getResult(behavior, bookState);
       assertThat("Book material cost is unchanged", bookResult.getMaterialCostIncrease(), is(0));
-      bookResult.modifyResult(bookState.getResult().getMeta());
+      bookResult.modifyResult(bookState.result.getMeta());
 
       assertThat("Enchantments must be added to result",
-          EnchantmentUtil.getEnchants(state.getResult().getMeta()).entrySet(),
+          EnchantmentUtil.getEnchants(state.result.getMeta()).entrySet(),
           both(everyItem(is(in(enchantments.entrySet())))).and(
               containsInAnyOrder(enchantments.entrySet().toArray())));
       assertThat("Enchantments must be added to book result",
-          EnchantmentUtil.getEnchants(bookState.getResult().getMeta()).entrySet(),
+          EnchantmentUtil.getEnchants(bookState.result.getMeta()).entrySet(),
           both(everyItem(is(in(enchantments.entrySet())))).and(
               containsInAnyOrder(enchantments.entrySet().toArray())));
 
@@ -232,18 +231,18 @@ public class CombineEnchantmentsTest {
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
       doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
       doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
-      var state = new ReadableResultState(behavior, anvil);
+      var state = new AnvilState(anvil);
 
       assertThat("Combination must apply", function.canApply(behavior, state));
 
       AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
-      result.modifyResult(state.getResult().getMeta());
+      result.modifyResult(state.result.getMeta());
 
       enchantments.put(basicEnchant, 2);
 
       assertThat("Enchantments must be merged in result",
-          EnchantmentUtil.getEnchants(state.getResult().getMeta()).entrySet(),
+          EnchantmentUtil.getEnchants(state.result.getMeta()).entrySet(),
           both(everyItem(is(in(enchantments.entrySet())))).and(
               containsInAnyOrder(enchantments.entrySet().toArray())));
       assertThat(
@@ -271,16 +270,16 @@ public class CombineEnchantmentsTest {
       doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
       doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
       doReturn(true).when(behavior).enchantsConflict(notNull(), notNull());
-      var state = new ReadableResultState(behavior, anvil);
+      var state = new AnvilState(anvil);
 
       assertThat("Combination must apply", function.canApply(behavior, state));
 
       AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
-      result.modifyResult(state.getResult().getMeta());
+      result.modifyResult(state.result.getMeta());
 
       assertThat("Enchantments must not be merged in result",
-          EnchantmentUtil.getEnchants(state.getResult().getMeta()).entrySet(),
+          EnchantmentUtil.getEnchants(state.result.getMeta()).entrySet(),
           both(everyItem(is(in(enchantments.entrySet())))).and(
               containsInAnyOrder(enchantments.entrySet().toArray())));
       assertThat(
@@ -304,16 +303,16 @@ public class CombineEnchantmentsTest {
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
       doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
       doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
-      var state = new ReadableResultState(behavior, anvil);
+      var state = new AnvilState(anvil);
 
       assertThat("Combination must apply", function.canApply(behavior, state));
 
       AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
-      result.modifyResult(state.getResult().getMeta());
+      result.modifyResult(state.result.getMeta());
 
       assertThat("Enchantments must be the same in result",
-          EnchantmentUtil.getEnchants(state.getResult().getMeta()).entrySet(),
+          EnchantmentUtil.getEnchants(state.result.getMeta()).entrySet(),
           both(everyItem(is(in(enchantments.entrySet())))).and(
               containsInAnyOrder(enchantments.entrySet().toArray())));
       assertThat("Cost must be expected value", result.getLevelCostIncrease(), is(1));
@@ -332,16 +331,16 @@ public class CombineEnchantmentsTest {
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
       doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
       doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
-      var state = new ReadableResultState(behavior, anvil);
+      var state = new AnvilState(anvil);
 
       assertThat("Combination must apply", function.canApply(behavior, state));
 
       AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
-      result.modifyResult(state.getResult().getMeta());
+      result.modifyResult(state.result.getMeta());
 
       assertThat("Enchantments must be the same in result",
-          EnchantmentUtil.getEnchants(state.getResult().getMeta()).entrySet(),
+          EnchantmentUtil.getEnchants(state.result.getMeta()).entrySet(),
           both(everyItem(is(in(enchantments.entrySet())))).and(
               containsInAnyOrder(enchantments.entrySet().toArray())));
       assertThat(
@@ -391,16 +390,16 @@ public class CombineEnchantmentsTest {
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
       doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
       doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
-      var state = new ReadableResultState(behavior, anvil);
+      var state = new AnvilState(anvil);
 
       assertThat("Combination must apply", function.canApply(behavior, state));
 
       AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
-      result.modifyResult(state.getResult().getMeta());
+      result.modifyResult(state.result.getMeta());
 
       assertThat("Enchantments must be added to result",
-          EnchantmentUtil.getEnchants(state.getResult().getMeta()).entrySet(),
+          EnchantmentUtil.getEnchants(state.result.getMeta()).entrySet(),
           both(everyItem(is(in(enchantments.entrySet())))).and(
               containsInAnyOrder(enchantments.entrySet().toArray())));
       assertThat(
@@ -448,16 +447,16 @@ public class CombineEnchantmentsTest {
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
       doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
       doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
-      var state = new ReadableResultState(behavior, anvil);
+      var state = new AnvilState(anvil);
 
       assertThat("Combination must apply", function.canApply(behavior, state));
 
       AnvilFunctionResult result = function.getResult(behavior, state);
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
-      result.modifyResult(state.getResult().getMeta());
+      result.modifyResult(state.result.getMeta());
 
       assertThat("Enchantments must be the same in result",
-          EnchantmentUtil.getEnchants(state.getResult().getMeta()).entrySet(),
+          EnchantmentUtil.getEnchants(state.result.getMeta()).entrySet(),
           both(everyItem(is(in(enchantments.entrySet())))).and(
               containsInAnyOrder(enchantments.entrySet().toArray())));
       assertThat("Cost must be unchanged", result.getLevelCostIncrease(), is(0));

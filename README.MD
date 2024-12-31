@@ -17,16 +17,16 @@ systems and divide them up into readable, manageable, customizable segments.
 ### Anvil Enchanting
 
 Anvil enchanting is primarily accessed via the
-[`VanillaAnvil`](src/main/java/com/github/jikoo/planarenchanting/anvil/VanillaAnvil.java).
+[`Anvil`](src/main/java/com/github/jikoo/planarenchanting/anvil/Anvil.java).
 This is a class containing several simple ways to modify anvil behaviors.
 
-For basic vanilla-style combination, all you need is an ordinary `VanillaAnvil`.
+For basic vanilla-style combination, all you need is an ordinary `Anvil`.
 
 ```java
 class MyAnvilHandler implements Listener {
   @EventHandler
   private void onPrepareAnvil(PrepareAnvilEvent event) {
-    VanillaAnvil anvil = new VanillaAnvil();
+    Anvil anvil = new Anvil();
     AnvilResult result = anvil.getResult(event.getView());
 
     event.setResult(result.item());
@@ -39,12 +39,12 @@ class MyAnvilHandler implements Listener {
 ```
 
 For specific tweaks (i.e. removing or changing enchantment level cap) you can provide the
-`VanillaAnvil` with a different `AnvilBehavior` implementation.
+`Anvil` with a different `AnvilBehavior` implementation.
 
 Allowing conflicting enchantments to be added:
 
 ```java
-VanillaAnvil anvil = new VanillaAnvil(new AnvilBehavior() {
+Anvil anvil = new Anvil(new AnvilBehavior() {
   @Override
   public boolean getEnchantsConflict(Enchantment enchant1, Enchantment enchant2) {
     return false;
@@ -58,9 +58,10 @@ you can write your own anvil functionality.
 An implementation that only allows the input to be renamed:
 
 ```java
-class RenameOnlyAnvil {
+class RenameOnlyAnvil extends Anvil {
+  @Override
   public void getResult(@NotNull AnvilView view) {
-    AnvilState state = new AnvilState(AnvilBehavior.VANILLA, view);
+    AnvilState state = new AnvilState(view);
 
     // Require first item to be set, second item to be unset.
     if (ItemUtil.isEmpty(state.getBase().getItem())
