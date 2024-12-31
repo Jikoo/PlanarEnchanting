@@ -30,7 +30,6 @@ import org.junit.jupiter.api.TestInstance;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AnvilStateTest {
 
-  private AnvilBehavior behavior;
   private AnvilView view;
 
   @BeforeAll
@@ -53,8 +52,6 @@ class AnvilStateTest {
 
   @BeforeEach
   void beforeEach() {
-    behavior = AnvilBehavior.VANILLA;
-
     var anvil = InventoryMocks.newAnvilMock();
     view = mock(AnvilView.class);
     doAnswer(params -> anvil.getItem(params.getArgument(0)))
