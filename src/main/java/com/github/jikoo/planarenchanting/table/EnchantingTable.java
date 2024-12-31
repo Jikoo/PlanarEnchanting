@@ -231,13 +231,11 @@ public class EnchantingTable {
   private static int getButtonLevel(@NotNull Random random, int button, int shelves) {
     int level = random.nextInt(8) + 1 + (shelves >> 1) + random.nextInt(shelves + 1);
 
-    if (button == 0) {
-      level = Math.max(level / 3, 1);
-    } else if (button == 1) {
-      level = level * 2 / 3 + 1;
-    } else {
-      level = Math.max(level, shelves * 2);
-    }
+    level = switch (button) {
+      case 0 -> Math.max(level / 3, 1);
+      case 1 -> level * 2 / 3 + 1;
+      default -> Math.max(level, shelves * 2);
+    };
 
     return level >= button + 1 ? level : 0;
   }
