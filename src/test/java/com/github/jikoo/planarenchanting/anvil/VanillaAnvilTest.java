@@ -81,11 +81,11 @@ class VanillaAnvilTest {
     var item = new MetaCachedStack(new ItemStack(TOOL));
     assertThat(
         "Enchantment applies to tools",
-        VanillaAnvil.BEHAVIOR.enchantApplies(toolEnchantment, item));
+        AnvilBehavior.VANILLA.enchantApplies(toolEnchantment, item));
     item.getItem().setType(INCOMPATIBLE);
     assertThat(
         "Enchantment does not apply to non-tools",
-        VanillaAnvil.BEHAVIOR.enchantApplies(toolEnchantment, item),
+        AnvilBehavior.VANILLA.enchantApplies(toolEnchantment, item),
         is(false));
   }
 
@@ -93,10 +93,10 @@ class VanillaAnvilTest {
   void testEnchantmentConflict() {
     assertThat(
         "Vanilla enchantments conflict",
-        VanillaAnvil.BEHAVIOR.enchantsConflict(Enchantment.SILK_TOUCH, Enchantment.FORTUNE));
+        AnvilBehavior.VANILLA.enchantsConflict(Enchantment.SILK_TOUCH, Enchantment.FORTUNE));
     assertThat(
         "Nonconflicting enchantments do not conflict",
-        VanillaAnvil.BEHAVIOR.enchantsConflict(Enchantment.EFFICIENCY, Enchantment.FORTUNE),
+        AnvilBehavior.VANILLA.enchantsConflict(Enchantment.EFFICIENCY, Enchantment.FORTUNE),
         is(false));
   }
 
@@ -105,7 +105,7 @@ class VanillaAnvilTest {
   void testEnchantmentMaxLevel(Enchantment enchantment) {
     assertThat(
         "Enchantment max level must be vanilla",
-        VanillaAnvil.BEHAVIOR.getEnchantMaxLevel(enchantment),
+        AnvilBehavior.VANILLA.getEnchantMaxLevel(enchantment),
         is(enchantment.getMaxLevel()));
   }
 
@@ -119,7 +119,7 @@ class VanillaAnvilTest {
     var addition = new MetaCachedStack(new ItemStack(TOOL));
     assertThat(
         "Same type combine enchantments",
-        VanillaAnvil.BEHAVIOR.itemsCombineEnchants(base, addition));
+        AnvilBehavior.VANILLA.itemsCombineEnchants(base, addition));
   }
 
   @Test
@@ -128,7 +128,7 @@ class VanillaAnvilTest {
     var addition = new MetaCachedStack(new ItemStack(BOOK));
     assertThat(
         "Enchanted books combine enchantments",
-        VanillaAnvil.BEHAVIOR.itemsCombineEnchants(base, addition));
+        AnvilBehavior.VANILLA.itemsCombineEnchants(base, addition));
   }
 
   @Test
@@ -137,7 +137,7 @@ class VanillaAnvilTest {
     var addition = new MetaCachedStack(new ItemStack(INCOMPATIBLE));
     assertThat(
         "Incompatible materials do not combine enchantments",
-        VanillaAnvil.BEHAVIOR.itemsCombineEnchants(base, addition),
+        AnvilBehavior.VANILLA.itemsCombineEnchants(base, addition),
         is(false));
   }
 
@@ -187,7 +187,7 @@ class VanillaAnvilTest {
 
     var addition = new ItemStack(TOOL_REPAIR);
 
-    assertThat("Base must be repairable by addition", VanillaAnvil.BEHAVIOR.itemRepairedBy(new MetaCachedStack(base), new MetaCachedStack(addition)));
+    assertThat("Base must be repairable by addition", AnvilBehavior.VANILLA.itemRepairedBy(new MetaCachedStack(base), new MetaCachedStack(addition)));
 
     var anvil = getMockView(base, addition);
     var result = new VanillaAnvil().getResult(anvil);

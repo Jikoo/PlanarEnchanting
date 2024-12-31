@@ -1,46 +1,15 @@
 package com.github.jikoo.planarenchanting.anvil;
 
 import com.github.jikoo.planarenchanting.util.ItemUtil;
-import com.github.jikoo.planarenchanting.util.MetaCachedStack;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.view.AnvilView;
 import org.jetbrains.annotations.NotNull;
 
 public class VanillaAnvil {
 
-  public static final AnvilBehavior BEHAVIOR = new AnvilBehavior() {
-    @Override
-    public boolean enchantApplies(@NotNull Enchantment enchantment, @NotNull MetaCachedStack base) {
-      return enchantment.canEnchantItem(base.getItem());
-    }
-
-    @Override
-    public boolean enchantsConflict(@NotNull Enchantment enchant1, @NotNull Enchantment enchant2) {
-      return enchant1.conflictsWith(enchant2);
-    }
-
-    @Override
-    public int getEnchantMaxLevel(@NotNull Enchantment enchantment) {
-      return enchantment.getMaxLevel();
-    }
-
-    @Override
-    public boolean itemsCombineEnchants(@NotNull MetaCachedStack base, @NotNull MetaCachedStack addition) {
-      Material additionType = addition.getItem().getType();
-      return base.getItem().getType() == additionType || additionType == Material.ENCHANTED_BOOK;
-    }
-
-    @Override
-    public boolean itemRepairedBy(@NotNull MetaCachedStack repaired, @NotNull MetaCachedStack repairMat) {
-      return RepairMaterial.repairs(repaired.getItem(), repairMat.getItem());
-    }
-  };
-
   private final @NotNull AnvilBehavior behavior;
 
   public VanillaAnvil() {
-    this(BEHAVIOR);
+    this(AnvilBehavior.VANILLA);
   }
 
   public VanillaAnvil(@NotNull AnvilBehavior behavior) {

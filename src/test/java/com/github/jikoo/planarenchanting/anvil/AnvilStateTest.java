@@ -39,7 +39,7 @@ import org.junit.jupiter.api.TestInstance;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AnvilStateTest {
 
-  private AnvilBehavior operation;
+  private AnvilBehavior behavior;
   private AnvilView view;
 
   @BeforeAll
@@ -62,7 +62,7 @@ class AnvilStateTest {
 
   @BeforeEach
   void beforeEach() {
-    operation = VanillaAnvil.BEHAVIOR;
+    behavior = AnvilBehavior.VANILLA;
 
     var anvil = InventoryMocks.newAnvilMock();
     view = mock(AnvilView.class);
@@ -76,7 +76,7 @@ class AnvilStateTest {
 
   @Test
   void testGetAnvil() {
-    var state = new AnvilState(operation, view);
+    var state = new AnvilState(behavior, view);
     assertThat("Anvil must be provided instance", state.getAnvil(), is(view));
   }
 
@@ -84,7 +84,7 @@ class AnvilStateTest {
   void testBase() {
     var base = new ItemStack(Material.DIRT);
     view.setItem(0, base);
-    var state = new AnvilState(operation, view);
+    var state = new AnvilState(behavior, view);
     assertThat("Base item must match", state.getBase().getItem(), is(base));
   }
 
@@ -92,13 +92,13 @@ class AnvilStateTest {
   void testAddition() {
     var addition = new ItemStack(Material.DIRT);
     view.setItem(1, addition);
-    var state = new AnvilState(operation, view);
+    var state = new AnvilState(behavior, view);
     assertThat("Addition item must match", state.getAddition().getItem(), is(addition));
   }
 
   @Test
   void testGetSetLevelCost() {
-    var state = new AnvilState(operation, view);
+    var state = new AnvilState(behavior, view);
     assertThat("Level cost starts at 0", state.getLevelCost(), is(0));
     int value = 10;
     state.setLevelCost(value);
@@ -107,7 +107,7 @@ class AnvilStateTest {
 
   @Test
   void testGetSetMaterialCost() {
-    var state = new AnvilState(operation, view);
+    var state = new AnvilState(behavior, view);
     assertThat("Material cost starts at 0", state.getMaterialCost(), is(0));
     int value = 10;
     state.setMaterialCost(value);
@@ -142,7 +142,7 @@ class AnvilStateTest {
       }
     };
 
-    var state = new AnvilState(operation, view);
+    var state = new AnvilState(behavior, view);
     assertThat(
         "Non-applicable function does not apply",
         state.apply(function),
@@ -180,7 +180,7 @@ class AnvilStateTest {
       }
     };
 
-    var state = new AnvilState(operation, view);
+    var state = new AnvilState(behavior, view);
 
     assertThat("Applicable function applies", state.apply(function));
     assertThat("Level cost is added", state.getLevelCost(), is(value));
@@ -200,7 +200,7 @@ class AnvilStateTest {
       }
     });
 
-    var state = new AnvilState(operation, view);
+    var state = new AnvilState(behavior, view);
 
     assertThat("AnvilResult must be empty constant", state.forge(), is(AnvilResult.EMPTY));
   }
@@ -224,7 +224,7 @@ class AnvilStateTest {
       }
     });
 
-    var state = new AnvilState(operation, view) {
+    var state = new AnvilState(behavior, view) {
       private final MetaCachedStack fakeBase = new MetaCachedStack(new ItemStack(Material.DIRT));
       @Override
       public @NotNull MetaCachedStack getBase() {
@@ -239,7 +239,7 @@ class AnvilStateTest {
   void testForgeIgnoreRepairCost() {
     view.setItem(0, new ItemStack(Material.DIRT));
 
-    var state = new ReadableResultState(operation, view);
+    var state = new ReadableResultState(behavior, view);
     var meta = state.getResult().getMeta();
 
     assertThat("Meta must not be null", meta, notNullValue());
@@ -255,7 +255,7 @@ class AnvilStateTest {
     view.setItem(0, new ItemStack(Material.DIRT));
     view.setItem(1, new ItemStack(Material.DIRT));
 
-    var state = new ReadableResultState(operation, view);
+    var state = new ReadableResultState(behavior, view);
     var meta = state.getResult().getMeta();
 
     assertThat("Meta must not be null", meta, notNullValue());
@@ -269,7 +269,7 @@ class AnvilStateTest {
   void testForge() {
     view.setItem(0, new ItemStack(Material.DIRT));
 
-    var state = new ReadableResultState(operation, view);
+    var state = new ReadableResultState(behavior, view);
     var meta = state.getResult().getMeta();
 
     assertThat("Meta must not be null", meta, notNullValue());

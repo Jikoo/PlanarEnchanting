@@ -1,11 +1,14 @@
 package com.github.jikoo.planarenchanting.anvil;
 
 import com.github.jikoo.planarenchanting.util.MetaCachedStack;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public interface AnvilBehavior {
+
+  static AnvilBehavior VANILLA = new AnvilBehavior() {};
 
   /**
    * Get whether an {@link Enchantment} is applicable for a wrapped {@link ItemStack}.
@@ -14,21 +17,27 @@ public interface AnvilBehavior {
    * @param base the item that may be enchanted
    * @return whether the {@code Enchantment} can be applied
    */
-  boolean enchantApplies(@NotNull Enchantment enchantment, @NotNull MetaCachedStack base);
+  default boolean enchantApplies(@NotNull Enchantment enchantment, @NotNull MetaCachedStack base) {
+    return enchantment.canEnchantItem(base.getItem());
+  }
 
   /**
    * Get whether two {@link Enchantment Enchantments} conflict.
    *
    * @return whether the {@code Enchantments} conflict
    */
-  boolean enchantsConflict(@NotNull Enchantment enchant1, @NotNull Enchantment enchant2);
+  default boolean enchantsConflict(@NotNull Enchantment enchant1, @NotNull Enchantment enchant2) {
+    return enchant1.conflictsWith(enchant2);
+  }
 
   /**
    * Get the maximum level for an {@link Enchantment}.
    *
    * @return the maximum level for an {@code Enchantment}
    */
-  int getEnchantMaxLevel(@NotNull Enchantment enchantment);
+  default int getEnchantMaxLevel(@NotNull Enchantment enchantment) {
+    return enchantment.getMaxLevel();
+  }
 
   /**
    * Get whether an item should combine its {@link Enchantment Enchantments} with another item.
@@ -37,7 +46,10 @@ public interface AnvilBehavior {
    * @param addition the item added
    * @return whether items should combine {@code Enchantments}
    */
-  boolean itemsCombineEnchants(@NotNull MetaCachedStack base, @NotNull MetaCachedStack addition);
+  default boolean itemsCombineEnchants(@NotNull MetaCachedStack base, @NotNull MetaCachedStack addition) {
+    Material additionType = addition.getItem().getType();
+    return base.getItem().getType() == additionType || additionType == Material.ENCHANTED_BOOK;
+  }
 
   /**
    * Get whether an item is repaired by another item. This is not the same as a repair via
@@ -49,6 +61,8 @@ public interface AnvilBehavior {
    * @param repairMat the item used to repair
    * @return the method determining whether an item is repaired by another item
    */
-  public boolean itemRepairedBy(@NotNull MetaCachedStack repaired, @NotNull MetaCachedStack repairMat);
+  default boolean itemRepairedBy(@NotNull MetaCachedStack repaired, @NotNull MetaCachedStack repairMat) {
+    return RepairMaterial.repairs(repaired.getItem(), repairMat.getItem());
+  }
 
 }

@@ -60,7 +60,7 @@ An implementation that only allows the input to be renamed:
 ```java
 class RenameOnlyAnvil {
   public void getResult(@NotNull AnvilView view) {
-    AnvilState state = new AnvilState(VanillaAnvil.BEHAVIOR, view);
+    AnvilState state = new AnvilState(AnvilBehavior.VANILLA, view);
 
     // Require first item to be set, second item to be unset.
     if (ItemUtil.isEmpty(state.getBase().getItem())
@@ -148,7 +148,7 @@ Leiningen.
 
 ### Maven
 
-Replace `$planarVersion` with the version you desire to work with. The `minimizeJar` option is
+Replace `${versions.planarenchanting}` with the version you desire to work with or define it in your properties. The `minimizeJar` option is
 recommended to prevent inflating your plugin with unnecessary classes.
 
 Sample configuration:
@@ -166,7 +166,7 @@ Sample configuration:
     <dependency>
       <groupId>com.github.jikoo</groupId>
       <artifactId>planarenchanting</artifactId>
-      <version>$planarVersion</version>
+      <version>${versions.planarenchanting}</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

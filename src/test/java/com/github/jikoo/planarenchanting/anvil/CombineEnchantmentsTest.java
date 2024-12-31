@@ -107,7 +107,7 @@ public class CombineEnchantmentsTest {
     @Test
     void testAppliesIfNotCombine() {
       var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
-      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      var behavior = spy(AnvilBehavior.VANILLA);
       doReturn(false).when(behavior).itemsCombineEnchants(notNull(), notNull());
       var state = new AnvilState(behavior, anvil);
 
@@ -117,7 +117,7 @@ public class CombineEnchantmentsTest {
     @Test
     void testAppliesIfCombine() {
       var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
-      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      var behavior = spy(AnvilBehavior.VANILLA);
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
       var state = new AnvilState(behavior, anvil);
 
@@ -127,7 +127,7 @@ public class CombineEnchantmentsTest {
     @Test
     void testNoEnchantsAdded() {
       var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
-      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      var behavior = spy(AnvilBehavior.VANILLA);
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
       var state = new AnvilState(behavior, anvil);
 
@@ -145,7 +145,7 @@ public class CombineEnchantmentsTest {
       applyEnchantments(addition, enchantments);
 
       var anvil = getMockView(new ItemStack(BASE_MAT), addition);
-      var behavior = spy(VanillaAnvil.BEHAVIOR);
+      var behavior = spy(AnvilBehavior.VANILLA);
       doReturn(true).when(behavior).itemsCombineEnchants(notNull(), notNull());
       doReturn(true).when(behavior).enchantApplies(notNull(), notNull());
       doReturn((int) Short.MAX_VALUE).when(behavior).getEnchantMaxLevel(notNull());
