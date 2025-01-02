@@ -1,24 +1,24 @@
 package net.minecraft.world.item.enchantment;
 
-import org.bukkit.NamespacedKey;
 import java.util.function.IntUnaryOperator;
+import org.bukkit.NamespacedKey;
 
 public record Enchantment(
     NamespacedKey key,
     IntUnaryOperator minCost,
     IntUnaryOperator maxCost,
     // NMSREF \nnet\.minecraft\.world\.item\.enchantment\.Enchantment(.|\n)*?int getWeight\(\)
-    int d,
+    int b,
     // NMSREF \nnet\.minecraft\.world\.item\.enchantment\.Enchantment(.|\n)*?int getAnvilCost\(\)
-    int e) {
+    int c) {
 
   // NMSREF \nnet\.minecraft\.world\.item\.enchantment\.Enchantment(.|\n)*?int getMinCost\(int\)
-  public int c(int level) {
+  public int b(int level) {
     return minCost().applyAsInt(level);
   }
 
   // NMSREF \nnet\.minecraft\.world\.item\.enchantment\.Enchantment(.|\n)*?int getMaxCost\(int\)
-  public int d(int level) {
+  public int c(int level) {
     return maxCost().applyAsInt(level);
   }
 

@@ -28,10 +28,10 @@ public class EnchantData implements WeightedRandom.Choice {
     add(Enchantment.AQUA_AFFINITY, Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR, 2, 4, flat(1), flat(41));
     add(Enchantment.THORNS, Tag.ITEMS_ENCHANTABLE_CHEST_ARMOR, 1, 8, perLvl(10, 20), perLvl(60, 20));
     add(Enchantment.DEPTH_STRIDER, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, 2, 4, perLvl(10, 10), perLvl(25, 10));
-    add(Enchantment.FROST_WALKER, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, 2, 4, perLvl(10, 10), perLvl(25, 10));
-    add(Enchantment.BINDING_CURSE, Tag.ITEMS_ENCHANTABLE_EQUIPPABLE, 1, 8, flat(25), flat(50));
-    add(Enchantment.SOUL_SPEED, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, 1, 8, perLvl(10, 10), perLvl(25, 10));
-    add(Enchantment.SWIFT_SNEAK, Tag.ITEMS_ENCHANTABLE_LEG_ARMOR, 1, 8, perLvl(25, 25), perLvl(75, 25));
+    add(Enchantment.FROST_WALKER, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, 2, 4, perLvl(10, 10), perLvl(25, 10));
+    add(Enchantment.BINDING_CURSE, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_EQUIPPABLE, 1, 8, flat(25), flat(50));
+    add(Enchantment.SOUL_SPEED, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, 1, 8, perLvl(10, 10), perLvl(25, 10));
+    add(Enchantment.SWIFT_SNEAK, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_LEG_ARMOR, 1, 8, perLvl(25, 25), perLvl(75, 25));
     // Melee weapon
     add(Enchantment.SHARPNESS, Tag.ITEMS_ENCHANTABLE_SHARP_WEAPON, Tag.ITEMS_ENCHANTABLE_SWORD, 10, 1, perLvl(1, 11), perLvl(21, 11));
     add(Enchantment.SMITE, Tag.ITEMS_ENCHANTABLE_WEAPON, Tag.ITEMS_ENCHANTABLE_SWORD, 5, 2, perLvl(5, 8), perLvl(25, 8));
@@ -62,16 +62,13 @@ public class EnchantData implements WeightedRandom.Choice {
     add(Enchantment.MULTISHOT, Tag.ITEMS_ENCHANTABLE_CROSSBOW, 2, 4, flat(20), flat(50));
     add(Enchantment.QUICK_CHARGE, Tag.ITEMS_ENCHANTABLE_CROSSBOW, 5, 2, perLvl(12, 20), flat(50));
     add(Enchantment.PIERCING, Tag.ITEMS_ENCHANTABLE_CROSSBOW, 10, 1, perLvl(1, 10), flat(50));
-    // General
-    add(Enchantment.MENDING, Tag.ITEMS_ENCHANTABLE_DURABILITY, 2, 4, perLvl(25, 25), perLvl(75, 25));
-    add(Enchantment.VANISHING_CURSE, Tag.ITEMS_ENCHANTABLE_VANISHING, 1, 8, flat(25), flat(50));
     // Mace
-    // NMSREF net.minecraft.world.item.enchantment.BreachEnchantment
+    add(Enchantment.DENSITY, Tag.ITEMS_ENCHANTABLE_MACE, 5, 2, perLvl(5, 8), perLvl(25, 8));
     add(Enchantment.BREACH, Tag.ITEMS_ENCHANTABLE_MACE, 2, 4, perLvl(15, 9), perLvl(65, 9));
-    // NMSREF net.minecraft.world.item.enchantment.DensityEnchantment
-    add(Enchantment.DENSITY, Tag.ITEMS_ENCHANTABLE_MACE, 10, 1, perLvl(1, 11), perLvl(21, 11));
-    // NMSREF net.minecraft.world.item.enchantment.WindBurstEnchantment
-    add(Enchantment.WIND_BURST, Tag.ITEMS_ENCHANTABLE_MACE, 2, 4, perLvl(15, 9), perLvl(65, 9));
+    add(Enchantment.WIND_BURST, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_MACE, 2, 4, perLvl(15, 9), perLvl(65, 9));
+    // General
+    add(Enchantment.MENDING, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_DURABILITY, 2, 4, perLvl(25, 25), perLvl(75, 25));
+    add(Enchantment.VANISHING_CURSE, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_VANISHING, 1, 8, flat(25), flat(50));
   }
 
   private static void add(
@@ -92,7 +89,7 @@ public class EnchantData implements WeightedRandom.Choice {
       int anvilCost,
       @NotNull IntUnaryOperator minEnchantQuality,
       @NotNull IntUnaryOperator maxEnchantQuality) {
-    ENCHANT_DATA.put(enchant, new EnchantData(enchant, enchant.isTreasure() ? ItemUtil.TAG_EMPTY : null, items, weight, anvilCost, minEnchantQuality, maxEnchantQuality));
+    ENCHANT_DATA.put(enchant, new EnchantData(enchant, null, items, weight, anvilCost, minEnchantQuality, maxEnchantQuality));
   }
 
   private static @NotNull IntUnaryOperator perLvl(int base, int perLevel) {
@@ -123,7 +120,7 @@ public class EnchantData implements WeightedRandom.Choice {
   private EnchantData(@NotNull Enchantment enchantment) {
     this(enchantment,
         null, // TODO
-        Tag.WALL_SIGNS, // TODO
+        ItemUtil.TAG_EMPTY, // TODO
         EnchantDataReflection.getWeight(enchantment),
         EnchantDataReflection.getAnvilCost(enchantment),
         EnchantDataReflection.getMinCost(enchantment),

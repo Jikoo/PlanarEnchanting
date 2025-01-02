@@ -21,7 +21,7 @@ public final class EnchantDataReflection {
    */
   public static int getWeight(@NotNull Enchantment enchantment) {
     // NMSREF net.minecraft.world.item.enchantment.Enchantment#getWeight
-    return nmsHandler(enchantment, nmsEnchant -> (int) nmsEnchant.getClass().getMethod("d").invoke(nmsEnchant), 0);
+    return nmsHandler(enchantment, nmsEnchant -> (int) nmsEnchant.getClass().getMethod("b").invoke(nmsEnchant), 0);
   }
 
   /**
@@ -32,7 +32,7 @@ public final class EnchantDataReflection {
    */
   public static int getAnvilCost(@NotNull Enchantment enchantment) {
     // NMSREF net.minecraft.world.item.enchantment.Enchantment#getAnvilCost
-    return nmsHandler(enchantment, nmsEnchant -> (int) nmsEnchant.getClass().getMethod("e").invoke(nmsEnchant), 40);
+    return nmsHandler(enchantment, nmsEnchant -> (int) nmsEnchant.getClass().getMethod("c").invoke(nmsEnchant), 40);
   }
 
   /**
@@ -43,7 +43,7 @@ public final class EnchantDataReflection {
    */
   public static IntUnaryOperator getMinCost(Enchantment enchantment) {
     // NMSREF net.minecraft.world.item.enchantment.Enchantment#getMinCost(int)
-    return nmsIntUnaryOperator(enchantment, "c", EnchantDataReflection::defaultMinEnchantQuality);
+    return nmsIntUnaryOperator(enchantment, "b", EnchantDataReflection::defaultMinEnchantQuality);
   }
 
   /**
@@ -64,7 +64,7 @@ public final class EnchantDataReflection {
    */
   public static IntUnaryOperator getMaxCost(Enchantment enchantment) {
     // NMSREF net.minecraft.world.item.enchantment.Enchantment#getMaxCost(int)
-    return nmsIntUnaryOperator(enchantment, "d", EnchantDataReflection::defaultMaxEnchantQuality);
+    return nmsIntUnaryOperator(enchantment, "c", EnchantDataReflection::defaultMaxEnchantQuality);
   }
 
 
