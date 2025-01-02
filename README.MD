@@ -24,16 +24,17 @@ For basic vanilla-style combination, all you need is an ordinary `Anvil`.
 
 ```java
 class MyAnvilHandler implements Listener {
+  private final Anvil anvil = new Anvil();
   @EventHandler
   private void onPrepareAnvil(PrepareAnvilEvent event) {
-    Anvil anvil = new Anvil();
-    AnvilResult result = anvil.getResult(event.getView());
+    AnvilView view = event.getView();
+    AnvilResult result = anvil.getResult(view);
 
     event.setResult(result.item());
-    inventory.setRepairCostAmount(result.materialCost());
 
-    // Note: depending on how anvil actually functions, may need to update cost on a 0-tick delay.
-    inventory.setRepairCost(result.levelCost());
+    // Note: depending on server implementation, may need to update costs on a 0-tick delay.
+    view.setRepairItemCostAmount(result.materialCost());
+    view.setRepairCost(result.levelCost());
   }
 }
 ```
@@ -70,11 +71,11 @@ class RenameOnlyAnvil extends Anvil {
     }
 
     // Apply base cost.
-    state.apply(AnvilFunctions.PRIOR_WORK_LEVEL_COST);
+    apply(state, AnvilFunctions.PRIOR_WORK_LEVEL_COST);
     // Apply rename.
-    state.apply(AnvilFunctions.RENAME);
+    apply(state, AnvilFunctions.RENAME);
 
-    return state.forge();
+    return forge(state);
   }
 }
 ```
