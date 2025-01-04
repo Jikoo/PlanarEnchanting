@@ -119,12 +119,12 @@ public class EnchantData implements WeightedRandom.Choice {
 
   private EnchantData(@NotNull Enchantment enchantment) {
     this(enchantment,
-        null, // TODO
-        ItemUtil.TAG_EMPTY, // TODO
-        EnchantDataReflection.getWeight(enchantment),
-        EnchantDataReflection.getAnvilCost(enchantment),
-        EnchantDataReflection.getMinCost(enchantment),
-        EnchantDataReflection.getMaxCost(enchantment));
+        EnchantDataPaper.isTreasure(enchantment) ? ItemUtil.TAG_EMPTY : EnchantDataPaper.getPrimaryItems(enchantment),
+        EnchantDataPaper.getSecondaryItems(enchantment),
+        EnchantDataPaper.getWeight(enchantment),
+        EnchantDataPaper.getAnvilCost(enchantment),
+        EnchantDataPaper.getMinCost(enchantment),
+        EnchantDataPaper.getMaxCost(enchantment));
   }
 
   private EnchantData(
@@ -151,10 +151,10 @@ public class EnchantData implements WeightedRandom.Choice {
   /**
    * Get a {@link Tag} containing the items this enchantment is intended to apply to from an enchanting table.
    *
-   * <p>In vanilla, this is used specifically for enchantments that can be applied to different
-   * items by a table and anvil, i.e. sharpness. Enchantments with identical table and anvil lists
-   * report their secondary list as being the primary. For treasure enchantments, the primary tag is
-   * empty if not available (unlike vanilla).
+   * <p>Note that this varies from vanilla for treasure enchantments! In vanilla, treasure enchants
+   * (for which there is no Bukkit Tag) do not define an empty tag for their enchanting target; they
+   * allow it to fall through to the anvil-applicable tag like other enchantments.<br>
+   * PlanarEnchanting instead provides an empty primary items tag if an enchantment is treasure.</p>
    *
    * @return the corresponding tag
    */
