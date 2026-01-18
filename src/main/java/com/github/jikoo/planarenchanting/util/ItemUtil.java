@@ -19,6 +19,8 @@ public final class ItemUtil {
 
   /** Constant for air itemstacks. */
   public static final ItemStack AIR = new ItemStack(Material.AIR) {
+    @Contract(value = "_ -> fail", pure = true)
+    @Deprecated
     @Override
     public void setType(@NotNull Material type) {
       throw new UnsupportedOperationException("Cannot modify AIR constant.");

@@ -1,6 +1,5 @@
 package com.github.jikoo.planarenchanting.table;
 
-import com.github.jikoo.planarenchanting.enchant.EnchantData;
 import com.github.jikoo.planarwrappers.util.WeightedRandom;
 import java.util.Collection;
 import java.util.Collections;
@@ -88,7 +87,7 @@ public class EnchantingTable {
     int enchantQuality = getEnchantQuality(random, enchantLevel);
 
     // Remap to EnchantData, collecting in a HashSet for later modifications.
-    Map<EnchantData, Integer> available = getAvailableResults(enchantQuality);
+    Map<Enchantment, Integer> available = getAvailableResults(enchantQuality);
 
     Map<Enchantment, Integer> selected = new HashMap<>();
     // First enchantment added does not penalize enchantment quality.
@@ -102,16 +101,16 @@ public class EnchantingTable {
     return selected;
   }
 
-  private @NotNull Map<@NotNull EnchantData, @NotNull Integer> getAvailableResults(
+  private @NotNull Map<@NotNull Enchantment, @NotNull Integer> getAvailableResults(
       int enchantQuality) {
-    Map<EnchantData, Integer> available = new HashMap<>();
+    Map<Enchantment, Integer> available = new HashMap<>();
 
     for (Enchantment enchantment : this.enchantments) {
-      EnchantData data = EnchantData.of(enchantment);
       // Find a level appropriate for the finalized enchanting level.
       for (int lvl = maxLevel.applyAsInt(enchantment); lvl >= enchantment.getStartLevel(); --lvl) {
-        if (enchantQuality >= data.getMinCost(lvl) && enchantQuality <= data.getMaxCost(lvl)) {
-          available.put(data, lvl);
+        if (enchantQuality >= enchantment.getMinModifiedCost(lvl)
+            && enchantQuality <= enchantment.getMaxModifiedCost(lvl)) {
+          available.put(enchantment, lvl);
           break;
         }
       }
@@ -130,20 +129,20 @@ public class EnchantingTable {
   private void addEnchant(
       @NotNull Random random,
       @NotNull Map<Enchantment, Integer> selected,
-      @NotNull Map<EnchantData, Integer> available) {
+      @NotNull Map<Enchantment, Integer> available) {
     if (available.isEmpty())  {
       return;
     }
 
     // Select enchantment.
-    EnchantData enchantData = WeightedRandom.choose(random, available.keySet());
+    Enchantment choice = WeightedRandom.choose(random, available.keySet(), Enchantment::getWeight);
 
     // Add selected enchantment and remove it from the available listings.
-    selected.put(enchantData.getEnchantment(), available.remove(enchantData));
+    selected.put(choice, available.remove(choice));
 
     // Remove all enchantment possibilities that conflict with the enchantment.
     available.keySet().removeIf(
-        data -> this.incompatibility.test(data.getEnchantment(), enchantData.getEnchantment()));
+        data -> this.incompatibility.test(data, choice));
   }
 
   /**
