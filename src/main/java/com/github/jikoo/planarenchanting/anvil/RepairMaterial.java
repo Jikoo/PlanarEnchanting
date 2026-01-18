@@ -1,7 +1,6 @@
 package com.github.jikoo.planarenchanting.anvil;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -33,37 +32,35 @@ public final class RepairMaterial {
   private static final Map<Material, RecipeChoice> MATERIALS_TO_REPAIRABLE = new HashMap<>();
 
   static {
+    // Note that for all choices, we want to use a MaterialChoice.
+    // ExactChoice also does a full meta match.
+
+    // See net.minecraft.world.item.equipment.ArmorMaterials
     String[] armor = new String[] { "_HELMET", "_CHESTPLATE", "_LEGGINGS", "_BOOTS" };
-    String[] tools = new String[] { "_AXE", "_SHOVEL", "_PICKAXE", "_HOE", "_SWORD" };
-    String[] armortools = new String[armor.length + tools.length];
-    System.arraycopy(armor, 0, armortools, 0, armor.length);
-    System.arraycopy(tools, 0, armortools, armor.length, tools.length);
+    addGear("LEATHER", armor, Tag.ITEMS_REPAIRS_LEATHER_ARMOR);
+    addGear("COPPER", armor, Tag.ITEMS_REPAIRS_COPPER_ARMOR);
+    addGear("CHAINMAIL", armor, Tag.ITEMS_REPAIRS_CHAIN_ARMOR);
+    addGear("IRON", armor, Tag.ITEMS_REPAIRS_IRON_ARMOR);
+    addGear("GOLDEN", armor, Tag.ITEMS_REPAIRS_GOLD_ARMOR);
+    addGear("DIAMOND", armor, Tag.ITEMS_REPAIRS_DIAMOND_ARMOR);
+    MATERIALS_TO_REPAIRABLE.put(Material.TURTLE_HELMET, new MaterialChoice(Tag.ITEMS_REPAIRS_TURTLE_HELMET));
+    addGear("NETHERITE", armor, Tag.ITEMS_REPAIRS_NETHERITE_ARMOR);
+    MATERIALS_TO_REPAIRABLE.put(Material.WOLF_ARMOR, new MaterialChoice(Tag.ITEMS_REPAIRS_WOLF_ARMOR));
 
-    // Leather armor
-    addGear("LEATHER", armor, Material.LEATHER);
-
-    // Stone tools
-    addGear("STONE", tools, new RecipeChoice.MaterialChoice(Tag.ITEMS_STONE_TOOL_MATERIALS));
-
-    // Wooden tools, shields
-    MaterialChoice choicePlanks = new MaterialChoice(Tag.PLANKS);
-    addGear("WOODEN", tools, choicePlanks);
-    MATERIALS_TO_REPAIRABLE.put(Material.SHIELD, choicePlanks);
-
-    // Chainmail, iron armor and tools
-    RecipeChoice choiceIronIngot = singleChoice(Material.IRON_INGOT);
-    addGear("CHAINMAIL", armor, choiceIronIngot);
-    addGear("IRON", armortools, choiceIronIngot);
-
-    // Gold, diamond, and netherite armor and tools
-    addGear("GOLDEN", armortools, Material.GOLD_INGOT);
-    addGear("DIAMOND", armortools, Material.DIAMOND);
-    addGear("NETHERITE", armortools, Material.NETHERITE_INGOT);
+    // See net.minecraft.world.item.ToolMaterial
+    String[] tools = new String[] { "_AXE", "_SHOVEL", "_PICKAXE", "_HOE", "_SWORD", "_SPEAR" };
+    addGear("STONE", tools, Tag.ITEMS_STONE_TOOL_MATERIALS);
+    MaterialChoice woodToolMats = new MaterialChoice(Tag.ITEMS_WOODEN_TOOL_MATERIALS);
+    addGear("WOODEN", tools, woodToolMats);
+    MATERIALS_TO_REPAIRABLE.put(Material.SHIELD, woodToolMats);
+    addGear("IRON", tools, Tag.ITEMS_IRON_TOOL_MATERIALS);
+    addGear("GOLDEN", tools, Tag.ITEMS_GOLD_TOOL_MATERIALS);
+    addGear("DIAMOND", tools, Tag.ITEMS_GOLD_TOOL_MATERIALS);
+    addGear("NETHERITE", tools, Tag.ITEMS_NETHERITE_TOOL_MATERIALS);
 
     // Misc. repairable items
-    MATERIALS_TO_REPAIRABLE.put(Material.TURTLE_HELMET, singleChoice(Material.TURTLE_SCUTE));
-    MATERIALS_TO_REPAIRABLE.put(Material.ELYTRA, singleChoice(Material.PHANTOM_MEMBRANE));
-    MATERIALS_TO_REPAIRABLE.put(Material.MACE, singleChoice(Material.BREEZE_ROD));
+    MATERIALS_TO_REPAIRABLE.put(Material.ELYTRA, new MaterialChoice(Material.PHANTOM_MEMBRANE));
+    MATERIALS_TO_REPAIRABLE.put(Material.MACE, new MaterialChoice(Material.BREEZE_ROD));
   }
 
   private static void addGear(String type, String[] gearType, RecipeChoice repairChoice) {
@@ -75,13 +72,8 @@ public final class RepairMaterial {
     }
   }
 
-  private static void addGear(String type, String[] gearType, Material repairMaterial) {
-    addGear(type, gearType, singleChoice(repairMaterial));
-  }
-
-  private static RecipeChoice singleChoice(Material material) {
-    // RecipeChoice.ExactChoice is a full meta match, which isn't what we want.
-    return new RecipeChoice.MaterialChoice(List.of(material));
+  private static void addGear(String type, String[] gearType, Tag<Material> repairTag) {
+    addGear(type, gearType, new MaterialChoice(repairTag));
   }
 
   @VisibleForTesting

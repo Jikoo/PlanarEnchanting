@@ -20,17 +20,22 @@ import org.jetbrains.annotations.Range;
  */
 public record Enchantability(@Range(from = 1, to = Integer.MAX_VALUE) int value) {
 
+  public static final Enchantability ARMADILLO;
   public static final Enchantability LEATHER;
   public static final Enchantability CHAIN;
+  public static final Enchantability COPPER_ARMOR;
   public static final Enchantability IRON_ARMOR;
   public static final Enchantability GOLD_ARMOR;
-  public static final Enchantability DIAMOND;
+  public static final Enchantability DIAMOND_ARMOR;
+  public static final Enchantability NETHERITE_ARMOR;
   public static final Enchantability TURTLE;
-  public static final Enchantability NETHERITE;
   public static final Enchantability WOOD;
   public static final Enchantability STONE;
+  public static final Enchantability COPPER_TOOL;
   public static final Enchantability IRON_TOOL;
   public static final Enchantability GOLD_TOOL;
+  public static final Enchantability DIAMOND_TOOL;
+  public static final Enchantability NETHERITE_TOOL;
   public static final Enchantability BOOK;
   public static final Enchantability TRIDENT;
   public static final Enchantability MACE;
@@ -53,31 +58,34 @@ public record Enchantability(@Range(from = 1, to = Integer.MAX_VALUE) int value)
   private static final Map<Material, Enchantability> BY_MATERIAL = new EnumMap<>(Material.class);
 
   static {
+    // See net.minecraft.world.item.equipment.ArmorMaterials
     String[] armor = new String[] { "_HELMET", "_CHESTPLATE", "_LEGGINGS", "_BOOTS" };
     LEATHER = addMaterials("LEATHER", armor, 15);
+    COPPER_ARMOR = addMaterials("COPPER", armor, 8);
     CHAIN = addMaterials("CHAINMAIL", armor, 12);
     IRON_ARMOR = addMaterials("IRON", armor, 9);
-    TURTLE = addMaterial(Material.TURTLE_HELMET, IRON_ARMOR);
     GOLD_ARMOR = addMaterials("GOLDEN", armor, 25);
+    DIAMOND_ARMOR = addMaterials("DIAMOND", armor, 10);
+    NETHERITE_ARMOR = addMaterials("NETHERITE", armor, LEATHER);
+    TURTLE = addMaterial(Material.TURTLE_HELMET, IRON_ARMOR);
+    ARMADILLO = addMaterial(Material.WOLF_ARMOR, DIAMOND_ARMOR);
 
-    String[] tools = new String[] { "_AXE", "_SHOVEL", "_PICKAXE", "_HOE", "_SWORD" };
+    // See net.minecraft.world.item.ToolMaterial
+    String[] tools = new String[] { "_AXE", "_SHOVEL", "_PICKAXE", "_HOE", "_SWORD", "_SPEAR" };
     WOOD = addMaterials("WOODEN", tools, LEATHER);
-    BY_MATERIAL.put(Material.SHIELD, WOOD);
-    BY_MATERIAL.put(Material.BOW, WOOD);
-    BY_MATERIAL.put(Material.FISHING_ROD, WOOD);
-    BY_MATERIAL.put(Material.CROSSBOW, WOOD);
     STONE = addMaterials("STONE", tools, 5);
+    COPPER_TOOL = addMaterials("COPPER", tools, 13);
     IRON_TOOL = addMaterials("IRON", tools, 14);
     GOLD_TOOL = addMaterials("GOLDEN", tools, 22);
+    DIAMOND_TOOL = addMaterials("DIAMOND", tools, DIAMOND_ARMOR);
+    NETHERITE_TOOL = addMaterials("NETHERITE", tools, NETHERITE_ARMOR);
 
-    String[] armortools = new String[armor.length + tools.length];
-    System.arraycopy(armor, 0, armortools, 0, armor.length);
-    System.arraycopy(tools, 0, armortools, armor.length, tools.length);
-    DIAMOND = addMaterials("DIAMOND", armortools, 10);
-    NETHERITE = addMaterials("NETHERITE", armortools, LEATHER);
-
+    // See net.minecraft.world.item.Items
     BOOK = addMaterial(Material.BOOK, new Enchantability(1));
+    BY_MATERIAL.put(Material.BOW, BOOK);
+    BY_MATERIAL.put(Material.CROSSBOW, BOOK);
     BY_MATERIAL.put(Material.ENCHANTED_BOOK, BOOK);
+    BY_MATERIAL.put(Material.FISHING_ROD, BOOK);
     TRIDENT = addMaterial(Material.TRIDENT, BOOK);
     MACE = addMaterial(Material.MACE, LEATHER);
   }
