@@ -21,10 +21,13 @@ import org.bukkit.Tag;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.UnmodifiableView;
 import org.mockito.ArgumentMatchers;
 
 public class EnchantmentMocks {
+
   private static final Map<NamespacedKey, Enchantment> KEYS_TO_ENCHANTS = new HashMap<>();
+  private static final Set<Tag<Material>> ENCHANTING_TABLE_TAGS = new HashSet<>();
 
   public static void init() {
     List<Enchantment> protections = List.of(Enchantment.PROTECTION, Enchantment.FIRE_PROTECTION, Enchantment.BLAST_PROTECTION, Enchantment.PROJECTILE_PROTECTION);
@@ -37,7 +40,7 @@ public class EnchantmentMocks {
     setUpEnchant(Enchantment.RESPIRATION, 3, Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR);
     setUpEnchant(Enchantment.AQUA_AFFINITY, 1, Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR);
 
-    setUpEnchant(Enchantment.THORNS, 3, Tag.ITEMS_ENCHANTABLE_ARMOR);
+    setUpEnchant(Enchantment.THORNS, 3, Tag.ITEMS_ENCHANTABLE_CHEST_ARMOR, Tag.ITEMS_ENCHANTABLE_ARMOR, List.of());
 
     setUpEnchant(Enchantment.DEPTH_STRIDER, 3, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, List.of(Enchantment.FROST_WALKER));
     setUpEnchant(Enchantment.FROST_WALKER, 3, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, List.of(Enchantment.DEPTH_STRIDER));
@@ -46,13 +49,13 @@ public class EnchantmentMocks {
 
     setUpEnchant(Enchantment.BINDING_CURSE, 1, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_EQUIPPABLE, List.of());
 
-    setUpEnchant(Enchantment.SHARPNESS, 5, Tag.ITEMS_ENCHANTABLE_SWORD, Tag.ITEMS_ENCHANTABLE_SHARP_WEAPON, List.of(Enchantment.BANE_OF_ARTHROPODS, Enchantment.SMITE));
-    setUpEnchant(Enchantment.SMITE, 5, Tag.ITEMS_ENCHANTABLE_SWORD, Tag.ITEMS_ENCHANTABLE_WEAPON, List.of(Enchantment.SHARPNESS, Enchantment.BANE_OF_ARTHROPODS));
-    setUpEnchant(Enchantment.BANE_OF_ARTHROPODS, 5, Tag.ITEMS_ENCHANTABLE_SWORD, Tag.ITEMS_ENCHANTABLE_WEAPON, List.of(Enchantment.SHARPNESS, Enchantment.SMITE));
-    setUpEnchant(Enchantment.KNOCKBACK, 2, Tag.ITEMS_ENCHANTABLE_SWORD);
-    setUpEnchant(Enchantment.FIRE_ASPECT, 2, Tag.ITEMS_ENCHANTABLE_FIRE_ASPECT);
-    setUpEnchant(Enchantment.LOOTING, 3, Tag.ITEMS_ENCHANTABLE_SWORD);
-    setUpEnchant(Enchantment.SWEEPING_EDGE, 3, Tag.ITEMS_ENCHANTABLE_SWORD);
+    setUpEnchant(Enchantment.SHARPNESS, 5, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON, Tag.ITEMS_ENCHANTABLE_SHARP_WEAPON, List.of(Enchantment.BANE_OF_ARTHROPODS, Enchantment.SMITE));
+    setUpEnchant(Enchantment.SMITE, 5, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON, Tag.ITEMS_ENCHANTABLE_WEAPON, List.of(Enchantment.SHARPNESS, Enchantment.BANE_OF_ARTHROPODS));
+    setUpEnchant(Enchantment.BANE_OF_ARTHROPODS, 5, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON, Tag.ITEMS_ENCHANTABLE_WEAPON, List.of(Enchantment.SHARPNESS, Enchantment.SMITE));
+    setUpEnchant(Enchantment.KNOCKBACK, 2, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON);
+    setUpEnchant(Enchantment.FIRE_ASPECT, 2, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON, Tag.ITEMS_ENCHANTABLE_FIRE_ASPECT, List.of());
+    setUpEnchant(Enchantment.LOOTING, 3, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON);
+    setUpEnchant(Enchantment.SWEEPING_EDGE, 3, Tag.ITEMS_ENCHANTABLE_SWEEPING);
 
     setUpEnchant(Enchantment.EFFICIENCY, 5, Tag.ITEMS_ENCHANTABLE_MINING);
     setUpEnchant(Enchantment.SILK_TOUCH, 1, Tag.ITEMS_ENCHANTABLE_MINING_LOOT, List.of(Enchantment.FORTUNE));
@@ -81,6 +84,8 @@ public class EnchantmentMocks {
     setUpEnchant(Enchantment.BREACH, 4, Tag.ITEMS_ENCHANTABLE_MACE);
     setUpEnchant(Enchantment.DENSITY, 5, Tag.ITEMS_ENCHANTABLE_MACE);
 
+    setUpEnchant(Enchantment.LUNGE, 5, Tag.ITEMS_ENCHANTABLE_LUNGE);
+
     setUpEnchant(Enchantment.MENDING, 1, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_DURABILITY, List.of(Enchantment.INFINITY));
     setUpEnchant(Enchantment.VANISHING_CURSE, 1, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_VANISHING, List.of());
 
@@ -107,13 +112,17 @@ public class EnchantmentMocks {
     // When all enchantments are initialized, redirect registry to our map.
     // This allows us to add and test custom enchantments much more easily.
     doAnswer(invocation -> KEYS_TO_ENCHANTS.get(invocation.getArgument(0, NamespacedKey.class)))
-        .when(registry).get(ArgumentMatchers.notNull());
+        .when(registry).get((NamespacedKey) ArgumentMatchers.notNull());
     doAnswer(invocation -> KEYS_TO_ENCHANTS.values().stream()).when(registry).stream();
     doAnswer(invocation -> Collections.unmodifiableCollection(KEYS_TO_ENCHANTS.values()).iterator()).when(registry).iterator();
   }
 
   public static void putEnchant(@NotNull Enchantment enchantment) {
     KEYS_TO_ENCHANTS.put(enchantment.getKey(), enchantment);
+  }
+
+  public static @NotNull @UnmodifiableView Set<Tag<Material>> getEnchantingTableTags() {
+    return Collections.unmodifiableSet(ENCHANTING_TABLE_TAGS);
   }
 
   private static void setUpEnchant(
@@ -138,6 +147,7 @@ public class EnchantmentMocks {
       @NotNull Tag<Material> anvilTarget,
       @NotNull Collection<Enchantment> conflicts) {
     KEYS_TO_ENCHANTS.put(enchantment.getKey(), enchantment);
+    ENCHANTING_TABLE_TAGS.add(tableTarget);
 
     doReturn(1).when(enchantment).getStartLevel();
     doReturn(maxLevel).when(enchantment).getMaxLevel();
