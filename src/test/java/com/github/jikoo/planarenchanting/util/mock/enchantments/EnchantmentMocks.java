@@ -1,10 +1,59 @@
 package com.github.jikoo.planarenchanting.util.mock.enchantments;
 
+import static org.bukkit.enchantments.Enchantment.AQUA_AFFINITY;
+import static org.bukkit.enchantments.Enchantment.BANE_OF_ARTHROPODS;
+import static org.bukkit.enchantments.Enchantment.BINDING_CURSE;
+import static org.bukkit.enchantments.Enchantment.BLAST_PROTECTION;
+import static org.bukkit.enchantments.Enchantment.BREACH;
+import static org.bukkit.enchantments.Enchantment.CHANNELING;
+import static org.bukkit.enchantments.Enchantment.DENSITY;
+import static org.bukkit.enchantments.Enchantment.DEPTH_STRIDER;
+import static org.bukkit.enchantments.Enchantment.EFFICIENCY;
+import static org.bukkit.enchantments.Enchantment.FEATHER_FALLING;
+import static org.bukkit.enchantments.Enchantment.FIRE_ASPECT;
+import static org.bukkit.enchantments.Enchantment.FIRE_PROTECTION;
+import static org.bukkit.enchantments.Enchantment.FLAME;
+import static org.bukkit.enchantments.Enchantment.FORTUNE;
+import static org.bukkit.enchantments.Enchantment.FROST_WALKER;
+import static org.bukkit.enchantments.Enchantment.IMPALING;
+import static org.bukkit.enchantments.Enchantment.INFINITY;
+import static org.bukkit.enchantments.Enchantment.KNOCKBACK;
+import static org.bukkit.enchantments.Enchantment.LOOTING;
+import static org.bukkit.enchantments.Enchantment.LOYALTY;
+import static org.bukkit.enchantments.Enchantment.LUCK_OF_THE_SEA;
+import static org.bukkit.enchantments.Enchantment.LUNGE;
+import static org.bukkit.enchantments.Enchantment.LURE;
+import static org.bukkit.enchantments.Enchantment.MENDING;
+import static org.bukkit.enchantments.Enchantment.MULTISHOT;
+import static org.bukkit.enchantments.Enchantment.PIERCING;
+import static org.bukkit.enchantments.Enchantment.POWER;
+import static org.bukkit.enchantments.Enchantment.PROJECTILE_PROTECTION;
+import static org.bukkit.enchantments.Enchantment.PROTECTION;
+import static org.bukkit.enchantments.Enchantment.PUNCH;
+import static org.bukkit.enchantments.Enchantment.QUICK_CHARGE;
+import static org.bukkit.enchantments.Enchantment.RESPIRATION;
+import static org.bukkit.enchantments.Enchantment.RIPTIDE;
+import static org.bukkit.enchantments.Enchantment.SHARPNESS;
+import static org.bukkit.enchantments.Enchantment.SILK_TOUCH;
+import static org.bukkit.enchantments.Enchantment.SMITE;
+import static org.bukkit.enchantments.Enchantment.SOUL_SPEED;
+import static org.bukkit.enchantments.Enchantment.SWEEPING_EDGE;
+import static org.bukkit.enchantments.Enchantment.SWIFT_SNEAK;
+import static org.bukkit.enchantments.Enchantment.THORNS;
+import static org.bukkit.enchantments.Enchantment.UNBREAKING;
+import static org.bukkit.enchantments.Enchantment.VANISHING_CURSE;
+import static org.bukkit.enchantments.Enchantment.WIND_BURST;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 
-import com.github.jikoo.planarenchanting.util.ItemUtil;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.TypedKey;
+import io.papermc.paper.registry.keys.EnchantmentKeys;
+import io.papermc.paper.registry.keys.tags.EnchantmentTagKeys;
+import io.papermc.paper.registry.tag.TagKey;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
@@ -14,6 +63,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.IntUnaryOperator;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -30,64 +80,291 @@ public class EnchantmentMocks {
   private static final Set<Tag<Material>> ENCHANTING_TABLE_TAGS = new HashSet<>();
 
   public static void init() {
-    List<Enchantment> protections = List.of(Enchantment.PROTECTION, Enchantment.FIRE_PROTECTION, Enchantment.BLAST_PROTECTION, Enchantment.PROJECTILE_PROTECTION);
-    setUpEnchant(Enchantment.PROTECTION, 4, Tag.ITEMS_ENCHANTABLE_ARMOR, protections);
-    setUpEnchant(Enchantment.FIRE_PROTECTION, 4, Tag.ITEMS_ENCHANTABLE_ARMOR, protections);
-    setUpEnchant(Enchantment.FEATHER_FALLING, 4, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR);
-    setUpEnchant(Enchantment.BLAST_PROTECTION, 4, Tag.ITEMS_ENCHANTABLE_ARMOR, protections);
-    setUpEnchant(Enchantment.PROJECTILE_PROTECTION, 4, Tag.ITEMS_ENCHANTABLE_ARMOR, protections);
+    // See net.minecraft.world.item.enchantment.Enchantments
+    config(PROTECTION)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_ARMOR)
+        .maxLevel(4)
+        .minModCost(perLvl(1, 11))
+        .maxModCost(perLvl(12, 11))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_ARMOR);
+    config(FIRE_PROTECTION)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_ARMOR)
+        .weight(5)
+        .maxLevel(4)
+        .minModCost(perLvl(10, 8))
+        .maxModCost(perLvl(18, 8))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_ARMOR);
+    config(FEATHER_FALLING)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR)
+        .weight(5)
+        .maxLevel(4)
+        .minModCost(perLvl(5, 6))
+        .maxModCost(perLvl(11, 6));
+    config(BLAST_PROTECTION)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_ARMOR)
+        .weight(2)
+        .maxLevel(4)
+        .minModCost(perLvl(5, 8))
+        .maxModCost(perLvl(13, 8))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_ARMOR);
+    config(PROJECTILE_PROTECTION)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_ARMOR)
+        .weight(5)
+        .maxLevel(4)
+        .minModCost(perLvl(3, 6))
+        .maxModCost(perLvl(9, 6))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_ARMOR);
 
-    setUpEnchant(Enchantment.RESPIRATION, 3, Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR);
-    setUpEnchant(Enchantment.AQUA_AFFINITY, 1, Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR);
+    config(RESPIRATION)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR)
+        .weight(2)
+        .maxLevel(3)
+        .minModCost(perLvl(10, 10))
+        .maxModCost(perLvl(40, 10));
+    config(AQUA_AFFINITY)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR)
+        .weight(2)
+        .maxLevel(1)
+        .minModCost(flat(1))
+        .maxModCost(flat(41));
 
-    setUpEnchant(Enchantment.THORNS, 3, Tag.ITEMS_ENCHANTABLE_CHEST_ARMOR, Tag.ITEMS_ENCHANTABLE_ARMOR, List.of());
+    config(THORNS)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_CHEST_ARMOR)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_ARMOR)
+        .weight(1)
+        .maxLevel(3)
+        .minModCost(perLvl(10, 20))
+        .maxModCost(perLvl(60, 20));
 
-    setUpEnchant(Enchantment.DEPTH_STRIDER, 3, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, List.of(Enchantment.FROST_WALKER));
-    setUpEnchant(Enchantment.FROST_WALKER, 3, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, List.of(Enchantment.DEPTH_STRIDER));
-    setUpEnchant(Enchantment.SOUL_SPEED, 3, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR, List.of());
-    setUpEnchant(Enchantment.SWIFT_SNEAK, 3, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_LEG_ARMOR, List.of());
+    config(DEPTH_STRIDER)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR)
+        .weight(2)
+        .maxLevel(3)
+        .minModCost(perLvl(10, 10))
+        .maxModCost(perLvl(25, 10))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_BOOTS);
+    config(FROST_WALKER)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR)
+        .weight(2)
+        .maxLevel(2)
+        .minModCost(perLvl(10, 10))
+        .maxModCost(perLvl(25, 10))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_BOOTS);
 
-    setUpEnchant(Enchantment.BINDING_CURSE, 1, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_EQUIPPABLE, List.of());
+    config(BINDING_CURSE)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_EQUIPPABLE)
+        .weight(1)
+        .minModCost(flat(25))
+        .maxModCost(flat(50));
 
-    setUpEnchant(Enchantment.SHARPNESS, 5, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON, Tag.ITEMS_ENCHANTABLE_SHARP_WEAPON, List.of(Enchantment.BANE_OF_ARTHROPODS, Enchantment.SMITE));
-    setUpEnchant(Enchantment.SMITE, 5, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON, Tag.ITEMS_ENCHANTABLE_WEAPON, List.of(Enchantment.SHARPNESS, Enchantment.BANE_OF_ARTHROPODS));
-    setUpEnchant(Enchantment.BANE_OF_ARTHROPODS, 5, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON, Tag.ITEMS_ENCHANTABLE_WEAPON, List.of(Enchantment.SHARPNESS, Enchantment.SMITE));
-    setUpEnchant(Enchantment.KNOCKBACK, 2, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON);
-    setUpEnchant(Enchantment.FIRE_ASPECT, 2, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON, Tag.ITEMS_ENCHANTABLE_FIRE_ASPECT, List.of());
-    setUpEnchant(Enchantment.LOOTING, 3, Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON);
-    setUpEnchant(Enchantment.SWEEPING_EDGE, 3, Tag.ITEMS_ENCHANTABLE_SWEEPING);
+    config(SOUL_SPEED)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR)
+        .weight(1)
+        .maxLevel(3)
+        .minModCost(perLvl(10, 10))
+        .maxModCost(perLvl(25, 10));
+    config(SWIFT_SNEAK)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_LEG_ARMOR)
+        .weight(1)
+        .maxLevel(3)
+        .minModCost(perLvl(25, 25))
+        .maxModCost(perLvl(75, 25));
 
-    setUpEnchant(Enchantment.EFFICIENCY, 5, Tag.ITEMS_ENCHANTABLE_MINING);
-    setUpEnchant(Enchantment.SILK_TOUCH, 1, Tag.ITEMS_ENCHANTABLE_MINING_LOOT, List.of(Enchantment.FORTUNE));
+    List<Enchantment> damages = List.of(SHARPNESS, SMITE, BANE_OF_ARTHROPODS);
+    config(SHARPNESS)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_SHARP_WEAPON)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .maxLevel(5)
+        .minModCost(perLvl(1, 11))
+        .maxModCost(perLvl(21, 11))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_DAMAGE);
+    config(SMITE)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_WEAPON)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .weight(5)
+        .maxLevel(5)
+        .minModCost(perLvl(5, 8))
+        .maxModCost(perLvl(25, 8))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_DAMAGE);
+    config(BANE_OF_ARTHROPODS)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_WEAPON)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .weight(5)
+        .maxLevel(5)
+        .minModCost(perLvl(5, 8))
+        .maxModCost(perLvl(25, 8))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_DAMAGE);
+    config(KNOCKBACK)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .weight(5)
+        .maxLevel(2)
+        .minModCost(perLvl(5, 20))
+        .maxModCost(perLvl(55, 20));
+    config(FIRE_ASPECT)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_FIRE_ASPECT)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .weight(2)
+        .maxLevel(2)
+        .minModCost(perLvl(10, 20))
+        .maxModCost(perLvl(60, 20));
+    config(LOOTING)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .weight(2)
+        .maxLevel(3)
+        .minModCost(perLvl(15, 9))
+        .maxModCost(perLvl(65, 9));
+    config(SWEEPING_EDGE)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_SWEEPING)
+        .weight(2)
+        .maxLevel(3)
+        .minModCost(perLvl(5, 9))
+        .maxModCost(perLvl(20, 9));
 
-    setUpEnchant(Enchantment.UNBREAKING, 3, Tag.ITEMS_ENCHANTABLE_DURABILITY);
+    config(EFFICIENCY)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_MINING)
+        .maxLevel(5)
+        .minModCost(perLvl(1, 10))
+        .maxModCost(perLvl(51, 10));
+    config(SILK_TOUCH)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_MINING_LOOT)
+        .weight(1)
+        .minModCost(flat(15))
+        .maxModCost(flat(65))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_MINING);
+    config(UNBREAKING)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_DURABILITY)
+        .weight(5)
+        .maxLevel(3)
+        .minModCost(perLvl(5, 8))
+        .maxModCost(perLvl(55, 8));
+    config(FORTUNE)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_MINING_LOOT)
+        .weight(2)
+        .maxLevel(3)
+        .minModCost(perLvl(15, 9))
+        .maxModCost(perLvl(65, 9))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_MINING);
 
-    setUpEnchant(Enchantment.FORTUNE, 3, Tag.ITEMS_ENCHANTABLE_MINING_LOOT, List.of(Enchantment.SILK_TOUCH));
+    config(POWER)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_BOW)
+        .maxLevel(5)
+        .minModCost(perLvl(1, 10))
+        .maxModCost(perLvl(16, 10));
+    config(PUNCH)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_BOW)
+        .weight(2)
+        .maxLevel(2)
+        .minModCost(perLvl(12, 20))
+        .maxModCost(perLvl(37, 20));
+    config(FLAME)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_BOW)
+        .weight(2)
+        .minModCost(flat(20))
+        .maxModCost(flat(50));
+    config(INFINITY)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_BOW)
+        .weight(1)
+        .minModCost(flat(20))
+        .maxModCost(flat(50))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_BOW);
 
-    setUpEnchant(Enchantment.POWER, 5, Tag.ITEMS_ENCHANTABLE_BOW);
-    setUpEnchant(Enchantment.PUNCH, 2, Tag.ITEMS_ENCHANTABLE_BOW);
-    setUpEnchant(Enchantment.FLAME, 1, Tag.ITEMS_ENCHANTABLE_BOW);
-    setUpEnchant(Enchantment.INFINITY, 1, Tag.ITEMS_ENCHANTABLE_BOW, List.of(Enchantment.MENDING));
+    config(LUCK_OF_THE_SEA)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_FISHING)
+        .weight(2)
+        .maxLevel(3)
+        .minModCost(perLvl(15, 9))
+        .maxModCost(perLvl(65, 9));
+    config(LURE)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_FISHING)
+        .weight(2)
+        .maxLevel(3)
+        .minModCost(perLvl(15, 9))
+        .maxModCost(perLvl(65, 9));
 
-    setUpEnchant(Enchantment.LUCK_OF_THE_SEA, 3, Tag.ITEMS_ENCHANTABLE_FISHING);
-    setUpEnchant(Enchantment.LURE, 3, Tag.ITEMS_ENCHANTABLE_FISHING);
+    config(LOYALTY)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_TRIDENT)
+        .weight(5)
+        .maxLevel(3)
+        .minModCost(perLvl(12, 7))
+        .maxModCost(flat(50));
+    config(IMPALING)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_TRIDENT)
+        .weight(2)
+        .maxLevel(5)
+        .minModCost(perLvl(1, 8))
+        .maxModCost(perLvl(21, 8))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_DAMAGE);
+    config(RIPTIDE)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_TRIDENT)
+        .weight(2)
+        .maxLevel(3)
+        .minModCost(perLvl(17, 7))
+        .maxModCost(flat(50))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_RIPTIDE);
 
-    setUpEnchant(Enchantment.LOYALTY, 3, Tag.ITEMS_ENCHANTABLE_TRIDENT, List.of(Enchantment.RIPTIDE));
-    setUpEnchant(Enchantment.IMPALING, 5, Tag.ITEMS_ENCHANTABLE_TRIDENT);
-    setUpEnchant(Enchantment.RIPTIDE, 3, Tag.ITEMS_ENCHANTABLE_TRIDENT, List.of(Enchantment.CHANNELING, Enchantment.LOYALTY));
-    setUpEnchant(Enchantment.CHANNELING, 1, Tag.ITEMS_ENCHANTABLE_TRIDENT, List.of(Enchantment.RIPTIDE));
+    config(LUNGE)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_LUNGE)
+        .weight(5)
+        .maxLevel(3)
+        .minModCost(perLvl(5, 8))
+        .maxModCost(perLvl(25, 8));
 
-    setUpEnchant(Enchantment.MULTISHOT, 1, Tag.ITEMS_ENCHANTABLE_CROSSBOW, List.of(Enchantment.PIERCING));
-    setUpEnchant(Enchantment.QUICK_CHARGE, 3, Tag.ITEMS_ENCHANTABLE_CROSSBOW);
-    setUpEnchant(Enchantment.PIERCING, 4, Tag.ITEMS_ENCHANTABLE_CROSSBOW, List.of(Enchantment.MULTISHOT));
-    setUpEnchant(Enchantment.WIND_BURST, 3, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_MACE, List.of());
-    setUpEnchant(Enchantment.BREACH, 4, Tag.ITEMS_ENCHANTABLE_MACE);
-    setUpEnchant(Enchantment.DENSITY, 5, Tag.ITEMS_ENCHANTABLE_MACE);
+    config(CHANNELING)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_TRIDENT)
+        .weight(1)
+        .minModCost(flat(25))
+        .maxModCost(flat(50));
 
-    setUpEnchant(Enchantment.LUNGE, 5, Tag.ITEMS_ENCHANTABLE_LUNGE);
+    config(MULTISHOT)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_CROSSBOW)
+        .weight(2)
+        .maxLevel(1)
+        .minModCost(flat(20))
+        .maxModCost(flat(50))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_CROSSBOW);
+    config(QUICK_CHARGE)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_CROSSBOW)
+        .weight(5)
+        .maxLevel(3)
+        .minModCost(perLvl(12, 20))
+        .maxModCost(flat(50));
+    config(PIERCING)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_CROSSBOW)
+        .maxLevel(4)
+        .minModCost(perLvl(1, 10))
+        .maxModCost(flat(50))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_CROSSBOW);
 
-    setUpEnchant(Enchantment.MENDING, 1, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_DURABILITY, List.of(Enchantment.INFINITY));
-    setUpEnchant(Enchantment.VANISHING_CURSE, 1, ItemUtil.TAG_EMPTY, Tag.ITEMS_ENCHANTABLE_VANISHING, List.of());
+    config(DENSITY)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_MACE)
+        .weight(5)
+        .maxLevel(5)
+        .minModCost(perLvl(5, 8))
+        .maxModCost(perLvl(25, 8))
+        .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_DAMAGE);
+    config(BREACH)
+        .tableTarget(Tag.ITEMS_ENCHANTABLE_MACE)
+        .weight(2)
+        .maxLevel(4)
+        .minModCost(perLvl(15, 9))
+        .maxModCost(perLvl(65, 9));
+    config(WIND_BURST)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_MACE)
+        .weight(2)
+        .maxLevel(3)
+        .minModCost(perLvl(15, 9))
+        .maxModCost(perLvl(65, 9));
+
+    config(MENDING)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_DURABILITY)
+        .weight(2)
+        .minModCost(perLvl(25, 25))
+        .maxModCost(perLvl(75, 25));
+    config(VANISHING_CURSE)
+        .anvilTarget(Tag.ITEMS_ENCHANTABLE_VANISHING)
+        .weight(1)
+        .minModCost(flat(25))
+        .maxModCost(flat(50));
 
     Set<String> missingInternalEnchants = new HashSet<>();
     try {
@@ -108,7 +385,7 @@ public class EnchantmentMocks {
       throw new IllegalStateException("Missing enchantment declarations for " + missingInternalEnchants);
     }
 
-    Registry<Enchantment> registry = Registry.ENCHANTMENT;
+    Registry<Enchantment> registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
     // When all enchantments are initialized, redirect registry to our map.
     // This allows us to add and test custom enchantments much more easily.
     doAnswer(invocation -> KEYS_TO_ENCHANTS.get(invocation.getArgument(0, NamespacedKey.class)))
@@ -163,6 +440,96 @@ public class EnchantmentMocks {
       NamespacedKey otherKey = invocation.getArgument(0, Enchantment.class).getKey();
       return otherKey.equals(enchantment.getKey()) || conflicts.stream().anyMatch(conflict -> conflict.getKey().equals(otherKey));
     }).when(enchantment).conflictsWith(any());
+  }
+
+  private static @NotNull IntUnaryOperator perLvl(int base, int perLevel) {
+    return level -> base + (level - 1) * perLevel;
+  }
+
+  private static @NotNull IntUnaryOperator flat(int value) {
+    return integer -> value;
+  }
+
+  private static EnchantConfig config(Enchantment enchantment) {
+    return new EnchantConfig(enchantment);
+  }
+
+  private static record EnchantConfig(Enchantment enchantment) {
+
+    EnchantConfig(Enchantment enchantment) {
+      this.enchantment = enchantment;
+      KEYS_TO_ENCHANTS.put(enchantment.getKey(), enchantment);
+      weight(10);
+      doReturn(1).when(enchantment).getStartLevel();
+      doReturn(1).when(enchantment).getMaxLevel();
+      doAnswer(invocation -> {
+        NamespacedKey otherKey = invocation.getArgument(0, Enchantment.class).getKey();
+        return otherKey.equals(enchantment.getKey());
+      }).when(enchantment).conflictsWith(any());
+    }
+
+    EnchantConfig weight(int weight) {
+      doReturn(weight).when(enchantment).getWeight();
+
+      // Anvil cost is technically separate, but in practice is based on enchanting table rarity.
+      // For known rarities, set it here.
+      return switch (weight) {
+        case 10 -> anvilCost(1);
+        case 5 -> anvilCost(2);
+        case 2 -> anvilCost(4);
+        case 1 -> anvilCost(8);
+        default -> this;
+      };
+    }
+
+    EnchantConfig maxLevel(int maxLevel) {
+      doReturn(maxLevel).when(enchantment).getMaxLevel();
+      return this;
+    }
+
+    EnchantConfig anvilTarget(Tag<Material> target) {
+      // Hopefully in the future the enchantment API gets expanded, making separate table+anvil targets available
+      doAnswer(invocation -> {
+        ItemStack item = invocation.getArgument(0);
+        return item != null && target.isTagged(item.getType());
+      }).when(enchantment).canEnchantItem(any());
+      return this;
+    }
+
+    EnchantConfig tableTarget(Tag<Material> target) {
+      doReturn(false).when(enchantment).isTreasure();
+      ENCHANTING_TABLE_TAGS.add(target);
+      return anvilTarget(target);
+    }
+
+    EnchantConfig minModCost(IntUnaryOperator cost) {
+      doAnswer(invocation -> cost.applyAsInt(invocation.getArgument(0, Integer.class)))
+          .when(enchantment).getMinModifiedCost(anyInt());
+      return this;
+    }
+
+    EnchantConfig maxModCost(IntUnaryOperator cost) {
+      doAnswer(invocation -> cost.applyAsInt(invocation.getArgument(0, Integer.class)))
+          .when(enchantment).getMaxModifiedCost(anyInt());
+      return this;
+    }
+
+    EnchantConfig anvilCost(int cost) {
+      doReturn(cost).when(enchantment).getAnvilCost();
+      return this;
+    }
+
+    EnchantConfig exclusive(TagKey<Enchantment> conflict) {
+      Registry<Enchantment> registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
+      var conflicts = registry.getTag(conflict);
+      doAnswer(invocation -> {
+        // Apparently no way to map Enchantment -> TypeKey<Enchantment> directly? Seems odd.
+        TypedKey<Enchantment> otherKey = EnchantmentKeys.create(invocation.getArgument(0, Enchantment.class).key());
+        return conflicts.contains(otherKey);
+      }).when(enchantment).conflictsWith(any());
+      return this;
+    }
+
   }
 
 }

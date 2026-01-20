@@ -48,6 +48,7 @@ class EnchantabilityTest {
     Set<Material> leg = new HashSet<>();
     Set<Material> foot = new HashSet<>();
 
+    Set<Material> axe = new HashSet<>();
     Set<Material> pick = new HashSet<>();
     Set<Material> tool = new HashSet<>();
 
@@ -62,29 +63,33 @@ class EnchantabilityTest {
       // Weapons
       if (valueName.endsWith("_SPEAR")) {
         lunge.add(value);
-      }
-      if (valueName.endsWith("_SWORD")) {
+        continue;
+      } else if (valueName.endsWith("_SWORD")) {
         sweeping.add(value);
+        continue;
       }
       // Armor
       if (valueName.endsWith("_HELMET")) {
         head.add(value);
-      }
-      if (valueName.endsWith("_CHESTPLATE")) {
+        continue;
+      } else if (valueName.endsWith("_CHESTPLATE")) {
         chest.add(value);
-      }
-      if (valueName.endsWith("_LEGGINGS")) {
+        continue;
+      } else if (valueName.endsWith("_LEGGINGS")) {
         leg.add(value);
-      }
-      if (valueName.endsWith("_BOOTS")) {
+        continue;
+      } else if (valueName.endsWith("_BOOTS")) {
         foot.add(value);
+        continue;
       }
 
       // Tools
-      if (valueName.endsWith("_AXE") || valueName.endsWith("_SHOVEL") ||  valueName.endsWith("_HOE")) {
+      if (valueName.endsWith("_AXE")) {
+        axe.add(value);
         tool.add(value);
-      }
-      if (valueName.endsWith("_PICKAXE")) {
+      } else if (valueName.endsWith("_SHOVEL") ||  valueName.endsWith("_HOE")) {
+        tool.add(value);
+      } else if (valueName.endsWith("_PICKAXE")) {
         pick.add(value);
         tool.add(value);
       }
@@ -96,6 +101,18 @@ class EnchantabilityTest {
     melee.addAll(lunge);
     melee.addAll(sweeping);
     doReturn(melee).when(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON).getValues();
+    Set<Material> fireAspect = new HashSet<>();
+    fireAspect.add(Material.MACE);
+    fireAspect.addAll(melee);
+    doReturn(fireAspect).when(Tag.ITEMS_ENCHANTABLE_FIRE_ASPECT).getValues();
+    Set<Material> sharp = new HashSet<>();
+    sharp.addAll(melee);
+    sharp.addAll(axe);
+    doReturn(sharp).when(Tag.ITEMS_ENCHANTABLE_SHARP_WEAPON).getValues();
+    Set<Material> weapon = new HashSet<>();
+    weapon.add(Material.MACE);
+    weapon.addAll(sharp);
+    doReturn(weapon).when(Tag.ITEMS_ENCHANTABLE_WEAPON).getValues();
 
     doReturn(head).when(Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR).getValues();
     doReturn(chest).when(Tag.ITEMS_ENCHANTABLE_CHEST_ARMOR).getValues();
