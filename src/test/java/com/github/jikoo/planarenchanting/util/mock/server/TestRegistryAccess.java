@@ -32,7 +32,7 @@ public class TestRegistryAccess implements RegistryAccess {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <T extends @NotNull Keyed> @NotNull Registry<@NotNull T> getRegistry(@NotNull RegistryKey<T> registryKey) {
+  public <T extends @NotNull Keyed> @NotNull Registry<T> getRegistry(@NotNull RegistryKey<T> registryKey) {
     return (Registry<T>) REGISTERS.computeIfAbsent(registryKey, regKey -> {
       Registry<?> registry = mock();
 

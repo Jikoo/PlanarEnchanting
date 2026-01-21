@@ -3,6 +3,7 @@ package com.github.jikoo.planarenchanting.table;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntSupplier;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -60,7 +61,9 @@ public abstract class TableEnchantListener implements Listener {
     }
 
     // Force button refresh. This is required for normally unenchantable items.
-    EnchantingTable.updateButtons(plugin, event.getView(), event.getOffers());
+    // Waiting a tick fixes desync problems that prevent the client from enchanting
+    // ordinarily un-enchantable objects.
+    Bukkit.getScheduler().runTaskLater(plugin, () -> event.getView().setOffers(event.getOffers()), 1L);
   }
 
   @EventHandler

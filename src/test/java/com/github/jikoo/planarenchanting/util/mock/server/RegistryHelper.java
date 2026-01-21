@@ -86,6 +86,7 @@ enum RegistryHelper {
       }
       T keyed = mock(constantClazz);
       doReturn(key).when(keyed).getKey();
+      doReturn(key).when(keyed).key();
       if (keyed instanceof ItemType itemType) {
         mockItemType(itemType);
       }
