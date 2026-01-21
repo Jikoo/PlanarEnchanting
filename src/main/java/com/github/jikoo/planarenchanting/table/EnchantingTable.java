@@ -8,11 +8,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.function.BiPredicate;
 import java.util.function.ToIntFunction;
-import org.bukkit.Bukkit;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentOffer;
-import org.bukkit.inventory.view.EnchantmentView;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -237,21 +234,6 @@ public class EnchantingTable {
     };
 
     return level >= button + 1 ? level : 0;
-  }
-
-  /**
-   * Update enchantment table buttons for a player on a tick delay. This fixes desync
-   * problems that prevent the client from enchanting ordinarily un-enchantable objects.
-   *
-   * @param plugin the plugin sending the update
-   * @param view the view of the enchantment table
-   * @param offers the enchantment offers
-   */
-  public static void updateButtons(
-      @NotNull Plugin plugin,
-      @NotNull EnchantmentView view,
-      @Nullable EnchantmentOffer @NotNull [] offers) {
-    Bukkit.getScheduler().runTaskLater(plugin, () -> view.setOffers(offers), 1L);
   }
 
 }
