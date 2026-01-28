@@ -4,7 +4,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.both;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -17,26 +16,28 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
-import com.github.jikoo.planarenchanting.enchant.EnchantData;
 import com.github.jikoo.planarenchanting.enchant.EnchantmentUtil;
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
-import com.github.jikoo.planarenchanting.util.mock.impl.InternalObject;
 import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.keys.ItemTypeKeys;
+import io.papermc.paper.registry.keys.tags.ItemTypeTagKeys;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import io.papermc.paper.registry.tag.Tag;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
-import org.bukkit.Tag;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.view.AnvilView;
@@ -68,10 +69,6 @@ public class CombineEnchantmentsTest {
 
     EnchantmentMocks.init();
 
-    Tag<Material> tag = Tag.ITEMS_ENCHANTABLE_TRIDENT;
-    doReturn(Set.of(Material.TRIDENT)).when(tag).getValues();
-    doReturn(true).when(tag).isTagged(Material.TRIDENT);
-
     basicEnchant = Enchantment.EFFICIENCY;
     rareEnchant = Enchantment.FORTUNE;
     tridentEnchant = Enchantment.RIPTIDE;
@@ -79,19 +76,21 @@ public class CombineEnchantmentsTest {
     // Set up a fake common-rarity trident enchantment.
     // This is necessary because no actual trident enchantments are currently common, so the
     // defensive code will not be hit in testing normally.
-    var commonTrident = (Enchantment & InternalObject<?>) mock(Enchantment.class, withSettings().extraInterfaces(InternalObject.class));
+    Enchantment commonTrident = mock();
     NamespacedKey key = NamespacedKey.minecraft("common_trident");
     doReturn(key).when(commonTrident).getKey();
-    doReturn(
-        new net.minecraft.world.item.enchantment.Enchantment(
-            key,
-            value -> 1,
-            value -> 21,
-            10,
-            1
-        )
-    ).when(commonTrident).getHandle();
+    doReturn(key).when(commonTrident).key();
+    doReturn(10).when(commonTrident).getWeight();
+    doReturn(1).when(commonTrident).getAnvilCost();
+    doAnswer(
+        invocation -> RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM)
+            .getTag(ItemTypeTagKeys.ENCHANTABLE_TRIDENT)
+    ).when(commonTrident).getSupportedItems();
     EnchantmentMocks.putEnchant(commonTrident);
+
+    Tag<ItemType> trident = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getTag(ItemTypeTagKeys.ENCHANTABLE_TRIDENT);
+    doReturn(Set.of(ItemTypeKeys.TRIDENT)).when(trident).values();
+
     commonTridentEnchant = commonTrident;
   }
 
@@ -166,13 +165,6 @@ public class CombineEnchantmentsTest {
 
     @Test
     void testBookHalfPrice() {
-      EnchantData enchantData = EnchantData.of(rareEnchant);
-      assertThat(
-          "Enchantment must have rarity > 1",
-          enchantData.getAnvilCost(),
-          greaterThan(1));
-
-
       ItemStack base = new ItemStack(BASE_MAT);
       Map<Enchantment, Integer> enchantments = new HashMap<>();
       enchantments.put(rareEnchant, 1);
@@ -294,9 +286,9 @@ public class CombineEnchantmentsTest {
     void testCommonTridentEnchant() {
       Map<Enchantment, Integer> enchantments = new HashMap<>();
       enchantments.put(commonTridentEnchant, 1);
-      ItemStack addition = new ItemStack(BASE_MAT);
+      ItemStack addition = ItemType.TRIDENT.createItemStack();
       applyEnchantments(addition, enchantments);
-      ItemStack base = new ItemStack(BASE_MAT);
+      ItemStack base = ItemType.TRIDENT.createItemStack();
 
       var anvil = getMockView(base, addition);
       var behavior = mock(AnvilBehavior.class);
@@ -322,9 +314,9 @@ public class CombineEnchantmentsTest {
     void testTridentEnchant() {
       Map<Enchantment, Integer> enchantments = new HashMap<>();
       enchantments.put(tridentEnchant, 1);
-      ItemStack addition = new ItemStack(BASE_MAT);
+      ItemStack addition = ItemType.TRIDENT.createItemStack();
       applyEnchantments(addition, enchantments);
-      ItemStack base = new ItemStack(BASE_MAT);
+      ItemStack base = ItemType.TRIDENT.createItemStack();
 
       var anvil = getMockView(base, addition);
       var behavior = mock(AnvilBehavior.class);
