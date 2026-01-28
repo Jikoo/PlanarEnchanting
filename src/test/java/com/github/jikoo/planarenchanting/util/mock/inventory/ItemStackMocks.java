@@ -65,8 +65,15 @@ public enum ItemStackMocks {
     // Item similarity. Note that the only thing we track other the meta is the count.
     doAnswer(invocation -> {
       ItemStack other = invocation.getArgument(0);
-      if (other == null || stack.hasItemMeta() != other.hasItemMeta()) {
+      if (other == null || other.getType() != stack.getType()) {
         return false;
+      }
+      boolean haveMeta = stack.hasItemMeta();
+      if (haveMeta != other.hasItemMeta()) {
+        return false;
+      }
+      if (!haveMeta) {
+        return true;
       }
       return Bukkit.getItemFactory().equals(meta.get(), other.getItemMeta());
     }).when(stack).isSimilar(any());

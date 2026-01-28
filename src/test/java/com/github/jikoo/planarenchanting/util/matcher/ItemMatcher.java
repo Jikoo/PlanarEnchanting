@@ -7,8 +7,50 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 public final class ItemMatcher {
+
+  /**
+   * Construct a new {@code ItemEqualMatcher} for the given {@link ItemStack}.
+   *
+   * @param other the matchable item
+   * @return the resulting matcher
+   */
+  public static BaseMatcher<ItemStack> isItem(@NotNull ItemStack other) {
+    return new ItemEqualMatcher(other);
+  }
+
+  private static class ItemEqualMatcher extends BaseMatcher<ItemStack> {
+
+    private final @NotNull ItemStack other;
+
+    public ItemEqualMatcher(@NonNull ItemStack other) {
+      this.other = other;
+    }
+
+    @Override
+    public boolean matches(Object actual) {
+      // Cannot use .equals because the backing ItemStack impl is a mock.
+      // Instead, leverage our isSimilar implementation and compare the one remaining value.
+      System.out.printf("checking %s (%s) against %s (%s)%n", other, other.hashCode(), actual, actual.hashCode());
+      if (actual instanceof ItemStack act) {
+        System.out.println("is item");
+        System.out.println("similar? " + other.isSimilar(act));
+        System.out.println("amt? " + (other.getAmount() == act.getAmount()));
+      } else {
+        System.out.println("not item :(");
+      }
+      return actual instanceof ItemStack actualItem
+          && other.isSimilar(actualItem)
+          && other.getAmount() == actualItem.getAmount();
+    }
+
+    @Override
+    public void describeTo(Description description) {
+      description.appendText("item ").appendValue(other.toString());
+    }
+  }
 
   /**
    * Construct a new {@code IsSimilarMatcher} for the given {@link ItemStack}.
