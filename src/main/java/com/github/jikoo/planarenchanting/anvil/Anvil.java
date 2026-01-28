@@ -126,7 +126,7 @@ public class Anvil {
     }
     // Ignore name changes if addition is not empty.
     if (!ItemUtil.isEmpty(state.getAddition().getItem())) {
-      resultMeta.setDisplayName(baseMeta.getDisplayName());
+      resultMeta.customName(baseMeta.customName());
     }
 
     // If reset meta is identical then no operation is occurring.
