@@ -164,11 +164,7 @@ enum RegistryHelper {
 
   private static void mockItemType(@NotNull ItemType itemType) {
     // ItemStack creation.
-    doAnswer(
-        invocation -> {
-          itemType.createItemStack(1);
-          return null;
-        }
+    doAnswer(invocation -> itemType.createItemStack(1)
     ).when(itemType).createItemStack();
     doAnswer(invocation -> ItemStackMocks.newItemMock(itemType, invocation.getArgument(0)))
         .when(itemType).createItemStack(anyInt());
