@@ -19,16 +19,25 @@ import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.InventoryMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.TypedKey;
+import io.papermc.paper.registry.keys.EnchantmentKeys;
+import io.papermc.paper.registry.keys.ItemTypeKeys;
+import io.papermc.paper.registry.keys.tags.EnchantmentTagKeys;
+import io.papermc.paper.registry.keys.tags.ItemTypeTagKeys;
+import io.papermc.paper.registry.tag.Tag;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.Registry;
 import org.bukkit.Server;
-import org.bukkit.Tag;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
@@ -50,10 +59,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AnvilTest {
 
-  private static final Material TOOL = Material.DIAMOND_SHOVEL;
-  private static final Material TOOL_REPAIR = Material.DIAMOND;
-  public static final Material BOOK = Material.ENCHANTED_BOOK;
-  private static final Material INCOMPATIBLE = Material.STONE;
+  private static ItemType tool;
+  private static ItemType toolRepair;
+  public static ItemType book;
+  private static ItemType incompatible;
   public static Enchantment toolEnchantment;
 
   @BeforeAll
@@ -63,19 +72,29 @@ class AnvilTest {
     ItemFactory factory = ItemFactoryMocks.mockFactory();
     when(server.getItemFactory()).thenReturn(factory);
 
-    // RepairMaterial requires these tags to be set up to test.
-    Tag<Material> tag = Tag.ITEMS_STONE_TOOL_MATERIALS;
-    doReturn(Set.of(Material.STONE, Material.ANDESITE, Material.GRANITE, Material.DIORITE))
-        .when(tag).getValues();
-    tag = Tag.PLANKS;
-    doReturn(Set.of(Material.ACACIA_PLANKS, Material.BIRCH_PLANKS, Material.OAK_PLANKS)) //etc. non-exhaustive list
-        .when(tag).getValues();
-
     EnchantmentMocks.init();
 
+    tool = ItemType.DIAMOND_SHOVEL;
+    doReturn((short) 1561).when(tool).getMaxDurability();
+    toolRepair = ItemType.DIAMOND;
+    book = ItemType.ENCHANTED_BOOK;
+    incompatible = ItemType.STONE;
+
+    // Set up tag for repair.
+    Registry<ItemType> itemTypeRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM);
+    Tag<ItemType> tag = itemTypeRegistry.getTag(ItemTypeTagKeys.DIAMOND_TOOL_MATERIALS);
+    doReturn(Set.of(ItemTypeKeys.DIAMOND)).when(tag).values();
+
+    // Set up tool enchantment.
     toolEnchantment = Enchantment.EFFICIENCY;
-    tag = Tag.ITEMS_ENCHANTABLE_MINING;
-    doReturn(Set.of(TOOL)).when(tag).getValues();
+    tag = itemTypeRegistry.getTag(ItemTypeTagKeys.ENCHANTABLE_MINING);
+    doReturn(Set.of(TypedKey.create(RegistryKey.ITEM, tool.getKey()))).when(tag).values();
+
+    // Set up enchantment exclusivity for silk touch and fortune.
+    Tag<Enchantment> toolExclusive = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).getTag(
+        EnchantmentTagKeys.EXCLUSIVE_SET_MINING);
+    doReturn(Set.of(EnchantmentKeys.SILK_TOUCH, EnchantmentKeys.FORTUNE))
+        .when(toolExclusive).values();
   }
 
   @Test
@@ -221,7 +240,7 @@ class AnvilTest {
 
     assertThat("Meta must not be null", meta, notNullValue());
 
-    meta.setDisplayName("Cool beans");
+    meta.customName(Component.text("Cool beans"));
 
     var anvil = new Anvil();
     assertThat("AnvilResult must be empty constant", anvil.forge(state), is(AnvilResult.EMPTY));
@@ -234,7 +253,7 @@ class AnvilTest {
 
     assertThat("Meta must not be null", meta, notNullValue());
 
-    meta.setDisplayName("Cool beans");
+    meta.customName(Component.text("Cool beans"));
 
     var anvil = new Anvil();
     assertThat(
@@ -245,11 +264,11 @@ class AnvilTest {
 
   @Test
   void testEnchantmentTarget() {
-    var item = new MetaCachedStack(new ItemStack(TOOL));
+    var item = new MetaCachedStack(tool.createItemStack());
     assertThat(
         "Enchantment applies to tools",
         AnvilBehavior.VANILLA.enchantApplies(toolEnchantment, item));
-    item.getItem().setType(INCOMPATIBLE);
+    item = new MetaCachedStack(incompatible.createItemStack());
     assertThat(
         "Enchantment does not apply to non-tools",
         AnvilBehavior.VANILLA.enchantApplies(toolEnchantment, item),
@@ -277,13 +296,13 @@ class AnvilTest {
   }
 
   private static @NotNull Stream<Enchantment> getEnchantments() {
-    return Registry.ENCHANTMENT.stream();
+    return RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT).stream();
   }
 
   @Test
   void testSameMaterialEnchantCombination() {
-    var base = new MetaCachedStack(new ItemStack(TOOL));
-    var addition = new MetaCachedStack(new ItemStack(TOOL));
+    var base = new MetaCachedStack(tool.createItemStack());
+    var addition = new MetaCachedStack(tool.createItemStack());
     assertThat(
         "Same type combine enchantments",
         AnvilBehavior.VANILLA.itemsCombineEnchants(base, addition));
@@ -291,8 +310,8 @@ class AnvilTest {
 
   @Test
   void testEnchantedBookEnchantCombination() {
-    var base = new MetaCachedStack(new ItemStack(TOOL));
-    var addition = new MetaCachedStack(new ItemStack(BOOK));
+    var base = new MetaCachedStack(tool.createItemStack());
+    var addition = new MetaCachedStack(book.createItemStack());
     assertThat(
         "Enchanted books combine enchantments",
         AnvilBehavior.VANILLA.itemsCombineEnchants(base, addition));
@@ -300,8 +319,8 @@ class AnvilTest {
 
   @Test
   void testDifferentMaterialEnchantCombination() {
-    var base = new MetaCachedStack(new ItemStack(TOOL));
-    var addition = new MetaCachedStack(new ItemStack(INCOMPATIBLE));
+    var base = new MetaCachedStack(tool.createItemStack());
+    var addition = new MetaCachedStack(incompatible.createItemStack());
     assertThat(
         "Incompatible materials do not combine enchantments",
         AnvilBehavior.VANILLA.itemsCombineEnchants(base, addition),
@@ -317,14 +336,14 @@ class AnvilTest {
 
   @Test
   void testEmptyAdditionIsEmpty() {
-    var anvil = getMockView(new ItemStack(TOOL), null);
+    var anvil = getMockView(tool.createItemStack(), null);
     var result = new Anvil().getResult(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
   }
 
   @Test
   void testEmptyAdditionRenameNotEmpty() {
-    var anvil = getMockView(new ItemStack(TOOL), null);
+    var anvil = getMockView(tool.createItemStack(), null);
     when(anvil.getRenameText()).thenReturn("Sample Text");
     var result = new Anvil().getResult(anvil);
     assertThat("Result must not be empty", result, not(AnvilResult.EMPTY));
@@ -332,9 +351,9 @@ class AnvilTest {
 
   @Test
   void testMultipleBaseIsEmpty() {
-    var base = new ItemStack(TOOL);
+    var base = tool.createItemStack();
     base.setAmount(2);
-    var addition = new ItemStack(TOOL);
+    var addition = tool.createItemStack();
     var anvil = getMockView(base, addition);
     var result = new Anvil().getResult(anvil);
     assertThat("Result must be empty", result, is(AnvilResult.EMPTY));
@@ -342,17 +361,17 @@ class AnvilTest {
 
   @Test
   void testRepairWithMaterial() {
-    var base = new ItemStack(TOOL);
+    var base = tool.createItemStack();
     var itemMeta = base.getItemMeta();
 
     assertThat("ItemMeta must be Damageable", itemMeta, instanceOf(Damageable.class));
-    assertThat("Material must have durability", (int) TOOL.getMaxDurability(), greaterThan(0));
+    assertThat("Material must have durability", (int) tool.getMaxDurability(), greaterThan(0));
 
     Damageable damageable = (Damageable) itemMeta;
-    Objects.requireNonNull(damageable).setDamage(TOOL.getMaxDurability() - 1);
+    Objects.requireNonNull(damageable).setDamage(tool.getMaxDurability() - 1);
     base.setItemMeta(damageable);
 
-    var addition = new ItemStack(TOOL_REPAIR);
+    var addition = toolRepair.createItemStack();
 
     assertThat("Base must be repairable by addition", AnvilBehavior.VANILLA.itemRepairedBy(new MetaCachedStack(base), new MetaCachedStack(addition)));
 
@@ -373,14 +392,14 @@ class AnvilTest {
 
   @Test
   void testRepairWithCombination() {
-    var base = new ItemStack(TOOL);
+    var base = tool.createItemStack();
     var itemMeta = base.getItemMeta();
 
     assertThat("ItemMeta must be Damageable", itemMeta, instanceOf(Damageable.class));
-    assertThat("Material must have durability", (int) TOOL.getMaxDurability(), greaterThan(0));
+    assertThat("Material must have durability", (int) tool.getMaxDurability(), greaterThan(0));
 
     Damageable damageable = (Damageable) itemMeta;
-    Objects.requireNonNull(damageable).setDamage(TOOL.getMaxDurability() - 1);
+    Objects.requireNonNull(damageable).setDamage(tool.getMaxDurability() - 1);
     base.setItemMeta(damageable);
 
     var addition = base.clone();

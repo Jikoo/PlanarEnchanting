@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
@@ -166,12 +167,12 @@ public final class ItemFactoryMocks {
     return copyDetails(createMeta(ItemMeta.class), meta);
   }
 
-  public static @NotNull <T extends ItemMeta> T createMeta(@NotNull Class<T> metaClass) {
+  public static <T extends ItemMeta> @NotNull T createMeta(@NotNull Class<T> metaClass) {
     T meta;
-    if (metaClass == ItemMetaHelper.class) {
+    if (metaClass == ItemMetaBase.class) {
       meta = mock(metaClass);
     } else {
-      meta = mock(metaClass, withSettings().extraInterfaces(ItemMetaHelper.class));
+      meta = mock(metaClass, withSettings().extraInterfaces(ItemMetaBase.class));
     }
 
     for (Entry<Class<?>, Consumer<ItemMeta>> classConsumerEntry : CLASS_META_METHODS.entrySet()) {
@@ -196,40 +197,67 @@ public final class ItemFactoryMocks {
     // Note that certain things such as enchantments have more specific setting methods;
     // setters for bulk handling can be added via the ItemMetaCloneHelper interface.
     for (Method getter : oldMeta.getClass().getMethods()) {
-      if (isSimpleGetter(getter)) {
+      Method setter = findSetter(newMeta.getClass(), getter);
+      if (setter != null) {
         try {
-          // Find matching setter.
-          Method setter = newMeta.getClass()
-              .getMethod("set" + getter.getName().substring(3), getter.getReturnType());
           // Get value.
           Object oldValue = getter.invoke(oldMeta);
           if (oldValue != null) {
             // Only set if non-null; Null should be default for nullables, and this may just be a stub.
             setter.invoke(newMeta, oldValue);
           }
-        } catch (NoSuchMethodException ignored) {
-          // No matching method, not a getter + setter pair.
         } catch (InvocationTargetException | IllegalAccessException e) {
           // Method should be accessible and invokable - must be public and types should match.
           throw new RuntimeException(e);
         }
+
       }
     }
 
     return newMeta;
   }
 
-  private static boolean isSimpleGetter(@NotNull Method method) {
-    // Getter must start with "get".
-    return method.getName().startsWith("get")
-        // We only accept getters that don't accept parameters - we have no idea what to provide.
-        && method.getParameterCount() == 0
+  private static @Nullable Method findSetter(@NotNull Class<?> clazz, @NotNull Method method) {
+    if (!isPossibleGetter(method)) {
+      return null;
+    }
+
+    String methodName = method.getName();
+    Class<?> returnType = method.getReturnType();
+
+    // Simple get/set pattern. Setter must accept type returned by getter.
+    if (methodName.startsWith("get")) {
+      return findSetter(clazz, "set"  + methodName.substring(3), returnType);
+    }
+
+    // Paper uses a different pattern to prevent signature
+    // conflicts: getter and setter have matching names.
+    return findSetter(clazz, methodName, returnType);
+  }
+
+  private static boolean isPossibleGetter(@NotNull Method method) {
+    // We only accept getters that don't accept parameters - we have no idea what to provide.
+    return method.getParameterCount() == 0
         // Getter must actually get a value.
         && method.getReturnType() != void.class
         // Getter must not be part of Mockito's internals.
         && !method.getReturnType().getPackageName().startsWith("org.mockito")
         // Native methods aren't exactly simple. This ignores Object#getClass etc.
         && !Modifier.isNative(method.getModifiers());
+  }
+
+  private static @Nullable Method findSetter(
+      @NotNull Class<?> clazz,
+      @NotNull String methodName,
+      @NotNull Class<?> returnType
+  ) {
+    try {
+      // Find corresponding set method accepting return type.
+      return clazz.getMethod(methodName, returnType);
+    } catch (NoSuchMethodException ignored) {
+      // Otherwise, no setter. Return null.
+      return null;
+    }
   }
 
   private static boolean equals(@Nullable ItemMeta meta, @Nullable ItemMeta other) {
@@ -252,7 +280,7 @@ public final class ItemFactoryMocks {
     Map<String, Object> methodValues = new HashMap<>();
 
     for (Method getter : meta.getClass().getMethods()) {
-      if (!isSimpleGetter(getter)) {
+      if (findSetter(meta.getClass(), getter) == null) {
         continue;
       }
 
@@ -271,13 +299,13 @@ public final class ItemFactoryMocks {
 
   private static void meta(@NotNull ItemMeta meta) {
     // Display name
-    AtomicReference<String> displayName = new AtomicReference<>();
-    when(meta.hasDisplayName()).thenAnswer(invocation -> displayName.get() != null);
-    when(meta.getDisplayName()).thenAnswer(invocation -> displayName.get());
+    AtomicReference<Component> customName = new AtomicReference<>();
+    when(meta.hasCustomName()).thenAnswer(invocation -> customName.get() != null);
+    when(meta.customName()).thenAnswer(invocation -> customName.get());
     doAnswer(invocation -> {
-      displayName.set(invocation.getArgument(0));
+      customName.set(invocation.getArgument(0));
       return null;
-    }).when(meta).setDisplayName(any());
+    }).when(meta).customName(any());
 
     // Enchantments
     Map<Enchantment, Integer> enchants = new HashMap<>();
@@ -311,7 +339,7 @@ public final class ItemFactoryMocks {
     when(meta.getEnchants()).thenAnswer(invocation -> Map.copyOf(enchants));
     when(meta.hasEnchants()).thenAnswer(invocation -> !enchants.isEmpty());
 
-    if (meta instanceof ItemMetaHelper cloneHelper) {
+    if (meta instanceof ItemMetaBase cloneHelper) {
       doAnswer(invocation -> {
         enchants.clear();
         Map<Object, Object> map = invocation.getArgument(0);
@@ -395,7 +423,7 @@ public final class ItemFactoryMocks {
     when(storageMeta.getStoredEnchants()).thenAnswer(invocation -> Map.copyOf(stored));
     when(storageMeta.hasStoredEnchants()).thenAnswer(invocation -> !stored.isEmpty());
 
-    if (meta instanceof ItemMetaHelper cloneHelper) {
+    if (meta instanceof ItemMetaBase cloneHelper) {
       doAnswer(invocation -> {
         stored.clear();
         Map<Object, Object> map = invocation.getArgument(0);

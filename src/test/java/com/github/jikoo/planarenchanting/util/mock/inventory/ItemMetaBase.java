@@ -13,12 +13,12 @@ import org.jetbrains.annotations.NotNull;
  * implementation exists that does not implement Damageable, Repairable, and BlockDataMeta.
  * See CraftMetaItem.
  */
-public interface ItemMetaHelper extends ItemMeta, Repairable, Damageable {
+public interface ItemMetaBase extends ItemMeta, Repairable, Damageable {
 
   void setEnchants(Map<Enchantment, Integer> enchantments);
 
   void setStoredEnchants(Map<Enchantment, Integer> enchantments);
 
-  @NotNull ItemMetaHelper clone();
+  @NotNull ItemMetaBase clone();
 
 }

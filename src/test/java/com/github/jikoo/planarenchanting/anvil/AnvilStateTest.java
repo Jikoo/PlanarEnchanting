@@ -1,5 +1,6 @@
 package com.github.jikoo.planarenchanting.anvil;
 
+import static com.github.jikoo.planarenchanting.util.matcher.ItemMatcher.isItem;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -73,7 +74,7 @@ class AnvilStateTest {
     var base = new ItemStack(Material.DIRT);
     view.setItem(0, base);
     var state = new AnvilState(view);
-    assertThat("Base item must match", state.getBase().getItem(), is(base));
+    assertThat("Base item must match", state.getBase().getItem(), isItem(base));
   }
 
   @Test
@@ -81,7 +82,7 @@ class AnvilStateTest {
     var addition = new ItemStack(Material.DIRT);
     view.setItem(1, addition);
     var state = new AnvilState(view);
-    assertThat("Addition item must match", state.getAddition().getItem(), is(addition));
+    assertThat("Addition item must match", state.getAddition().getItem(), isItem(addition));
   }
 
   @Test

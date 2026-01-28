@@ -1,6 +1,5 @@
 package com.github.jikoo.planarenchanting.anvil;
 
-import com.github.jikoo.planarenchanting.enchant.EnchantData;
 import com.github.jikoo.planarenchanting.enchant.EnchantmentUtil;
 import java.util.HashMap;
 import java.util.Map;
@@ -77,7 +76,7 @@ abstract class CombineEnchantments implements AnvilFunction {
   }
 
   protected int getAnvilCost(Enchantment enchantment, boolean isFromBook) {
-    int value = EnchantData.of(enchantment).getAnvilCost();
+    int value = enchantment.getAnvilCost();
     return isFromBook ? Math.max(1, value / 2) : value;
   }
 

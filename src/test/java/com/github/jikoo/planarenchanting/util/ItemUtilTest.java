@@ -4,10 +4,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
 import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Repairable;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -16,6 +18,11 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 @DisplayName("Item utility methods")
 @TestInstance(Lifecycle.PER_CLASS)
 class ItemUtilTest {
+
+  @BeforeAll
+  void beforeAll() {
+    ServerMocks.mockServer();
+  }
 
   @Test
   void testAirConstantImmutable() {
