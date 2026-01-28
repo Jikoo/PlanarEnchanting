@@ -74,23 +74,24 @@ enum RegistryHelper {
   }
 
   static <T extends Keyed> T getOrThrow(Class<T> clazz, NamespacedKey key) {
-      // Some classes (like BlockType and ItemType) have extra generics that will be
-      // erased during runtime calls. To ensure accurate typing, grab the constant's field.
-      // This approach also allows us to return null for unsupported keys.
-      Class<? extends T> constantClazz;
-      try {
-        constantClazz = (Class<? extends T>) clazz.getField(key.getKey().toUpperCase(
-            Locale.ROOT).replace('.', '_')).getType();
-      } catch (ClassCastException | NoSuchFieldException e) {
-        throw new RuntimeException(e);
-      }
-      T keyed = mock(constantClazz);
-      doReturn(key).when(keyed).getKey();
-      doReturn(key).when(keyed).key();
-      if (keyed instanceof ItemType itemType) {
-        mockItemType(itemType);
-      }
-      return keyed;
+    // Some classes (like BlockType and ItemType) have extra generics that will be
+    // erased during runtime calls. To ensure accurate typing, grab the constant's field.
+    // This approach also allows us to return null for unsupported keys.
+    Class<? extends T> constantClazz;
+    try {
+      constantClazz = (Class<? extends T>) clazz.getField(
+          key.getKey().toUpperCase(Locale.ROOT).replace('.', '_')
+      ).getType();
+    } catch (ClassCastException | NoSuchFieldException e) {
+      throw new RuntimeException(e);
+    }
+    T keyed = mock(constantClazz);
+    doReturn(key).when(keyed).getKey();
+    doReturn(key).when(keyed).key();
+    if (keyed instanceof ItemType itemType) {
+      mockItemType(itemType);
+    }
+    return keyed;
   }
 
   static <T extends Keyed> @Nullable Tag<T> getTag(Class<T> clazz, TagKey<T> tagKey) {
@@ -136,9 +137,6 @@ enum RegistryHelper {
     doReturn(Set.of()).when(tag).values();
     doAnswer(invocationIsTagged -> {
       TypedKey<T> keyed = invocationIsTagged.getArgument(0);
-      if (!clazz.isAssignableFrom(keyed.getClass())) {
-        return null;
-      }
       // Since these are mocks, the exact instance might not be equal. Consider equal keys equal.
       return tag.values().contains(keyed) || tag.values().stream().anyMatch(value -> value.key().equals(keyed.key()));
     }).when(tag).contains(notNull());

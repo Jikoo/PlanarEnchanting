@@ -6,10 +6,10 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import java.lang.reflect.Field;
 import java.util.Set;
 import java.util.logging.Logger;
-import com.github.jikoo.planarenchanting.util.mock.inventory.ItemFactoryMocks;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.Material;

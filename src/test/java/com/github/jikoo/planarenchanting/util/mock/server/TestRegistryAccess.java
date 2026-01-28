@@ -11,8 +11,10 @@ import io.papermc.paper.registry.tag.TagKey;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import net.kyori.adventure.key.Key;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -45,6 +47,18 @@ public class TestRegistryAccess implements RegistryAccess {
 
       Map<NamespacedKey, T> values = new HashMap<>();
       Class<T> clazz = clazzRef.get();
+
+      // Paper added several helpers and then moved ItemType to them.
+      // Mock these first so Mockito doesn't try to clobber the original overload
+      // because NamespacedKey extends Key.
+      doAnswer(invocation -> {
+        Key key = invocation.getArgument(0);
+        return registry.get(Objects.requireNonNull(NamespacedKey.fromString(key.asString())));
+      }).when(registry).get(any(Key.class));
+      doAnswer(invocation -> {
+        Key key = invocation.getArgument(0);
+        return registry.getOrThrow(Objects.requireNonNull(NamespacedKey.fromString(key.asString())));
+      }).when(registry).getOrThrow(any(Key.class));
 
       Answer<T> getOrThrow = invocationGetEntry -> {
         NamespacedKey key = invocationGetEntry.getArgument(0);

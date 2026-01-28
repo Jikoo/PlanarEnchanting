@@ -1,8 +1,10 @@
 package com.github.jikoo.planarenchanting.table;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,49 +54,64 @@ public record Enchantability(@Range(from = 1, to = Integer.MAX_VALUE) int value)
    * @return the {@code Enchantability} if enchantable
    */
   public static @Nullable Enchantability forMaterial(@NotNull Material material) {
-    return BY_MATERIAL.get(material);
+    return BY_KEY.get(material.getKey());
   }
 
-  private static final Map<Material, Enchantability> BY_MATERIAL = new EnumMap<>(Material.class);
+  /**
+   * Get the {@code Enchantability} of an {@link ItemType}. Will return {@code null} if not
+   * enchantable in an enchanting table.
+   *
+   * <p>Note that {@link ItemType#BOOK} and {@link ItemType#ENCHANTED_BOOK} are both listed as
+   * enchantable. This is a special case designed to ease the process for people seeking to handle
+   * book enchantment, but technically enchanted books are not enchantable.
+   *
+   * @param type the {@code ItemType}
+   * @return the {@code Enchantability} if enchantable
+   */
+  public static @Nullable Enchantability forType(@NotNull ItemType type) {
+    return BY_KEY.get(type.getKey());
+  }
+
+  private static final Map<NamespacedKey, Enchantability> BY_KEY = new HashMap<>();
 
   static {
     // See net.minecraft.world.item.equipment.ArmorMaterials
-    String[] armor = new String[] { "_HELMET", "_CHESTPLATE", "_LEGGINGS", "_BOOTS" };
-    LEATHER = addMaterials("LEATHER", armor, 15);
-    COPPER_ARMOR = addMaterials("COPPER", armor, 8);
-    CHAIN = addMaterials("CHAINMAIL", armor, 12);
-    IRON_ARMOR = addMaterials("IRON", armor, 9);
-    GOLD_ARMOR = addMaterials("GOLDEN", armor, 25);
-    DIAMOND_ARMOR = addMaterials("DIAMOND", armor, 10);
-    NETHERITE_ARMOR = addMaterials("NETHERITE", armor, LEATHER);
-    TURTLE = addMaterial(Material.TURTLE_HELMET, IRON_ARMOR);
-    ARMADILLO = addMaterial(Material.WOLF_ARMOR, DIAMOND_ARMOR);
+    String[] armor = new String[] { "_helmet", "_chestplate", "_leggings", "_boots" };
+    LEATHER = addMaterials("leather", armor, 15);
+    COPPER_ARMOR = addMaterials("copper", armor, 8);
+    CHAIN = addMaterials("chainmail", armor, 12);
+    IRON_ARMOR = addMaterials("iron", armor, 9);
+    GOLD_ARMOR = addMaterials("golden", armor, 25);
+    DIAMOND_ARMOR = addMaterials("diamond", armor, 10);
+    NETHERITE_ARMOR = addMaterials("netherite", armor, LEATHER);
+    TURTLE = addType(ItemType.TURTLE_HELMET, IRON_ARMOR);
+    ARMADILLO = addType(ItemType.WOLF_ARMOR, DIAMOND_ARMOR);
 
     // See net.minecraft.world.item.ToolMaterial
-    String[] tools = new String[] { "_AXE", "_SHOVEL", "_PICKAXE", "_HOE", "_SWORD", "_SPEAR" };
-    WOOD = addMaterials("WOODEN", tools, LEATHER);
-    STONE = addMaterials("STONE", tools, 5);
-    COPPER_TOOL = addMaterials("COPPER", tools, 13);
-    IRON_TOOL = addMaterials("IRON", tools, 14);
-    GOLD_TOOL = addMaterials("GOLDEN", tools, 22);
-    DIAMOND_TOOL = addMaterials("DIAMOND", tools, DIAMOND_ARMOR);
-    NETHERITE_TOOL = addMaterials("NETHERITE", tools, NETHERITE_ARMOR);
+    String[] tools = new String[] { "_axe", "_shovel", "_pickaxe", "_hoe", "_sword", "_spear" };
+    WOOD = addMaterials("wooden", tools, LEATHER);
+    STONE = addMaterials("stone", tools, 5);
+    COPPER_TOOL = addMaterials("copper", tools, 13);
+    IRON_TOOL = addMaterials("iron", tools, 14);
+    GOLD_TOOL = addMaterials("golden", tools, 22);
+    DIAMOND_TOOL = addMaterials("diamond", tools, DIAMOND_ARMOR);
+    NETHERITE_TOOL = addMaterials("netherite", tools, NETHERITE_ARMOR);
 
     // See net.minecraft.world.item.Items
-    BOOK = addMaterial(Material.BOOK, new Enchantability(1));
-    BY_MATERIAL.put(Material.BOW, BOOK);
-    BY_MATERIAL.put(Material.CROSSBOW, BOOK);
-    BY_MATERIAL.put(Material.ENCHANTED_BOOK, BOOK);
-    BY_MATERIAL.put(Material.FISHING_ROD, BOOK);
-    TRIDENT = addMaterial(Material.TRIDENT, BOOK);
-    MACE = addMaterial(Material.MACE, LEATHER);
+    BOOK = addType(ItemType.BOOK, new Enchantability(1));
+    BY_KEY.put(ItemType.BOW.getKey(), BOOK);
+    BY_KEY.put(ItemType.CROSSBOW.getKey(), BOOK);
+    BY_KEY.put(ItemType.ENCHANTED_BOOK.getKey(), BOOK);
+    BY_KEY.put(ItemType.FISHING_ROD.getKey(), BOOK);
+    TRIDENT = addType(ItemType.TRIDENT, BOOK);
+    MACE = addType(ItemType.MACE, LEATHER);
   }
 
   @Contract("_, _ -> param2")
-  private static @NotNull Enchantability addMaterial(
-      @NotNull Material material,
+  private static @NotNull Enchantability addType(
+      @NotNull ItemType type,
       @NotNull Enchantability enchantability) {
-    BY_MATERIAL.put(material, enchantability);
+    BY_KEY.put(type.getKey(), enchantability);
     return enchantability;
   }
 
@@ -112,10 +129,7 @@ public record Enchantability(@Range(from = 1, to = Integer.MAX_VALUE) int value)
       @NotNull String @NotNull [] gearType,
       @NotNull Enchantability value) {
     for (String toolType : gearType) {
-      Material material = Material.getMaterial(materialName + toolType);
-      if (material != null) {
-        BY_MATERIAL.put(material, value);
-      }
+      BY_KEY.put(NamespacedKey.minecraft(materialName + toolType), value);
     }
     return value;
   }

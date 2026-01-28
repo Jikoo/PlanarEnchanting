@@ -53,10 +53,11 @@ import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.registry.TypedKey;
 import io.papermc.paper.registry.keys.EnchantmentKeys;
 import io.papermc.paper.registry.keys.tags.EnchantmentTagKeys;
+import io.papermc.paper.registry.keys.tags.ItemTypeTagKeys;
+import io.papermc.paper.registry.tag.Tag;
 import io.papermc.paper.registry.tag.TagKey;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,12 +65,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.IntUnaryOperator;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
-import org.bukkit.Tag;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnmodifiableView;
 import org.mockito.ArgumentMatchers;
@@ -77,38 +77,38 @@ import org.mockito.ArgumentMatchers;
 public class EnchantmentMocks {
 
   private static final Map<NamespacedKey, Enchantment> KEYS_TO_ENCHANTS = new HashMap<>();
-  private static final Set<Tag<Material>> ENCHANTING_TABLE_TAGS = new HashSet<>();
+  private static final Set<Tag<ItemType>> ENCHANTING_TABLE_TAGS = new HashSet<>();
 
   public static void init() {
     // See net.minecraft.world.item.enchantment.Enchantments
     config(PROTECTION)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_ARMOR)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_ARMOR)
         .maxLevel(4)
         .minModCost(perLvl(1, 11))
         .maxModCost(perLvl(12, 11))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_ARMOR);
     config(FIRE_PROTECTION)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_ARMOR)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_ARMOR)
         .weight(5)
         .maxLevel(4)
         .minModCost(perLvl(10, 8))
         .maxModCost(perLvl(18, 8))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_ARMOR);
     config(FEATHER_FALLING)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_FOOT_ARMOR)
         .weight(5)
         .maxLevel(4)
         .minModCost(perLvl(5, 6))
         .maxModCost(perLvl(11, 6));
     config(BLAST_PROTECTION)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_ARMOR)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_ARMOR)
         .weight(2)
         .maxLevel(4)
         .minModCost(perLvl(5, 8))
         .maxModCost(perLvl(13, 8))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_ARMOR);
     config(PROJECTILE_PROTECTION)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_ARMOR)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_ARMOR)
         .weight(5)
         .maxLevel(4)
         .minModCost(perLvl(3, 6))
@@ -116,35 +116,35 @@ public class EnchantmentMocks {
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_ARMOR);
 
     config(RESPIRATION)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_HEAD_ARMOR)
         .weight(2)
         .maxLevel(3)
         .minModCost(perLvl(10, 10))
         .maxModCost(perLvl(40, 10));
     config(AQUA_AFFINITY)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_HEAD_ARMOR)
         .weight(2)
         .maxLevel(1)
         .minModCost(flat(1))
         .maxModCost(flat(41));
 
     config(THORNS)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_CHEST_ARMOR)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_ARMOR)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_CHEST_ARMOR)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_ARMOR)
         .weight(1)
         .maxLevel(3)
         .minModCost(perLvl(10, 20))
         .maxModCost(perLvl(60, 20));
 
     config(DEPTH_STRIDER)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_FOOT_ARMOR)
         .weight(2)
         .maxLevel(3)
         .minModCost(perLvl(10, 10))
         .maxModCost(perLvl(25, 10))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_BOOTS);
     config(FROST_WALKER)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_FOOT_ARMOR)
         .weight(2)
         .maxLevel(2)
         .minModCost(perLvl(10, 10))
@@ -152,19 +152,19 @@ public class EnchantmentMocks {
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_BOOTS);
 
     config(BINDING_CURSE)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_EQUIPPABLE)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_EQUIPPABLE)
         .weight(1)
         .minModCost(flat(25))
         .maxModCost(flat(50));
 
     config(SOUL_SPEED)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_FOOT_ARMOR)
         .weight(1)
         .maxLevel(3)
         .minModCost(perLvl(10, 10))
         .maxModCost(perLvl(25, 10));
     config(SWIFT_SNEAK)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_LEG_ARMOR)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_LEG_ARMOR)
         .weight(1)
         .maxLevel(3)
         .minModCost(perLvl(25, 25))
@@ -172,73 +172,73 @@ public class EnchantmentMocks {
 
     List<Enchantment> damages = List.of(SHARPNESS, SMITE, BANE_OF_ARTHROPODS);
     config(SHARPNESS)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_SHARP_WEAPON)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_SHARP_WEAPON)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_MELEE_WEAPON)
         .maxLevel(5)
         .minModCost(perLvl(1, 11))
         .maxModCost(perLvl(21, 11))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_DAMAGE);
     config(SMITE)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_WEAPON)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_WEAPON)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_MELEE_WEAPON)
         .weight(5)
         .maxLevel(5)
         .minModCost(perLvl(5, 8))
         .maxModCost(perLvl(25, 8))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_DAMAGE);
     config(BANE_OF_ARTHROPODS)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_WEAPON)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_WEAPON)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_MELEE_WEAPON)
         .weight(5)
         .maxLevel(5)
         .minModCost(perLvl(5, 8))
         .maxModCost(perLvl(25, 8))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_DAMAGE);
     config(KNOCKBACK)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_MELEE_WEAPON)
         .weight(5)
         .maxLevel(2)
         .minModCost(perLvl(5, 20))
         .maxModCost(perLvl(55, 20));
     config(FIRE_ASPECT)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_FIRE_ASPECT)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_FIRE_ASPECT)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_MELEE_WEAPON)
         .weight(2)
         .maxLevel(2)
         .minModCost(perLvl(10, 20))
         .maxModCost(perLvl(60, 20));
     config(LOOTING)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_MELEE_WEAPON)
         .weight(2)
         .maxLevel(3)
         .minModCost(perLvl(15, 9))
         .maxModCost(perLvl(65, 9));
     config(SWEEPING_EDGE)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_SWEEPING)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_SWEEPING)
         .weight(2)
         .maxLevel(3)
         .minModCost(perLvl(5, 9))
         .maxModCost(perLvl(20, 9));
 
     config(EFFICIENCY)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_MINING)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_MINING)
         .maxLevel(5)
         .minModCost(perLvl(1, 10))
         .maxModCost(perLvl(51, 10));
     config(SILK_TOUCH)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_MINING_LOOT)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_MINING_LOOT)
         .weight(1)
         .minModCost(flat(15))
         .maxModCost(flat(65))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_MINING);
     config(UNBREAKING)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_DURABILITY)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_DURABILITY)
         .weight(5)
         .maxLevel(3)
         .minModCost(perLvl(5, 8))
         .maxModCost(perLvl(55, 8));
     config(FORTUNE)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_MINING_LOOT)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_MINING_LOOT)
         .weight(2)
         .maxLevel(3)
         .minModCost(perLvl(15, 9))
@@ -246,56 +246,56 @@ public class EnchantmentMocks {
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_MINING);
 
     config(POWER)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_BOW)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_BOW)
         .maxLevel(5)
         .minModCost(perLvl(1, 10))
         .maxModCost(perLvl(16, 10));
     config(PUNCH)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_BOW)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_BOW)
         .weight(2)
         .maxLevel(2)
         .minModCost(perLvl(12, 20))
         .maxModCost(perLvl(37, 20));
     config(FLAME)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_BOW)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_BOW)
         .weight(2)
         .minModCost(flat(20))
         .maxModCost(flat(50));
     config(INFINITY)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_BOW)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_BOW)
         .weight(1)
         .minModCost(flat(20))
         .maxModCost(flat(50))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_BOW);
 
     config(LUCK_OF_THE_SEA)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_FISHING)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_FISHING)
         .weight(2)
         .maxLevel(3)
         .minModCost(perLvl(15, 9))
         .maxModCost(perLvl(65, 9));
     config(LURE)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_FISHING)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_FISHING)
         .weight(2)
         .maxLevel(3)
         .minModCost(perLvl(15, 9))
         .maxModCost(perLvl(65, 9));
 
     config(LOYALTY)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_TRIDENT)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_TRIDENT)
         .weight(5)
         .maxLevel(3)
         .minModCost(perLvl(12, 7))
         .maxModCost(flat(50));
     config(IMPALING)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_TRIDENT)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_TRIDENT)
         .weight(2)
         .maxLevel(5)
         .minModCost(perLvl(1, 8))
         .maxModCost(perLvl(21, 8))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_DAMAGE);
     config(RIPTIDE)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_TRIDENT)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_TRIDENT)
         .weight(2)
         .maxLevel(3)
         .minModCost(perLvl(17, 7))
@@ -303,65 +303,65 @@ public class EnchantmentMocks {
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_RIPTIDE);
 
     config(LUNGE)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_LUNGE)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_LUNGE)
         .weight(5)
         .maxLevel(3)
         .minModCost(perLvl(5, 8))
         .maxModCost(perLvl(25, 8));
 
     config(CHANNELING)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_TRIDENT)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_TRIDENT)
         .weight(1)
         .minModCost(flat(25))
         .maxModCost(flat(50));
 
     config(MULTISHOT)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_CROSSBOW)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_CROSSBOW)
         .weight(2)
         .maxLevel(1)
         .minModCost(flat(20))
         .maxModCost(flat(50))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_CROSSBOW);
     config(QUICK_CHARGE)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_CROSSBOW)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_CROSSBOW)
         .weight(5)
         .maxLevel(3)
         .minModCost(perLvl(12, 20))
         .maxModCost(flat(50));
     config(PIERCING)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_CROSSBOW)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_CROSSBOW)
         .maxLevel(4)
         .minModCost(perLvl(1, 10))
         .maxModCost(flat(50))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_CROSSBOW);
 
     config(DENSITY)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_MACE)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_MACE)
         .weight(5)
         .maxLevel(5)
         .minModCost(perLvl(5, 8))
         .maxModCost(perLvl(25, 8))
         .exclusive(EnchantmentTagKeys.EXCLUSIVE_SET_DAMAGE);
     config(BREACH)
-        .tableTarget(Tag.ITEMS_ENCHANTABLE_MACE)
+        .tableTarget(ItemTypeTagKeys.ENCHANTABLE_MACE)
         .weight(2)
         .maxLevel(4)
         .minModCost(perLvl(15, 9))
         .maxModCost(perLvl(65, 9));
     config(WIND_BURST)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_MACE)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_MACE)
         .weight(2)
         .maxLevel(3)
         .minModCost(perLvl(15, 9))
         .maxModCost(perLvl(65, 9));
 
     config(MENDING)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_DURABILITY)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_DURABILITY)
         .weight(2)
         .minModCost(perLvl(25, 25))
         .maxModCost(perLvl(75, 25));
     config(VANISHING_CURSE)
-        .anvilTarget(Tag.ITEMS_ENCHANTABLE_VANISHING)
+        .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_VANISHING)
         .weight(1)
         .minModCost(flat(25))
         .maxModCost(flat(50));
@@ -398,48 +398,8 @@ public class EnchantmentMocks {
     KEYS_TO_ENCHANTS.put(enchantment.getKey(), enchantment);
   }
 
-  public static @NotNull @UnmodifiableView Set<Tag<Material>> getEnchantingTableTags() {
+  public static @NotNull @UnmodifiableView Set<Tag<ItemType>> getEnchantingTableTags() {
     return Collections.unmodifiableSet(ENCHANTING_TABLE_TAGS);
-  }
-
-  private static void setUpEnchant(
-      @NotNull Enchantment enchantment,
-      int maxLevel,
-      @NotNull Tag<Material> target) {
-    setUpEnchant(enchantment, maxLevel, target, target, List.of());
-  }
-
-  private static void setUpEnchant(
-      @NotNull Enchantment enchantment,
-      int maxLevel,
-      @NotNull Tag<Material> target,
-      @NotNull Collection<Enchantment> conflicts) {
-    setUpEnchant(enchantment, maxLevel, target, target, conflicts);
-  }
-
-  private static void setUpEnchant(
-      @NotNull Enchantment enchantment,
-      int maxLevel,
-      @NotNull Tag<Material> tableTarget,
-      @NotNull Tag<Material> anvilTarget,
-      @NotNull Collection<Enchantment> conflicts) {
-    KEYS_TO_ENCHANTS.put(enchantment.getKey(), enchantment);
-    ENCHANTING_TABLE_TAGS.add(tableTarget);
-
-    doReturn(1).when(enchantment).getStartLevel();
-    doReturn(maxLevel).when(enchantment).getMaxLevel();
-    // Hopefully in the future the enchantment API gets expanded, making separate table+anvil targets available
-    doAnswer(invocation -> {
-      ItemStack item = invocation.getArgument(0);
-      return item != null && anvilTarget.isTagged(item.getType());
-    }).when(enchantment).canEnchantItem(any());
-    doReturn(tableTarget.getValues().isEmpty()).when(enchantment).isTreasure();
-    // Note: Usual implementation allows contains check, but as these are
-    // mocks that cannot be relied on.
-    doAnswer(invocation -> {
-      NamespacedKey otherKey = invocation.getArgument(0, Enchantment.class).getKey();
-      return otherKey.equals(enchantment.getKey()) || conflicts.stream().anyMatch(conflict -> conflict.getKey().equals(otherKey));
-    }).when(enchantment).conflictsWith(any());
   }
 
   private static @NotNull IntUnaryOperator perLvl(int base, int perLevel) {
@@ -487,19 +447,22 @@ public class EnchantmentMocks {
       return this;
     }
 
-    EnchantConfig anvilTarget(Tag<Material> target) {
+    EnchantConfig anvilTarget(TagKey<ItemType> targetKey) {
       // Hopefully in the future the enchantment API gets expanded, making separate table+anvil targets available
+      Tag<ItemType> target = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getTag(targetKey);
       doAnswer(invocation -> {
         ItemStack item = invocation.getArgument(0);
-        return item != null && target.isTagged(item.getType());
+        return item != null && target.contains(TypedKey.create(RegistryKey.ITEM, item.getType().getKey()));
       }).when(enchantment).canEnchantItem(any());
+      doReturn(target).when(enchantment).getSupportedItems();
       return this;
     }
 
-    EnchantConfig tableTarget(Tag<Material> target) {
+    EnchantConfig tableTarget(TagKey<ItemType> targetKey) {
+      Tag<ItemType> target = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getTag(targetKey);
       doReturn(false).when(enchantment).isTreasure();
       ENCHANTING_TABLE_TAGS.add(target);
-      return anvilTarget(target);
+      return anvilTarget(targetKey);
     }
 
     EnchantConfig minModCost(IntUnaryOperator cost) {

@@ -8,162 +8,177 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.doReturn;
 
-import com.github.jikoo.planarenchanting.util.ItemUtil;
 import com.github.jikoo.planarenchanting.util.mock.ServerMocks;
 import com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.TypedKey;
+import io.papermc.paper.registry.keys.ItemTypeKeys;
+import io.papermc.paper.registry.keys.tags.ItemTypeTagKeys;
+import io.papermc.paper.registry.tag.Tag;
+import io.papermc.paper.registry.tag.TagKey;
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.bukkit.Material;
-import org.bukkit.Tag;
+import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.EnumSource.Mode;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EnchantabilityTest {
 
   @BeforeAll
-  void setUpAll() {
+  void setUpAll() throws IllegalAccessException {
     ServerMocks.mockServer();
     EnchantmentMocks.init();
     setUpTags();
   }
 
-  private static void setUpTags() {
-    doReturn(Set.of(Material.BOW)).when(Tag.ITEMS_ENCHANTABLE_BOW).getValues();
-    doReturn(Set.of(Material.CROSSBOW)).when(Tag.ITEMS_ENCHANTABLE_CROSSBOW).getValues();
-    doReturn(Set.of(Material.MACE)).when(Tag.ITEMS_ENCHANTABLE_MACE).getValues();
-    doReturn(Set.of(Material.TRIDENT)).when(Tag.ITEMS_ENCHANTABLE_TRIDENT).getValues();
-    doReturn(Set.of(Material.FISHING_ROD)).when(Tag.ITEMS_ENCHANTABLE_FISHING).getValues();
+  private static void setUpTags() throws IllegalAccessException {
+    setValues(ItemTypeTagKeys.ENCHANTABLE_BOW, Set.of(ItemTypeKeys.BOW));
+    setValues(ItemTypeTagKeys.ENCHANTABLE_CROSSBOW, Set.of(ItemTypeKeys.CROSSBOW));
+    setValues(ItemTypeTagKeys.ENCHANTABLE_MACE, Set.of(ItemTypeKeys.MACE));
+    setValues(ItemTypeTagKeys.ENCHANTABLE_TRIDENT, Set.of(ItemTypeKeys.TRIDENT));
+    setValues(ItemTypeTagKeys.ENCHANTABLE_FISHING, Set.of(ItemTypeKeys.FISHING_ROD));
 
-    Set<Material> lunge = new HashSet<>();
-    Set<Material> sweeping = new HashSet<>();
+    Set<TypedKey<ItemType>> lunge = new HashSet<>();
+    Set<TypedKey<ItemType>> sweeping = new HashSet<>();
 
-    Set<Material> head = new HashSet<>();
-    Set<Material> chest = new HashSet<>();
-    Set<Material> leg = new HashSet<>();
-    Set<Material> foot = new HashSet<>();
+    Set<TypedKey<ItemType>> head = new HashSet<>();
+    Set<TypedKey<ItemType>> chest = new HashSet<>();
+    Set<TypedKey<ItemType>> leg = new HashSet<>();
+    Set<TypedKey<ItemType>> foot = new HashSet<>();
 
-    Set<Material> axe = new HashSet<>();
-    Set<Material> pick = new HashSet<>();
-    Set<Material> tool = new HashSet<>();
+    Set<TypedKey<ItemType>> axe = new HashSet<>();
+    Set<TypedKey<ItemType>> pick = new HashSet<>();
+    Set<TypedKey<ItemType>> tool = new HashSet<>();
 
     // Assemble main lists based on item name.
     // This helps catch issues like new materials not being included (copper),
     // but it doesn't help with new categories (spears).
-    for (Material value : Material.values()) {
-      String valueName = value.name();
-      if (valueName.startsWith("LEGACY_")) {
+    for (Field field : ItemTypeKeys.class.getFields()) {
+      if (field.getType() != TypedKey.class) {
         continue;
       }
+      @SuppressWarnings("unchecked")
+      TypedKey<ItemType> value = (TypedKey<ItemType>) field.get(null);
+      String name = field.getName();
       // Weapons
-      if (valueName.endsWith("_SPEAR")) {
+      if (name.endsWith("_SPEAR")) {
         lunge.add(value);
         continue;
-      } else if (valueName.endsWith("_SWORD")) {
+      } else if (name.endsWith("_SWORD")) {
         sweeping.add(value);
         continue;
       }
       // Armor
-      if (valueName.endsWith("_HELMET")) {
+      if (name.endsWith("_HELMET")) {
         head.add(value);
         continue;
-      } else if (valueName.endsWith("_CHESTPLATE")) {
+      } else if (name.endsWith("_CHESTPLATE")) {
         chest.add(value);
         continue;
-      } else if (valueName.endsWith("_LEGGINGS")) {
+      } else if (name.endsWith("_LEGGINGS")) {
         leg.add(value);
         continue;
-      } else if (valueName.endsWith("_BOOTS")) {
+      } else if (name.endsWith("_BOOTS")) {
         foot.add(value);
         continue;
       }
 
       // Tools
-      if (valueName.endsWith("_AXE")) {
+      if (name.endsWith("_AXE")) {
         axe.add(value);
         tool.add(value);
-      } else if (valueName.endsWith("_SHOVEL") ||  valueName.endsWith("_HOE")) {
+      } else if (name.endsWith("_SHOVEL") || name.endsWith("_HOE")) {
         tool.add(value);
-      } else if (valueName.endsWith("_PICKAXE")) {
+      } else if (name.endsWith("_PICKAXE")) {
         pick.add(value);
         tool.add(value);
       }
     }
 
-    doReturn(lunge).when(Tag.ITEMS_ENCHANTABLE_LUNGE).getValues();
-    doReturn(sweeping).when(Tag.ITEMS_ENCHANTABLE_SWEEPING).getValues();
-    Set<Material> melee = new HashSet<>();
+    setValues(ItemTypeTagKeys.ENCHANTABLE_LUNGE, lunge);
+    setValues(ItemTypeTagKeys.ENCHANTABLE_SWEEPING, sweeping);
+    Set<TypedKey<ItemType>> melee = new HashSet<>();
     melee.addAll(lunge);
     melee.addAll(sweeping);
-    doReturn(melee).when(Tag.ITEMS_ENCHANTABLE_MELEE_WEAPON).getValues();
-    Set<Material> fireAspect = new HashSet<>();
-    fireAspect.add(Material.MACE);
+    setValues(ItemTypeTagKeys.ENCHANTABLE_MELEE_WEAPON, melee);
+    Set<TypedKey<ItemType>> fireAspect = new HashSet<>();
+    fireAspect.add(ItemTypeKeys.MACE);
     fireAspect.addAll(melee);
-    doReturn(fireAspect).when(Tag.ITEMS_ENCHANTABLE_FIRE_ASPECT).getValues();
-    Set<Material> sharp = new HashSet<>();
+    setValues(ItemTypeTagKeys.ENCHANTABLE_FIRE_ASPECT, fireAspect);
+    Set<TypedKey<ItemType>> sharp = new HashSet<>();
     sharp.addAll(melee);
     sharp.addAll(axe);
-    doReturn(sharp).when(Tag.ITEMS_ENCHANTABLE_SHARP_WEAPON).getValues();
-    Set<Material> weapon = new HashSet<>();
-    weapon.add(Material.MACE);
+    setValues(ItemTypeTagKeys.ENCHANTABLE_SHARP_WEAPON, sharp);
+    Set<TypedKey<ItemType>> weapon = new HashSet<>();
+    weapon.add(ItemTypeKeys.MACE);
     weapon.addAll(sharp);
-    doReturn(weapon).when(Tag.ITEMS_ENCHANTABLE_WEAPON).getValues();
+    setValues(ItemTypeTagKeys.ENCHANTABLE_WEAPON, weapon);
 
-    doReturn(head).when(Tag.ITEMS_ENCHANTABLE_HEAD_ARMOR).getValues();
-    doReturn(chest).when(Tag.ITEMS_ENCHANTABLE_CHEST_ARMOR).getValues();
-    doReturn(leg).when(Tag.ITEMS_ENCHANTABLE_LEG_ARMOR).getValues();
-    doReturn(foot).when(Tag.ITEMS_ENCHANTABLE_FOOT_ARMOR).getValues();
-    Set<Material> armor = new HashSet<>();
+    setValues(ItemTypeTagKeys.ENCHANTABLE_HEAD_ARMOR, head);
+    setValues(ItemTypeTagKeys.ENCHANTABLE_CHEST_ARMOR, chest);
+    setValues(ItemTypeTagKeys.ENCHANTABLE_LEG_ARMOR, leg);
+    setValues(ItemTypeTagKeys.ENCHANTABLE_FOOT_ARMOR, foot);
+    Set<TypedKey<ItemType>> armor = new HashSet<>();
     armor.addAll(head);
     armor.addAll(chest);
     armor.addAll(leg);
     armor.addAll(foot);
-    doReturn(armor).when(Tag.ITEMS_ENCHANTABLE_ARMOR).getValues();
+    setValues(ItemTypeTagKeys.ENCHANTABLE_ARMOR, armor);
 
-    doReturn(tool).when(Tag.ITEMS_ENCHANTABLE_MINING).getValues();
-    doReturn(pick).when(Tag.ITEMS_ENCHANTABLE_MINING_LOOT).getValues();
+    setValues(ItemTypeTagKeys.ENCHANTABLE_MINING, tool);
+    setValues(ItemTypeTagKeys.ENCHANTABLE_MINING_LOOT, pick);
 
-    Set<Material> durability = new HashSet<>();
+    Set<TypedKey<ItemType>> durability = new HashSet<>();
     durability.addAll(melee);
     durability.addAll(armor);
     durability.addAll(tool);
     durability.addAll(Set.of(
-        Material.BOW,
-        Material.BRUSH,
-        Material.CARROT_ON_A_STICK,
-        Material.CROSSBOW,
-        Material.ELYTRA,
-        Material.FISHING_ROD,
-        Material.FLINT_AND_STEEL,
-        Material.MACE,
-        Material.SHEARS,
-        Material.SHIELD,
-        Material.TRIDENT,
-        Material.WARPED_FUNGUS_ON_A_STICK
+        ItemTypeKeys.BOW,
+        ItemTypeKeys.BRUSH,
+        ItemTypeKeys.CARROT_ON_A_STICK,
+        ItemTypeKeys.CROSSBOW,
+        ItemTypeKeys.ELYTRA,
+        ItemTypeKeys.FISHING_ROD,
+        ItemTypeKeys.FLINT_AND_STEEL,
+        ItemTypeKeys.MACE,
+        ItemTypeKeys.SHEARS,
+        ItemTypeKeys.SHIELD,
+        ItemTypeKeys.TRIDENT,
+        ItemTypeKeys.WARPED_FUNGUS_ON_A_STICK
     ));
-    doReturn(durability).when(Tag.ITEMS_ENCHANTABLE_DURABILITY).getValues();
+    setValues(ItemTypeTagKeys.ENCHANTABLE_DURABILITY, durability);
+  }
+
+  private static void setValues(TagKey<ItemType> key, Set<TypedKey<ItemType>> values) {
+    // We need to pull the tag first so the test registry has finished mocking it.
+    var tag = RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getTag(key);
+    // Then we can safely mock our values.
+    doReturn(values).when(tag).values();
   }
 
   @ParameterizedTest
   @MethodSource("com.github.jikoo.planarenchanting.util.mock.enchantments.EnchantmentMocks#getEnchantingTableTags")
-  void verifySetup(Tag<Material> tag) {
+  void verifySetup(Tag<ItemType> tag) {
     // A test test. The rabbit hole goes deeper!
     // This will help catch missed tags.
-    if (!ItemUtil.TAG_EMPTY.equals(tag)) {
-      assertThat(tag.getKey() + " is not empty", tag.getValues(), is(not(empty())));
-    }
+    assertThat(tag.tagKey() + " is not empty", tag.values(), is(not(empty())));
   }
 
   @ParameterizedTest
-  @EnumSource(value = Material.class, mode = Mode.MATCH_NONE, names = "LEGACY_.*")
-  void testForMaterial(@NotNull Material material) {
+  @MethodSource(value = "getTypes")
+  void testForMaterial(@NotNull ItemType material) {
     boolean enchantable = isTableEnchantable(material);
-    var value = Enchantability.forMaterial(material);
+    // TODO
+    var value = Enchantability.forType(material);
     if (enchantable) {
       assertThat("Enchantable material is listed", value, is(notNullValue()));
     } else {
@@ -171,16 +186,26 @@ class EnchantabilityTest {
     }
   }
 
-  private static boolean isTableEnchantable(@NotNull Material material) {
-    return switch (material) {
+  static Stream<ItemType> getTypes() {
+    return Arrays.stream(Material.values())
+        .filter(material -> !material.name().startsWith("LEGACY_"))
+        .filter(Material::isItem)
+        .map(Material::asItemType);
+  }
+
+  private static boolean isTableEnchantable(@NotNull ItemType material) {
+    return switch (material.key().value()) {
       // Enchanted book is technically not enchantable but for simplicity it's included.
-      case BOOK, ENCHANTED_BOOK -> true;
+      case "book", "enchanted_book" -> true;
       // Wolf armor has no valid enchantments, but it has an enchantability.
-      case WOLF_ARMOR -> true;
+      case "wolf_armor" -> true;
       // Valid targets for unbreaking via anvil only.
-      case BRUSH, CARROT_ON_A_STICK, ELYTRA, FLINT_AND_STEEL, SHEARS, SHIELD, WARPED_FUNGUS_ON_A_STICK -> false;
-      default -> EnchantmentMocks.getEnchantingTableTags().stream()
-          .anyMatch(tag -> tag.isTagged(material));
+      case "brush", "carrot_on_a_stick", "elytra", "flint_and_steel", "shears", "shield", "warped_fungus_on_a_stick" -> false;
+      default -> {
+        TypedKey<ItemType> typedKey = TypedKey.create(RegistryKey.ITEM, material.key());
+        yield EnchantmentMocks.getEnchantingTableTags().stream()
+          .anyMatch(tag -> tag.contains(typedKey));
+      }
     };
   }
 
