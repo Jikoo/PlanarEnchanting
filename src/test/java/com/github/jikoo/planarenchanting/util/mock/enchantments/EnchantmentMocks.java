@@ -61,7 +61,6 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.IntUnaryOperator;
@@ -170,7 +169,6 @@ public class EnchantmentMocks {
         .minModCost(perLvl(25, 25))
         .maxModCost(perLvl(75, 25));
 
-    List<Enchantment> damages = List.of(SHARPNESS, SMITE, BANE_OF_ARTHROPODS);
     config(SHARPNESS)
         .tableTarget(ItemTypeTagKeys.ENCHANTABLE_SHARP_WEAPON)
         .anvilTarget(ItemTypeTagKeys.ENCHANTABLE_MELEE_WEAPON)
