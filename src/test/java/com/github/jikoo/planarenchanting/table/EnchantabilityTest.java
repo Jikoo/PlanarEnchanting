@@ -176,10 +176,8 @@ class EnchantabilityTest {
   @ParameterizedTest
   @MethodSource(value = "getTypes")
   void testForMaterial(@NotNull ItemType material) {
-    boolean enchantable = isTableEnchantable(material);
-    // TODO
     var value = Enchantability.forType(material);
-    if (enchantable) {
+    if (isTableEnchantable(material)) {
       assertThat("Enchantable material is listed", value, is(notNullValue()));
     } else {
       assertThat("Unenchantable material is not listed", value, is(nullValue()));
