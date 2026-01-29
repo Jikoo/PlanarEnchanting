@@ -126,14 +126,14 @@ public enum ItemStackMocks {
         existing.removeEnchantments();
       }
       return null;
-    });
+    }).when(stack).removeEnchantments();
     doAnswer(invocation -> {
       ItemMeta existing = meta.get();
       if (existing != null) {
         existing.removeEnchant(invocation.getArgument(0));
       }
       return null;
-    });
+    }).when(stack).removeEnchantment(any());
 
     return stack;
   }
