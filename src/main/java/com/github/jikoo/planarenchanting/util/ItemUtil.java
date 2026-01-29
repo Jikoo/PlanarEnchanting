@@ -2,6 +2,7 @@ package com.github.jikoo.planarenchanting.util;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.jetbrains.annotations.Contract;
@@ -37,7 +38,11 @@ public final class ItemUtil {
    */
   @Contract("null -> true")
   public static boolean isEmpty(@Nullable ItemStack itemStack) {
-    return itemStack == null || itemStack.getType() == Material.AIR || itemStack.getAmount() < 1;
+    if (itemStack == null || itemStack.getAmount() < 1 || !itemStack.getType().isItem()) {
+      return true;
+    }
+    ItemType type = itemStack.getType().asItemType();
+    return type == null || ItemType.AIR.equals(type);
   }
 
   /**

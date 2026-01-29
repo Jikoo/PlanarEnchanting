@@ -5,8 +5,8 @@ import com.github.jikoo.planarenchanting.util.MetaCachedStack;
 import io.papermc.paper.registry.keys.ItemTypeKeys;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
@@ -182,8 +182,9 @@ public enum AnvilFunctions {
   public static final AnvilFunction REPAIR_WITH_COMBINATION = new AnvilFunction() {
     @Override
     public boolean canApply(@NotNull AnvilBehavior behavior, @NotNull AnvilState state) {
-      Material baseType = state.getBase().getItem().getType();
-      return baseType == state.getAddition().getItem().getType()
+      ItemType baseType = state.getBase().getItem().getType().asItemType();
+      return baseType != null
+          && baseType == state.getAddition().getItem().getType().asItemType()
           && baseType.getMaxDurability() > 0
           && state.getBase().getMeta() instanceof Damageable damageable
           && damageable.getDamage() > 0;
