@@ -1,10 +1,6 @@
 package com.github.jikoo.planarenchanting.util;
 
-import java.util.Objects;
-import java.util.Set;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Tag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
@@ -24,25 +20,6 @@ public final class ItemUtil {
     @Override
     public void setType(@NotNull Material type) {
       throw new UnsupportedOperationException("Cannot modify AIR constant.");
-    }
-  };
-  /** Constant representing an empty item {@link Tag}. */
-  public static final Tag<Material> TAG_EMPTY = new Tag<>() {
-    @Override
-    public boolean isTagged(@NotNull Material item) {
-      return false;
-    }
-
-    @NotNull
-    @Override
-    public Set<Material> getValues() {
-      return Set.of();
-    }
-
-    @NotNull
-    @Override
-    public NamespacedKey getKey() {
-      return Objects.requireNonNull(NamespacedKey.fromString("planarenchanting:empty"));
     }
   };
 
