@@ -32,14 +32,12 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import org.bukkit.Art;
 import org.bukkit.Fluid;
 import org.bukkit.GameEvent;
 import org.bukkit.Instrument;
 import org.bukkit.Keyed;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Biome;
 import org.bukkit.block.BlockType;
@@ -168,17 +166,6 @@ enum RegistryHelper {
     ).when(itemType).createItemStack();
     doAnswer(invocation -> ItemStackMocks.newItemMock(itemType, invocation.getArgument(0)))
         .when(itemType).createItemStack(anyInt());
-
-    // Lazy ItemType -> Material mapping for use in ItemStack creation.
-    Map<ItemType, Material> asMaterial = new ConcurrentHashMap<>();
-    doAnswer(invocation -> asMaterial.computeIfAbsent(itemType, type -> {
-      for (Material material : Material.values()) {
-        if (!material.isLegacy() && material.getKey().equals(itemType.getKey())) {
-          return material;
-        }
-      }
-      throw new IllegalStateException("Unable to locate Material for ItemType " + itemType.getKey());
-    })).when(itemType).asMaterial();
   }
 
   private static boolean hasField(String fieldName, Class<?> clazz, Class<?> type, Class<?> generic) {

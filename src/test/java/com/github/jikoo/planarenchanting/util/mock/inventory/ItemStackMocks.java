@@ -6,8 +6,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
+import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,14 +24,14 @@ import org.mockito.stubbing.Answer;
 public enum ItemStackMocks {
   ;
 
-  public static ItemStack newItemMock(@NotNull Material material) {
-    return newItemMock(Objects.requireNonNull(material.asItemType()), 1);
-  }
-
   public static ItemStack newItemMock(@NotNull ItemType type, int amount) {
     ItemStack stack = mock();
 
-    doReturn(type.asMaterial()).when(stack).getType();
+    Material material = Material.getMaterial(type.getKey().getKey().toUpperCase(Locale.ROOT));
+    if (material == null) {
+      throw new IllegalArgumentException("Unable to locate Material for ItemType " + type.getKey().getKey());
+    }
+    doReturn(material).when(stack).getType();
 
     // Amount get/set.
     AtomicInteger amt = new AtomicInteger(amount);
@@ -138,16 +138,18 @@ public enum ItemStackMocks {
     return stack;
   }
 
-  private static Optional<ItemMeta> get(@NotNull AtomicReference<ItemMeta> container, @Nullable Material createFor, boolean store) {
+  private static @NotNull Optional<ItemMeta> get(
+      @NotNull AtomicReference<ItemMeta> container,
+      @Nullable Material createFor,
+      boolean store
+  ) {
     ItemMeta itemMeta = container.get();
-    if (itemMeta == null) {
-      if (createFor != null) {
-        itemMeta = Bukkit.getItemFactory().getItemMeta(createFor);
-        if (!store) {
-          return Optional.ofNullable(itemMeta);
-        }
-        container.set(itemMeta);
+    if (itemMeta == null && createFor != null) {
+      itemMeta = Bukkit.getItemFactory().getItemMeta(createFor);
+      if (!store) {
+        return Optional.ofNullable(itemMeta);
       }
+      container.set(itemMeta);
     }
     return Optional.ofNullable(itemMeta);
   }
