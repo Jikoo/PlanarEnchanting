@@ -19,7 +19,7 @@ import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.stubbing.Answer;
 
 public class TestRegistryAccess implements RegistryAccess {

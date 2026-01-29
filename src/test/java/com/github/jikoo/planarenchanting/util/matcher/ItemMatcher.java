@@ -7,7 +7,6 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 public final class ItemMatcher {
 
@@ -25,7 +24,7 @@ public final class ItemMatcher {
 
     private final @NotNull ItemStack other;
 
-    public ItemEqualMatcher(@NonNull ItemStack other) {
+    public ItemEqualMatcher(@NotNull ItemStack other) {
       this.other = other;
     }
 
