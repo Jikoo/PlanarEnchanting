@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.bukkit.Bukkit;
@@ -17,6 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.stubbing.Answer;
 
 public enum ItemStackMocks {
@@ -58,7 +60,8 @@ public enum ItemStackMocks {
     // Item cloning.
     doAnswer(invocation -> {
       ItemStack clone = newItemMock(type, amount);
-      clone.setItemMeta(meta.get());
+      // Must also clone the meta or methods that manipulate the meta directly will mutate both.
+      clone.setItemMeta(get(meta, null, false).map(ItemMeta::clone).orElse(null));
       return clone;
     }).when(stack).clone();
 
@@ -85,28 +88,68 @@ public enum ItemStackMocks {
     }).when(stack).getEnchantments();
     doAnswer(invocation -> {
       ItemMeta existing = meta.get();
+      return existing == null ? 0 : existing.getEnchantLevel(invocation.getArgument(0));
+    }).when(stack).getEnchantmentLevel(any());
+    doAnswer(invocation -> {
+      ItemMeta existing = meta.get();
       return existing != null && existing.hasEnchant(invocation.getArgument(0));
     }).when(stack).containsEnchantment(any(Enchantment.class));
     Answer<Void> addEnchant = invocation -> {
-      ItemMeta itemMeta = meta.get();
-      if (itemMeta == null) {
-        itemMeta = stack.getItemMeta();
-        meta.compareAndSet(null, itemMeta);
-      }
-      itemMeta.addEnchant(
-          invocation.getArgument(0),
-          invocation.getArgument(1),
-          // We aren't winning any performance prizes here, a beautiful DRY hack.
-          // TODO consider instead helper methods get, getOrCreate
-          invocation.getMethod().getName().contains("Unsafe")
-      );
+      get(meta, stack.getType(), true).ifPresent(itemMeta -> {
+        itemMeta.addEnchant(
+            invocation.getArgument(0),
+            invocation.getArgument(1),
+            // We aren't winning any performance prizes here, a beautiful DRY hack.
+            invocation.getMethod().getName().contains("Unsafe")
+        );
+      });
       return null;
     };
     doAnswer(addEnchant).when(stack).addEnchantment(any(Enchantment.class), anyInt());
     doAnswer(addEnchant).when(stack).addUnsafeEnchantment(any(Enchantment.class), anyInt());
-    // TODO etc.?
+    Answer<Void> addEnchants = invocation -> {
+      get(meta, stack.getType(), true).ifPresent(itemMeta -> {
+        // DRY hack again
+        boolean unsafe = invocation.getMethod().getName().contains("Unsafe");
+        Map<Enchantment, Integer> enchants = invocation.getArgument(0);
+        for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet()) {
+          itemMeta.addEnchant(entry.getKey(), entry.getValue(), unsafe);
+        }
+      });
+      return null;
+    };
+    doAnswer(addEnchants).when(stack).addEnchantments(any());
+    doAnswer(addEnchants).when(stack).addUnsafeEnchantments(any());
+    doAnswer(invocation -> {
+      ItemMeta existing = meta.get();
+      if (existing != null) {
+        existing.removeEnchantments();
+      }
+      return null;
+    });
+    doAnswer(invocation -> {
+      ItemMeta existing = meta.get();
+      if (existing != null) {
+        existing.removeEnchant(invocation.getArgument(0));
+      }
+      return null;
+    });
 
     return stack;
+  }
+
+  private static Optional<ItemMeta> get(@NotNull AtomicReference<ItemMeta> container, @Nullable Material createFor, boolean store) {
+    ItemMeta itemMeta = container.get();
+    if (itemMeta == null) {
+      if (createFor != null) {
+        itemMeta = Bukkit.getItemFactory().getItemMeta(createFor);
+        if (!store) {
+          return Optional.ofNullable(itemMeta);
+        }
+        container.set(itemMeta);
+      }
+    }
+    return Optional.ofNullable(itemMeta);
   }
 
 }
