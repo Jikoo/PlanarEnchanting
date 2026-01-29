@@ -52,7 +52,7 @@ import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/// Helper class used to prevent class loading order issues when creating registry.
+/** Helper class used to prevent class loading order issues when creating registry. */
 @SuppressWarnings("unchecked")
 enum RegistryHelper {
   ;
