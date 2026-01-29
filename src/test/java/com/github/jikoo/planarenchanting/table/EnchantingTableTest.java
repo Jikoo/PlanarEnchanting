@@ -51,7 +51,8 @@ class EnchantingTableTest {
         Enchantment.EFFICIENCY,
         Enchantment.UNBREAKING,
         Enchantment.FORTUNE,
-        Enchantment.SILK_TOUCH);
+        Enchantment.SILK_TOUCH
+    );
   }
 
   @DisplayName("Empty enchantment list yields empty enchantments.")

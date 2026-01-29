@@ -29,11 +29,14 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.Tag;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
@@ -55,9 +58,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 @TestInstance(Lifecycle.PER_CLASS)
 class AnvilFunctionTest {
 
-  private static final Material BASE_MAT = Material.DIAMOND_SHOVEL;
-  private static final int MAX_DAMAGE = BASE_MAT.getMaxDurability() - 1;
-  private static final Material REPAIR_MAT = Material.DIAMOND;
+  private static ItemType baseMat;
+  private static int maxDamage;
+  private static ItemType repairMat;
 
   @BeforeAll
   void beforeAll() {
@@ -65,6 +68,11 @@ class AnvilFunctionTest {
 
     ItemFactory factory = ItemFactoryMocks.mockFactory();
     when(server.getItemFactory()).thenReturn(factory);
+
+    baseMat = ItemType.DIAMOND_SHOVEL;
+    doReturn((short) 1561).when(baseMat).getMaxDurability();
+    maxDamage = baseMat.getMaxDurability() - 1;
+    repairMat = ItemType.DIAMOND;
 
     // RepairMaterial requires these tags to be set up to test.
     Tag<Material> tag = Tag.ITEMS_STONE_TOOL_MATERIALS;
@@ -84,7 +92,7 @@ class AnvilFunctionTest {
 
     @Test
     void testPriorWorkLevelCostApplies() {
-      var anvil = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
+      var anvil = getMockView(baseMat.createItemStack(), baseMat.createItemStack());
       var behavior = AnvilBehavior.VANILLA;
       var state = new AnvilState(anvil);
 
@@ -94,10 +102,10 @@ class AnvilFunctionTest {
     @ParameterizedTest
     @MethodSource("com.github.jikoo.planarenchanting.anvil.AnvilFunctionTest#getPriorWork")
     void testPriorWorkLevelCostValues(int baseWork, int addedWork) {
-      var baseItem = new ItemStack(BASE_MAT);
+      var baseItem = baseMat.createItemStack();
       var anvil = getMockView(
           prepareItem(baseItem, 0, baseWork),
-          prepareItem(new ItemStack(BASE_MAT), 0, addedWork));
+          prepareItem(baseMat.createItemStack(), 0, addedWork));
       var behavior = AnvilBehavior.VANILLA;
       var state = new AnvilState(anvil);
 
@@ -156,7 +164,7 @@ class AnvilFunctionTest {
     void testRenameRequiresDifferentName(
         BiConsumer<ItemMeta, AnvilView> setup,
         boolean canApply) {
-      var base = new ItemStack(BASE_MAT);
+      var base = baseMat.createItemStack();
       var inventory = getMockView(base, null);
       var behavior = AnvilBehavior.VANILLA;
       var state = new AnvilState(inventory);
@@ -172,7 +180,7 @@ class AnvilFunctionTest {
     @ParameterizedTest
     @MethodSource("renameSuccessSituations")
     void testRenameApplication(BiConsumer<ItemMeta, AnvilView> setup) {
-      var base = new ItemStack(BASE_MAT);
+      var base = baseMat.createItemStack();
       var baseMeta = base.getItemMeta();
       assertThat("Base meta is not null", baseMeta, is(notNullValue()));
       var inventory = getMockView(base, null);
@@ -199,35 +207,36 @@ class AnvilFunctionTest {
     }
 
     private Stream<Arguments> renameSituations() {
-      String displayName = "Sample text";
+      Component customName = Component.text("Sample text");
+      String customNameText = LegacyComponentSerializer.legacySection().serialize(customName);
       return Stream.of(
           // NON-APPLICABLE
           // Both unnamed
           Arguments.of((BiConsumer<ItemMeta, AnvilView>) (meta, anvil) -> {
-            meta.setDisplayName(null);
+            meta.customName(null);
             when(anvil.getRenameText()).thenReturn(null);
           }, false),
           // Both identically named
           Arguments.of((BiConsumer<ItemMeta, AnvilView>) (meta, anvil) -> {
-            meta.setDisplayName(displayName);
-            when(anvil.getRenameText()).thenReturn(displayName);
+            meta.customName(customName);
+            when(anvil.getRenameText()).thenReturn(customNameText);
           }, false),
 
           // APPLICABLE
           // Only anvil named
           Arguments.of((BiConsumer<ItemMeta, AnvilView>) (meta, anvil) -> {
-            meta.setDisplayName(null);
-            when(anvil.getRenameText()).thenReturn(displayName);
+            meta.customName(null);
+            when(anvil.getRenameText()).thenReturn(customNameText);
           }, true),
           // Only item named
           Arguments.of((BiConsumer<ItemMeta, AnvilView>) (meta, anvil) -> {
-            meta.setDisplayName(displayName);
+            meta.customName(customName);
             when(anvil.getRenameText()).thenReturn(null);
           }, true),
           // Both named differently
           Arguments.of((BiConsumer<ItemMeta, AnvilView>) (meta, anvil) -> {
-            meta.setDisplayName(displayName);
-            when(anvil.getRenameText()).thenReturn(displayName + " different text");
+            meta.customName(customName);
+            when(anvil.getRenameText()).thenReturn(customNameText + " different text");
           }, true)
       );
     }
@@ -254,7 +263,7 @@ class AnvilFunctionTest {
 
     @Test
     void testBaseRepairable() {
-      var base = new ItemStack(BASE_MAT);
+      var base = baseMat.createItemStack();
       var addition = getNullMetaItem();
       var inventory = getMockView(base, addition);
       var behavior = AnvilBehavior.VANILLA;
@@ -269,10 +278,10 @@ class AnvilFunctionTest {
     @ParameterizedTest
     @MethodSource("com.github.jikoo.planarenchanting.anvil.AnvilFunctionTest#getPriorWork")
     void testPriorWorkUpdate(int baseWork, int addedWork) {
-      var baseItem = new ItemStack(BASE_MAT);
+      var baseItem = baseMat.createItemStack();
       var anvil = getMockView(
           prepareItem(baseItem, 0, baseWork),
-          prepareItem(new ItemStack(BASE_MAT), 0, addedWork));
+          prepareItem(baseMat.createItemStack(), 0, addedWork));
       var behavior = AnvilBehavior.VANILLA;
       var state = new AnvilState(anvil);
 
@@ -345,8 +354,7 @@ class AnvilFunctionTest {
 
     @Test
     void testCanApplyNotDamageable() {
-      var base = getNullMetaItem();
-      base.setType(BASE_MAT);
+      var base = getNullMetaItem(baseMat);
       var inventory = getMockView(base, null);
       var behavior = spy(AnvilBehavior.VANILLA);
       doReturn(true).when(behavior).itemRepairedBy(notNull(), notNull());
@@ -364,7 +372,7 @@ class AnvilFunctionTest {
 
     @Test
     void testCanApplyNotDamaged() {
-      var inventory = getMockView(new ItemStack(BASE_MAT), null);
+      var inventory = getMockView(baseMat.createItemStack(), null);
       var behavior = spy(AnvilBehavior.VANILLA);
       doReturn(true).when(behavior).itemRepairedBy(notNull(), notNull());
       var state = new AnvilState(inventory);
@@ -383,7 +391,7 @@ class AnvilFunctionTest {
     @ValueSource(ints = { 1, 64 })
     void testRepair(int repairMats) {
       var baseItem = getMaxDamageItem();
-      var inventory = getMockView(baseItem, new ItemStack(REPAIR_MAT, repairMats));
+      var inventory = getMockView(baseItem, repairMat.createItemStack(repairMats));
       var behavior = spy(AnvilBehavior.VANILLA);
       doReturn(true).when(behavior).itemRepairedBy(notNull(), notNull());
       var state = new AnvilState(inventory);
@@ -407,7 +415,7 @@ class AnvilFunctionTest {
           damage,
           is(Math.max(
               0,
-              MAX_DAMAGE - result.getMaterialCostIncrease() * (BASE_MAT.getMaxDurability() / 4))));
+              maxDamage - result.getMaterialCostIncrease() * (baseMat.getMaxDurability() / 4))));
       assertThat(
           "Number of items to consume should not exceed number of available items",
           result.getMaterialCostIncrease(),
@@ -433,7 +441,7 @@ class AnvilFunctionTest {
 
     @Test
     void testCanApplyNotRepairedBy() {
-      var inventory = getMockView(new ItemStack(BASE_MAT), new ItemStack(REPAIR_MAT));
+      var inventory = getMockView(baseMat.createItemStack(), repairMat.createItemStack());
       var behavior = AnvilBehavior.VANILLA;
       var state = new AnvilState(inventory);
 
@@ -457,9 +465,8 @@ class AnvilFunctionTest {
 
     @Test
     void testCanApplyNotDamageable() {
-      var nullMetaItem = getNullMetaItem();
-      nullMetaItem.setType(BASE_MAT);
-      ItemStack normalItem = new ItemStack(BASE_MAT);
+      var nullMetaItem = getNullMetaItem(baseMat);
+      ItemStack normalItem = baseMat.createItemStack();
       var inventory = getMockView(nullMetaItem, normalItem);
       var behavior = AnvilBehavior.VANILLA;
       var state = new AnvilState(inventory);
@@ -482,7 +489,7 @@ class AnvilFunctionTest {
 
     @Test
     void testCanApplyNotDamaged() {
-      var inventory = getMockView(new ItemStack(BASE_MAT), new ItemStack(BASE_MAT));
+      var inventory = getMockView(baseMat.createItemStack(), baseMat.createItemStack());
       var behavior = AnvilBehavior.VANILLA;
       var state = new AnvilState(inventory);
 
@@ -554,17 +561,17 @@ class AnvilFunctionTest {
   }
 
   private static ItemStack getNullMetaItem() {
-    return new ItemStack(Material.AIR) {
-      @Override
-      public @Nullable ItemMeta getItemMeta() {
-        // ItemFactoryMock incorrectly returns non-null meta for AIR ItemStacks.
-        return null;
-      }
-    };
+    return getNullMetaItem(ItemType.AIR);
+  }
+
+  private static ItemStack getNullMetaItem(ItemType type) {
+    ItemStack itemStack = type.createItemStack();
+    doReturn(null).when(itemStack).getItemMeta();
+    return itemStack;
   }
 
   private static ItemStack getMaxDamageItem() {
-    return prepareItem(new ItemStack(BASE_MAT), MAX_DAMAGE, 0);
+    return prepareItem(baseMat.createItemStack(), maxDamage, 0);
   }
 
   private static ItemStack prepareItem(ItemStack itemStack, int damage, int repairCost) {

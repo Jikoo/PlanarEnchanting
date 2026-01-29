@@ -1,16 +1,17 @@
 package com.github.jikoo.planarenchanting.anvil;
 
-import com.github.jikoo.planarenchanting.enchant.EnchantData;
 import com.github.jikoo.planarenchanting.util.ItemUtil;
 import com.github.jikoo.planarenchanting.util.MetaCachedStack;
-import org.bukkit.Material;
+import io.papermc.paper.registry.keys.ItemTypeKeys;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.Objects;
 
 public enum AnvilFunctions {
   ; // Empty enum to hold constants.
@@ -42,9 +43,17 @@ public enum AnvilFunctions {
     public boolean canApply(@NotNull AnvilBehavior behavior, @NotNull AnvilState state) {
       var itemMeta = state.getBase().getMeta();
 
+      if (itemMeta == null) {
+        return false;
+      }
+
       // If names are not the same, can be applied.
-      return itemMeta != null
-          && !Objects.equals(itemMeta.getDisplayName(), state.getAnvil().getRenameText());
+      Component customName = itemMeta.customName();
+      String anvilText = state.getAnvil().getRenameText();
+      if (customName == null) {
+        return anvilText != null;
+      }
+      return !LegacyComponentSerializer.legacySection().serialize(customName).equals(anvilText);
     }
 
     @Override
@@ -64,7 +73,8 @@ public enum AnvilFunctions {
             return;
           }
 
-          itemMeta.setDisplayName(state.getAnvil().getRenameText());
+          String anvilText = state.getAnvil().getRenameText();
+          itemMeta.customName(anvilText == null ? null : Component.text(anvilText));
           if (itemMeta instanceof Repairable repairable) {
             int repairCost = Math.max(
                 ItemUtil.getRepairCost(state.getBase().getMeta()),
@@ -172,8 +182,9 @@ public enum AnvilFunctions {
   public static final AnvilFunction REPAIR_WITH_COMBINATION = new AnvilFunction() {
     @Override
     public boolean canApply(@NotNull AnvilBehavior behavior, @NotNull AnvilState state) {
-      Material baseType = state.getBase().getItem().getType();
-      return baseType == state.getAddition().getItem().getType()
+      ItemType baseType = state.getBase().getItem().getType().asItemType();
+      return baseType != null
+          && baseType == state.getAddition().getItem().getType().asItemType()
           && baseType.getMaxDurability() > 0
           && state.getBase().getMeta() instanceof Damageable damageable
           && damageable.getDamage() > 0;
@@ -236,12 +247,11 @@ public enum AnvilFunctions {
   public static final AnvilFunction COMBINE_ENCHANTMENTS_BEDROCK_EDITION = new CombineEnchantments() {
     @Override
     protected int getAnvilCost(Enchantment enchantment, boolean isFromBook) {
-      EnchantData enchantData = EnchantData.of(enchantment);
-      if (!enchantData.getSecondaryItems().isTagged(Material.TRIDENT)) {
+      if (!enchantment.getSupportedItems().contains(ItemTypeKeys.TRIDENT)) {
         return super.getAnvilCost(enchantment, isFromBook);
       }
 
-      int base = enchantData.getAnvilCost();
+      int base = enchantment.getAnvilCost();
 
       // Bedrock Edition rarity is 1 tier lower for trident enchantments.
       return Math.max(1, isFromBook ? base / 4 : base / 2);

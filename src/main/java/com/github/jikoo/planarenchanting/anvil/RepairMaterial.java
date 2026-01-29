@@ -1,15 +1,18 @@
 package com.github.jikoo.planarenchanting.anvil;
 
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.TypedKey;
+import io.papermc.paper.registry.keys.tags.ItemTypeTagKeys;
+import io.papermc.paper.registry.tag.Tag;
+import io.papermc.paper.registry.tag.TagKey;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import org.bukkit.Material;
-import org.bukkit.Tag;
+import java.util.function.Predicate;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.RecipeChoice.MaterialChoice;
+import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Definitions of materials used in anvil repair operations.
@@ -26,69 +29,69 @@ public final class RepairMaterial {
    * @return whether the addition material can repair the base material
    */
   public static boolean repairs(@NotNull ItemStack base, @NotNull ItemStack addition) {
-    RecipeChoice recipeChoice = MATERIALS_TO_REPAIRABLE.get(base.getType());
-    return recipeChoice != null && recipeChoice.test(addition);
+    Predicate<NamespacedKey> predicate = MATERIALS_TO_REPAIRABLE.get(base.getType().getKey());
+    return predicate != null && predicate.test(addition.getType().getKey());
   }
 
-  private static final Map<Material, RecipeChoice> MATERIALS_TO_REPAIRABLE = new HashMap<>();
+  private static final Map<NamespacedKey, Predicate<NamespacedKey>> MATERIALS_TO_REPAIRABLE = new HashMap<>();
 
   static {
-    String[] armor = new String[] { "_HELMET", "_CHESTPLATE", "_LEGGINGS", "_BOOTS" };
-    String[] tools = new String[] { "_AXE", "_SHOVEL", "_PICKAXE", "_HOE", "_SWORD" };
-    String[] armortools = new String[armor.length + tools.length];
-    System.arraycopy(armor, 0, armortools, 0, armor.length);
-    System.arraycopy(tools, 0, armortools, armor.length, tools.length);
+    // Note that for all choices, we want to use a MaterialChoice.
+    // ExactChoice also does a full meta match.
 
-    // Leather armor
-    addGear("LEATHER", armor, Material.LEATHER);
+    // See net.minecraft.world.item.equipment.ArmorMaterials
+    String[] armor = new String[] { "_helmet", "_chestplate", "_leggings", "_boots" };
+    addGear("leather", armor, ItemTypeTagKeys.REPAIRS_LEATHER_ARMOR);
+    addGear("copper", armor, ItemTypeTagKeys.REPAIRS_COPPER_ARMOR);
+    addGear("chainmail", armor, ItemTypeTagKeys.REPAIRS_CHAIN_ARMOR);
+    addGear("iron", armor, ItemTypeTagKeys.REPAIRS_IRON_ARMOR);
+    addGear("golden", armor, ItemTypeTagKeys.REPAIRS_GOLD_ARMOR);
+    addGear("diamond", armor, ItemTypeTagKeys.REPAIRS_DIAMOND_ARMOR);
+    MATERIALS_TO_REPAIRABLE.put(ItemType.TURTLE_HELMET.getKey(), new TagPredicate(ItemTypeTagKeys.REPAIRS_TURTLE_HELMET));
+    addGear("netherite", armor, ItemTypeTagKeys.REPAIRS_NETHERITE_ARMOR);
+    MATERIALS_TO_REPAIRABLE.put(ItemType.WOLF_ARMOR.getKey(), new TagPredicate(ItemTypeTagKeys.REPAIRS_WOLF_ARMOR));
 
-    // Stone tools
-    addGear("STONE", tools, new RecipeChoice.MaterialChoice(Tag.ITEMS_STONE_TOOL_MATERIALS));
-
-    // Wooden tools, shields
-    MaterialChoice choicePlanks = new MaterialChoice(Tag.PLANKS);
-    addGear("WOODEN", tools, choicePlanks);
-    MATERIALS_TO_REPAIRABLE.put(Material.SHIELD, choicePlanks);
-
-    // Chainmail, iron armor and tools
-    RecipeChoice choiceIronIngot = singleChoice(Material.IRON_INGOT);
-    addGear("CHAINMAIL", armor, choiceIronIngot);
-    addGear("IRON", armortools, choiceIronIngot);
-
-    // Gold, diamond, and netherite armor and tools
-    addGear("GOLDEN", armortools, Material.GOLD_INGOT);
-    addGear("DIAMOND", armortools, Material.DIAMOND);
-    addGear("NETHERITE", armortools, Material.NETHERITE_INGOT);
+    // See net.minecraft.world.item.ToolMaterial
+    String[] tools = new String[] { "_axe", "_shovel", "_pickaxe", "_hoe", "_sword", "_spear" };
+    addGear("stone", tools, ItemTypeTagKeys.STONE_TOOL_MATERIALS);
+    Predicate<NamespacedKey> woodToolMats = new TagPredicate(ItemTypeTagKeys.WOODEN_TOOL_MATERIALS);
+    addGear("wooden", tools, woodToolMats);
+    MATERIALS_TO_REPAIRABLE.put(ItemType.SHIELD.getKey(), woodToolMats);
+    addGear("iron", tools, ItemTypeTagKeys.IRON_TOOL_MATERIALS);
+    addGear("golden", tools, ItemTypeTagKeys.GOLD_TOOL_MATERIALS);
+    addGear("diamond", tools, ItemTypeTagKeys.DIAMOND_TOOL_MATERIALS);
+    addGear("netherite", tools, ItemTypeTagKeys.NETHERITE_TOOL_MATERIALS);
 
     // Misc. repairable items
-    MATERIALS_TO_REPAIRABLE.put(Material.TURTLE_HELMET, singleChoice(Material.TURTLE_SCUTE));
-    MATERIALS_TO_REPAIRABLE.put(Material.ELYTRA, singleChoice(Material.PHANTOM_MEMBRANE));
-    MATERIALS_TO_REPAIRABLE.put(Material.MACE, singleChoice(Material.BREEZE_ROD));
+    MATERIALS_TO_REPAIRABLE.put(ItemType.ELYTRA.getKey(), key -> ItemType.PHANTOM_MEMBRANE.getKey().equals(key));
+    MATERIALS_TO_REPAIRABLE.put(ItemType.MACE.getKey(), key -> ItemType.BREEZE_ROD.getKey().equals(key));
   }
 
-  private static void addGear(String type, String[] gearType, RecipeChoice repairChoice) {
+  private static void addGear(String type, String[] gearType, Predicate<NamespacedKey> repairChoice) {
     for (String toolType : gearType) {
-      Material material = Material.getMaterial(type + toolType);
-      if (material != null) {
-        MATERIALS_TO_REPAIRABLE.put(material, repairChoice);
-      }
+      MATERIALS_TO_REPAIRABLE.put(NamespacedKey.minecraft(type + toolType), repairChoice);
     }
   }
 
-  private static void addGear(String type, String[] gearType, Material repairMaterial) {
-    addGear(type, gearType, singleChoice(repairMaterial));
+  private static void addGear(String type, String[] gearType, TagKey<ItemType> tag) {
+    addGear(type, gearType, new TagPredicate(tag));
   }
 
-  private static RecipeChoice singleChoice(Material material) {
-    // RecipeChoice.ExactChoice is a full meta match, which isn't what we want.
-    return new RecipeChoice.MaterialChoice(List.of(material));
+  private RepairMaterial() {
+    throw new IllegalStateException("Cannot instantiate static helper method container.");
   }
 
-  @VisibleForTesting
-  static boolean hasEntry(@NotNull Material material) {
-    return MATERIALS_TO_REPAIRABLE.containsKey(material);
-  }
+  private record TagPredicate(Tag<ItemType> tag) implements Predicate<NamespacedKey> {
 
-  private RepairMaterial() {}
+    private TagPredicate(TagKey<ItemType> tag) {
+      this(RegistryAccess.registryAccess().getRegistry(RegistryKey.ITEM).getTag(tag));
+    }
+
+    @Override
+    public boolean test(NamespacedKey key) {
+      return tag.contains(TypedKey.create(RegistryKey.ITEM, key));
+    }
+
+  }
 
 }

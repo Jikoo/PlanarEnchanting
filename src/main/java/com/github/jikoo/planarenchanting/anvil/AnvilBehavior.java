@@ -1,9 +1,9 @@
 package com.github.jikoo.planarenchanting.anvil;
 
 import com.github.jikoo.planarenchanting.util.MetaCachedStack;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 
 public interface AnvilBehavior {
@@ -47,8 +47,8 @@ public interface AnvilBehavior {
    * @return whether items should combine {@code Enchantments}
    */
   default boolean itemsCombineEnchants(@NotNull MetaCachedStack base, @NotNull MetaCachedStack addition) {
-    Material additionType = addition.getItem().getType();
-    return base.getItem().getType() == additionType || additionType == Material.ENCHANTED_BOOK;
+    ItemType additionType = addition.getItem().getType().asItemType();
+    return base.getItem().getType().asItemType() == additionType || additionType == ItemType.ENCHANTED_BOOK;
   }
 
   /**

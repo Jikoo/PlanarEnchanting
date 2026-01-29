@@ -1,12 +1,11 @@
 package com.github.jikoo.planarenchanting.anvil;
 
-import com.github.jikoo.planarenchanting.enchant.EnchantData;
 import com.github.jikoo.planarenchanting.enchant.EnchantmentUtil;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +31,7 @@ abstract class CombineEnchantments implements AnvilFunction {
     }
 
     Map<Enchantment, Integer> newEnchants = new HashMap<>(baseEnchants);
-    boolean isFromBook = state.getAddition().getItem().getType() == Material.ENCHANTED_BOOK;
+    boolean isFromBook = state.getAddition().getItem().getType().asItemType() == ItemType.ENCHANTED_BOOK;
 
     int levelCost = 0;
     for (Entry<Enchantment, Integer> enchantEntry : additionEnchants.entrySet()) {
@@ -77,7 +76,7 @@ abstract class CombineEnchantments implements AnvilFunction {
   }
 
   protected int getAnvilCost(Enchantment enchantment, boolean isFromBook) {
-    int value = EnchantData.of(enchantment).getAnvilCost();
+    int value = enchantment.getAnvilCost();
     return isFromBook ? Math.max(1, value / 2) : value;
   }
 

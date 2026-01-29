@@ -1,11 +1,8 @@
 package com.github.jikoo.planarenchanting.util;
 
-import java.util.Objects;
-import java.util.Set;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Tag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.jetbrains.annotations.Contract;
@@ -19,28 +16,17 @@ public final class ItemUtil {
 
   /** Constant for air itemstacks. */
   public static final ItemStack AIR = new ItemStack(Material.AIR) {
+    /**
+     * Don't do this. Make a new item instead.
+     *
+     * @throws UnsupportedOperationException when invoked
+     * @deprecated Material for AIR constant cannot be changed.
+     */
+    @Contract(value = "_ -> fail", pure = true)
+    @Deprecated(since = "added")
     @Override
     public void setType(@NotNull Material type) {
       throw new UnsupportedOperationException("Cannot modify AIR constant.");
-    }
-  };
-  /** Constant representing an empty item {@link Tag}. */
-  public static final Tag<Material> TAG_EMPTY = new Tag<>() {
-    @Override
-    public boolean isTagged(@NotNull Material item) {
-      return false;
-    }
-
-    @NotNull
-    @Override
-    public Set<Material> getValues() {
-      return Set.of();
-    }
-
-    @NotNull
-    @Override
-    public NamespacedKey getKey() {
-      return Objects.requireNonNull(NamespacedKey.fromString("planarenchanting:empty"));
     }
   };
 
@@ -52,7 +38,11 @@ public final class ItemUtil {
    */
   @Contract("null -> true")
   public static boolean isEmpty(@Nullable ItemStack itemStack) {
-    return itemStack == null || itemStack.getType() == Material.AIR || itemStack.getAmount() < 1;
+    if (itemStack == null || itemStack.getAmount() < 1 || !itemStack.getType().isItem()) {
+      return true;
+    }
+    ItemType type = itemStack.getType().asItemType();
+    return type == null || ItemType.AIR.equals(type);
   }
 
   /**
