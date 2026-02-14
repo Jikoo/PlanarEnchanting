@@ -1,0 +1,21 @@
+# https://docs.gradle.org/current/userguide/version_catalogs.html#sec::toml-dependencies-format
+
+[versions]
+com-github-jikoo-planarwrappers = "4.0.0"
+com-jparams-to-string-verifier = "1.4.8"
+io-papermc-paper-paper-api = "1.21.11-R0.1-SNAPSHOT"
+org-hamcrest-hamcrest = "3.0"
+org-jetbrains-annotations = "26.0.2-1"
+org-mockito-mockito-core = "5.21.0"
+org-sonarqube = "7.1.0.6387"
+
+[libraries]
+com-github-jikoo-planarwrappers = { module = "com.github.jikoo:planarwrappers", version.ref = "com-github-jikoo-planarwrappers" }
+com-jparams-to-string-verifier = { module = "com.jparams:to-string-verifier", version.ref = "com-jparams-to-string-verifier" }
+io-papermc-paper-paper-api = { module = "io.papermc.paper:paper-api", version.ref = "io-papermc-paper-paper-api" }
+org-hamcrest-hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "org-hamcrest-hamcrest" }
+org-jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "org-jetbrains-annotations" }
+org-mockito-mockito-core = { module = "org.mockito:mockito-core", version.ref = "org-mockito-mockito-core" }
+
+[plugins]
+org-sonarqube = { id = "org.sonarqube", version.ref = "org-sonarqube" }
