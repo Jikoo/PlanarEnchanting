@@ -100,7 +100,7 @@ class TableEnchantListenerTest {
     doReturn("sampletext").when(plugin).namespace();
 
     listener = new TableEnchantListener(plugin) {
-      private final EnchantingTable table = new EnchantingTable(toolEnchants, Enchantabilities.STONE_TOOL);
+      private final EnchantingTable table = new EnchantingTable(toolEnchants, EnchantabilityCategory.STONE_TOOL);
 
       @Override
       protected boolean isIneligible(@NotNull Player player,

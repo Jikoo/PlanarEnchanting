@@ -58,7 +58,7 @@ class EnchantingTableTest {
   @DisplayName("Empty enchantment list yields empty enchantments.")
   @Test
   void testEmptyEnchantList() {
-    var operation = new EnchantingTable(List.of(), Enchantabilities.STONE_TOOL);
+    var operation = new EnchantingTable(List.of(), EnchantabilityCategory.STONE_TOOL);
 
     assertThat(
         "Empty available enchants yields empty enchants",
@@ -69,7 +69,7 @@ class EnchantingTableTest {
   @DisplayName("Enchantment incompatibility can be customized.")
   @Test
   void testAllIncompatibleAlwaysSingle() {
-    var operation = new EnchantingTable(toolEnchants, Enchantabilities.GOLD_ARMOR);
+    var operation = new EnchantingTable(toolEnchants, EnchantabilityCategory.GOLD_ARMOR);
     operation.setIncompatibility((a, b) -> true);
 
     assertThat(
@@ -82,7 +82,7 @@ class EnchantingTableTest {
   @Test
   void testSetMaxLevel() {
     Enchantment enchant = Enchantment.EFFICIENCY;
-    var operation = new EnchantingTable(List.of(enchant), Enchantabilities.GOLD_ARMOR);
+    var operation = new EnchantingTable(List.of(enchant), EnchantabilityCategory.GOLD_ARMOR);
     // Double max level for enchants that go over 1.
     operation.setMaxLevel(enchant1 -> enchant1.getMaxLevel() > 1 ? enchant1.getMaxLevel() * 2 : 1);
 
@@ -102,14 +102,14 @@ class EnchantingTableTest {
 
     @BeforeEach
     void beforeEach() {
-      var operation = new EnchantingTable(toolEnchants, Enchantabilities.STONE_TOOL);
+      var operation = new EnchantingTable(toolEnchants, EnchantabilityCategory.STONE_TOOL);
       selected = operation.apply(RANDOM, RANDOM.nextInt(1, 31));
     }
 
     @DisplayName("One or more enchantments should be selected.")
     @Test
     void checkSize() {
-      var operation = new EnchantingTable(toolEnchants, Enchantabilities.STONE_TOOL);
+      var operation = new EnchantingTable(toolEnchants, EnchantabilityCategory.STONE_TOOL);
       selected = operation.apply(RANDOM, 30);
       assertThat(
           "One or more enchantments must be selected",

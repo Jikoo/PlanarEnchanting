@@ -13,9 +13,9 @@ import com.palantir.javapoet.FieldSpec;
 import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.ParameterizedTypeName;
 import com.palantir.javapoet.TypeSpec;
-import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Locale;
-import java.util.function.Supplier;
+import java.util.Map;
 import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorMaterials;
@@ -29,7 +29,7 @@ public class EnchantabilitiesGenerator extends Generator {
   private final ClassName enchantability;
 
   public EnchantabilitiesGenerator() {
-    super("com.github.jikoo.planarenchanting.table", "Enchantabilities");
+    super("com.github.jikoo.planarenchanting.table", "EnchantabilityCategory");
     // Can't reference actual type because that would introduce a circular dependency
     // unless we add a really convoluted partial compile dependency or generate the record here.
     this.enchantability = ClassName.get(generatedClass.packageName(), "Enchantability");
@@ -52,7 +52,7 @@ public class EnchantabilitiesGenerator extends Generator {
         .addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).build());
 
     addCategories();
-    addAccessors();
+    addByName();
 
     return builder;
   }
@@ -70,20 +70,32 @@ public class EnchantabilitiesGenerator extends Generator {
   }
 
   private void addCategory(String category, int value) {
-    FieldSpec.Builder fieldBuilder = FieldSpec.builder(enchantability, category.toUpperCase(Locale.ROOT))
+    category = category.toUpperCase(Locale.ROOT);
+    FieldSpec.Builder fieldBuilder = FieldSpec.builder(enchantability, category)
         .addModifiers(PUBLIC, STATIC, FINAL)
         .addAnnotation(ApiStatus.Experimental.class)
-        .initializer("new $T($L)", enchantability, value);
+        .initializer("add($S, $L)", category, value);
     builder.addField(fieldBuilder.build());
   }
 
-  private void addAccessors() {
+  private void addByName() {
+    builder.addField(
+        FieldSpec.builder(
+            ParameterizedTypeName.get(
+                ClassName.get(Map.class),
+                ClassName.get(String.class),
+                enchantability
+            ),
+            "BY_NAME",
+            PRIVATE, STATIC, FINAL
+        ).initializer("new $T<>()", HashMap.class).build());
+
     MethodSpec get = MethodSpec.methodBuilder("get")
         .addJavadoc(
             """
             Safely try to access an {@link $T} category by name.
             
-            @param category the name of the category field
+            @param category the name of the category
             @return the category if a match was found or {@code null} if no such category exists
             """,
             enchantability
@@ -91,51 +103,20 @@ public class EnchantabilitiesGenerator extends Generator {
         .addModifiers(PUBLIC, STATIC, FINAL)
         .returns(enchantability.annotated(AnnotationSpec.builder(Nullable.class).build()))
         .addParameter(String.class, "category")
-        .addCode("""
-            try {
-              $T field = $T.class.getDeclaredField(category);
-              return ($T) field.get(null);
-            } catch ($T | $T ignored) {
-              return null;
-            }
-            """,
-            Field.class, generatedClass,
-            enchantability,
-            // ClassCastException shouldn't be possible as all fields are Enchantability typed, but
-            // it's better to be safe than sorry.
-            ReflectiveOperationException.class, ClassCastException.class
-        )
+        .addStatement("return BY_NAME.get(category.toUpperCase($T.ROOT))", Locale.class)
         .build();
+    builder.addMethod(get);
 
-    MethodSpec getOrDefault = MethodSpec.methodBuilder("getOrDefault")
-        .addJavadoc(
-            """
-            Safely try to access an {@link $T} category by name, falling through to a default
-            if not present.
-            
-            @param category the name of the category field
-            @param defaultSupplier the {@link $T} providing a fallthrough value
-            @return the category if a match was found or the default if no such category exists
-            """,
-            enchantability,
-            Supplier.class
-        )
-        .addModifiers(PUBLIC, STATIC, FINAL)
+    MethodSpec add = MethodSpec.methodBuilder("add")
+        .addModifiers(PRIVATE, STATIC, FINAL)
         .returns(enchantability)
-        .addParameter(String.class, "category")
-        .addParameter(
-            ParameterizedTypeName.get(ClassName.get(Supplier.class), enchantability),
-            "defaultSupplier"
-        )
-        .addCode("""
-            $T result = get(category);
-            return result != null ? result : defaultSupplier.get();
-            """,
-            enchantability
-        )
+        .addParameter(String.class, "name")
+        .addParameter(int.class, "value")
+        .addStatement("$T enchantability = new $T(value)", enchantability, enchantability)
+        .addStatement("BY_NAME.put(name, enchantability)")
+        .addStatement("return enchantability")
         .build();
-
-    builder.addMethod(get).addMethod(getOrDefault);
+    builder.addMethod(add);
   }
 
 }
