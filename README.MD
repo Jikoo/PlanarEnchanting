@@ -17,7 +17,7 @@ systems and divide them up into readable, manageable, customizable segments.
 ### Anvil Enchanting
 
 Anvil enchanting is primarily accessed via the
-[`Anvil`](src/main/java/com/github/jikoo/planarenchanting/anvil/Anvil.java).
+[`Anvil`](enchanting-core/src/main/java/com/github/jikoo/planarenchanting/anvil/Anvil.java).
 This is a class containing several simple ways to modify anvil behaviors.
 
 For basic vanilla-style combination, all you need is an ordinary `Anvil`.
@@ -82,7 +82,7 @@ class RenameOnlyAnvil extends Anvil {
 
 ### Enchanting Table Enchanting
 
-Enchanting Table-style enchanting is accessed via the [`EnchantingTable`](src/main/java/com/github/jikoo/planarenchanting/table/EnchantingTable.java).
+Enchanting Table-style enchanting is accessed via the [`EnchantingTable`](enchanting-core/src/main/java/com/github/jikoo/planarenchanting/table/EnchantingTable.java).
 
 The constructor accepts a collection of enchantments that may be applied and the `Enchantability` (a
 wrapper for a magic value representing an enchantment bonus; constants for vanilla values are
@@ -105,7 +105,7 @@ class StoneEnchantListener extends TableEnchantListener {
           Enchantment.DURABILITY,
           Enchantment.LOOT_BONUS_BLOCKS,
           Enchantment.SILK_TOUCH),
-      Enchantability.STONE);
+      Enchantability.forMaterial(Material.STONE_PICKAXE));
 
   StoneEnchantListener(@NotNull Plugin plugin) {
     super(plugin);
@@ -132,71 +132,11 @@ class StoneEnchantListener extends TableEnchantListener {
 
 If you want more specific functionality you can write your own listener from scratch.
 
+## Version Control
+
+PlanarEnchanting is available via [JitPack](https://jitpack.io/#jikoo/planarenchanting).
+JitPack supports Gradle, Maven, SBT, and Leiningen.
+
 ## For Developers
 
-Please relocate PlanarEnchanting when including its files in your project! Bundled library conflicts
-are not fun, make your life easier.
-
-### License [![WTFPL](http://www.wtfpl.net/wp-content/uploads/2012/12/wtfpl-badge-2.png)](http://www.wtfpl.net/)
-
-This project is licensed under the WTFPL. You can do whatever you want with the content.
-If you do use it and decide to credit me, thanks! I think you're just swell.
-
-### Version Control
-
-PlanarEnchanting is available via [JitPack](https://jitpack.io). I pretty much only use Maven in my
-projects, so that's the only full writeup you get, but JitPack supports Gradle, Maven, SBT, and
-Leiningen.
-
-### Maven
-
-Replace `${versions.planarenchanting}` with the version you desire to work with or define it in your properties. The `minimizeJar` option is
-recommended to prevent inflating your plugin with unnecessary classes.
-
-Sample configuration:
-
-```xml
-<project>
-  <repositories>
-    <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-    </repository>
-  </repositories>
-
-  <dependencies>
-    <dependency>
-      <groupId>com.github.jikoo</groupId>
-      <artifactId>planarenchanting</artifactId>
-      <version>${versions.planarenchanting}</version>
-      <scope>compile</scope>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.3.0</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <relocations>
-                <relocation>
-                  <pattern>com.github.jikoo.planarenchanting</pattern>
-                  <shadedPattern>com.example.myplugin.planarenchanting</shadedPattern>
-                </relocation>
-              </relocations>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-</project>
-```
+Generated source files can be recreated from Minecraft internals with the `generate` task.
