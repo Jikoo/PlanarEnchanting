@@ -6,6 +6,7 @@ import com.github.jikoo.planarenchanting.generator.impl.RepairMaterialsGenerator
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,11 +33,14 @@ public class Main {
     }
 
     // Consume all items declared by the server.
-    BuiltInRegistries.ITEM.entrySet().forEach(entry -> {
-      for (ItemConsumingGenerator gen : itemGens) {
-        gen.processItem(entry.getKey().identifier(), entry.getValue());
-      }
-    });
+    BuiltInRegistries.ITEM.entrySet().stream()
+        // Sort by resource key so that ordering is consistent across generation runs.
+        .sorted(Comparator.comparing(k -> k.getKey().identifier()))
+        .forEach(entry -> {
+          for (ItemConsumingGenerator gen : itemGens) {
+            gen.processItem(entry.getKey().identifier(), entry.getValue());
+          }
+        });
 
     // Output the files.
     Path destPath = Path.of(args.length > 0 ? args[0] : ".");
