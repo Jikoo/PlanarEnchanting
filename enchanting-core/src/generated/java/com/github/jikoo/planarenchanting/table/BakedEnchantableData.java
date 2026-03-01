@@ -18,8 +18,7 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 final class BakedEnchantableData {
 
-  private BakedEnchantableData() {
-  }
+  private BakedEnchantableData() {}
 
   static Map<Integer, Set<Key>> get() {
     Map<Integer, Set<Key>> map = new HashMap<>();

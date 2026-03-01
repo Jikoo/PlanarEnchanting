@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>This file was generated from Minecraft 1.21.11. Regenerate it rather than modify.</p>
  */
-@Generated("com.github.jikoo.planarenchanting.generator.impl.EnchantabilitiesGenerator")
+@Generated("com.github.jikoo.planarenchanting.generator.impl.EnchantabilityCategoryGenerator")
 @NullMarked
 public final class EnchantabilityCategory {
 
@@ -55,8 +55,7 @@ public final class EnchantabilityCategory {
   @ApiStatus.Experimental
   public static final Enchantability ARMADILLO_SCUTE_ARMOR = add("ARMADILLO_SCUTE_ARMOR", 10);
 
-  private EnchantabilityCategory() {
-  }
+  private EnchantabilityCategory() {}
 
   /**
    * Safely try to access an {@link Enchantability} category by name.

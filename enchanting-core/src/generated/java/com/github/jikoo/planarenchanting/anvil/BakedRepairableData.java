@@ -16,8 +16,7 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 final class BakedRepairableData {
 
-  private BakedRepairableData() {
-  }
+  private BakedRepairableData() {}
 
   static Map<Key, Key> getTags() {
     Map<Key, Key> map = new HashMap<>();

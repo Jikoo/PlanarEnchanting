@@ -91,6 +91,9 @@ public abstract class Generator {
         "${docOpen} ${content} */"
     );
 
+    // Inline empty bodies.
+    content = content.replaceAll("\\{\n\\s*?}\n", "{}\n");
+
     // I like blank lines at the top and bottom of classes.
     // Top allows for empty enum declaration.
     content = content.replaceAll("(\n\\S.*\\{\n(\\s+;\n)?)", "$1\n");
