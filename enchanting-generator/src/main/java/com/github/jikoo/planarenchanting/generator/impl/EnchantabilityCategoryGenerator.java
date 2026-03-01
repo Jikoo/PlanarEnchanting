@@ -24,11 +24,11 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @NullMarked
-public class EnchantabilitiesGenerator extends Generator {
+public class EnchantabilityCategoryGenerator extends Generator {
 
   private final ClassName enchantability;
 
-  public EnchantabilitiesGenerator() {
+  public EnchantabilityCategoryGenerator() {
     super("com.github.jikoo.planarenchanting.table", "EnchantabilityCategory");
     // Can't reference actual type because that would introduce a circular dependency
     // unless we add a really convoluted partial compile dependency or generate the record here.
@@ -51,8 +51,8 @@ public class EnchantabilitiesGenerator extends Generator {
         )
         .addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).build());
 
-    addCategories();
     addByName();
+    addCategories();
 
     return builder;
   }

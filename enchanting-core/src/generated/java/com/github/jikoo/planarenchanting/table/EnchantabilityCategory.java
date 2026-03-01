@@ -20,6 +20,8 @@ import org.jspecify.annotations.Nullable;
 @NullMarked
 public final class EnchantabilityCategory {
 
+  private static final Map<String, Enchantability> BY_NAME = new HashMap<>();
+
   @ApiStatus.Experimental
   public static final Enchantability WOOD_TOOL = add("WOOD_TOOL", 15);
   @ApiStatus.Experimental
@@ -52,8 +54,6 @@ public final class EnchantabilityCategory {
   public static final Enchantability NETHERITE_ARMOR = add("NETHERITE_ARMOR", 15);
   @ApiStatus.Experimental
   public static final Enchantability ARMADILLO_SCUTE_ARMOR = add("ARMADILLO_SCUTE_ARMOR", 10);
-
-  private static final Map<String, Enchantability> BY_NAME = new HashMap<>();
 
   private EnchantabilityCategory() {
   }
