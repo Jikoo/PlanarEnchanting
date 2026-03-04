@@ -1,6 +1,7 @@
 package com.github.jikoo.planarenchanting.anvil;
 
 import com.github.jikoo.planarenchanting.util.ItemUtil;
+import io.papermc.paper.datacomponent.DataComponentTypes;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
@@ -114,6 +115,9 @@ public class Anvil {
 
     // Update result meta.
     state.result.getItem().setItemMeta(resultMeta);
+    if (resultMeta.hasCustomName() && resultMeta.customName() == null) {
+      state.result.getItem().resetData(DataComponentTypes.CUSTOM_NAME);
+    }
 
     // Reset result meta to base meta to ignore certain characteristics when verifying that
     // changes have actually been performed.
