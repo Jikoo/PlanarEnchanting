@@ -1,6 +1,7 @@
 package com.github.jikoo.planarenchanting.generator;
 
-import com.github.jikoo.planarenchanting.generator.impl.EnchDataGenerator;
+import com.github.jikoo.planarenchanting.generator.impl.EnchantDataGenerator;
+import com.github.jikoo.planarenchanting.generator.impl.EnchantableGenerator;
 import com.github.jikoo.planarenchanting.generator.impl.EnchantabilityCategoryGenerator;
 import com.github.jikoo.planarenchanting.generator.impl.RepairMaterialsGenerator;
 import java.io.IOException;
@@ -21,11 +22,12 @@ public class Main {
 
     // Set up generators.
     List<ItemConsumingGenerator> itemGens = List.of(
-        new EnchDataGenerator(),
+        new EnchantableGenerator(),
         new RepairMaterialsGenerator()
     );
     List<Generator> gens = new ArrayList<>(itemGens);
     gens.add(new EnchantabilityCategoryGenerator());
+    gens.add(new EnchantDataGenerator());
 
     // Initialize TypeSpec being built and any other data.
     for (Generator gen : gens) {

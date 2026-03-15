@@ -17,14 +17,14 @@ systems and divide them up into readable, manageable, customizable segments.
 ### Anvil Enchanting
 
 Anvil enchanting is primarily accessed via the
-[`Anvil`](enchanting-core/src/main/java/com/github/jikoo/planarenchanting/anvil/Anvil.java).
-This is a class containing several simple ways to modify anvil behaviors.
+[`AnvilCreator`](enchanting-bundler/src/main/java/com/github/jikoo/planarenchanting/anvil/AnvilCreator.java).
+This is a wrapper allowing instantiation of implementation-specific anvil data.
 
 For basic vanilla-style combination, all you need is an ordinary `Anvil`.
 
 ```java
 class MyAnvilHandler implements Listener {
-  private final Anvil anvil = new Anvil();
+  private final Anvil anvil = AnvilCreator.create();
   @EventHandler
   private void onPrepareAnvil(PrepareAnvilEvent event) {
     AnvilView view = event.getView();
@@ -32,50 +32,80 @@ class MyAnvilHandler implements Listener {
 
     event.setResult(result.item());
 
-    // Note: depending on server implementation, may need to update costs on a 0-tick delay.
+    // Note: Depending on the server implementation, you may need to
+    // update costs on a 0-tick delay. It is also advisable to ensure
+    // that the result item has not been changed when doing so.
     view.setRepairItemCostAmount(result.materialCost());
     view.setRepairCost(result.levelCost());
   }
 }
 ```
 
-For specific tweaks (i.e. removing or changing enchantment level cap) you can provide the
-`Anvil` with a different `AnvilBehavior` implementation.
+For specific tweaks (i.e. removing or changing enchantment level cap) you can provide
+a different `AnvilBehavior` implementation.
+
+> [!IMPORTANT]
+> For better compatibility, `Anvil` has two main implementations: component-based
+> (using Paper's `DataComponentType`) and meta-based (using the Spigot API and `ItemMeta`).
+> For detecting compatibility, PlanarEnchanting uses `ServerCapabilities.DATA_COMPONENT`.
 
 Allowing conflicting enchantments to be added:
 
 ```java
-Anvil anvil = new Anvil(new AnvilBehavior() {
-  @Override
-  public boolean getEnchantsConflict(Enchantment enchant1, Enchantment enchant2) {
-    return false;
-  }
-});
+// PlanarForge is the default Anvil implementation, wrapping a WorkPiece provider,
+// an AnvilBehavior, and an AnvilFunctionsProvider.
+Anvil anvil = new PlanarForge<ItemStack>(
+    AnvilCreator::createComponentPiece,
+    new ComponentVanillaBehavior() {
+      @Override
+      public boolean getEnchantsConflict(Enchantment enchant1, Enchantment enchant2) {
+        return false;
+      }
+    },
+    ComponentAnvilFunctions.INSTANCE
+);
 ```
 
 If you have even more specific needs but still want to leverage certain vanilla-style functionality,
-you can write your own anvil functionality.
+you can write your own Anvil implementation. You can also implement your own
+[AnvilFunctions](enchanting-common/src/main/java/com/github/jikoo/planarenchanting/anvil/AnvilFunction.java)
+if you need additional behavior changes.
 
 An implementation that only allows the input to be renamed:
 
 ```java
-class RenameOnlyAnvil extends Anvil {
+@NullMarked
+class RenameOnlyAnvil<T> implements Anvil {
+
+  protected final Function<AnvilView, WorkPiece<T>> createPiece;
+  protected final AnvilBehavior<T> behavior;
+  protected final AnvilFunctionsProvider<T> functions;
+
+  RenameOnlyAnvil(
+      Function<AnvilView, WorkPiece<T>> createPiece,
+      AnvilBehavior<T> behavior,
+      AnvilFunctionsProvider<T> functions
+  ) {
+    this.createPiece = createPiece;
+    this.behavior = behavior;
+    this.functions = functions;
+  }
+  
   @Override
-  public void getResult(@NotNull AnvilView view) {
-    AnvilState state = new AnvilState(view);
+  public AnvilResult getResult(AnvilView view) {
+    WorkPiece<T> piece = createPiece.apply(view);
 
     // Require first item to be set, second item to be unset.
-    if (ItemUtil.isEmpty(state.getBase().getItem())
-        || !ItemUtil.isEmpty(state.getAddition().getItem())) {
+    if (piece.getBase().isEmpty() || !piece.getAddition().isEmpty()) {
       return AnvilResult.EMPTY;
     }
 
     // Apply base cost.
-    apply(state, AnvilFunctions.PRIOR_WORK_LEVEL_COST);
+    piece.apply(behavior, functions.setPriorWorkCost());
     // Apply rename.
-    apply(state, AnvilFunctions.RENAME);
+    piece.apply(behavior, functions.rename());
 
-    return forge(state);
+    return piece.forge();
   }
 }
 ```
@@ -96,37 +126,34 @@ the surface. You may manipulate incompatibility between enchantments and enchant
 Allow enchanting `Material.STONE` with enchantments usually available for tools:
 
 ```java
+@NullMarked
 class StoneEnchantListener extends TableEnchantListener {
-
   // Set up table.
   private final EnchantingTable table = new EnchantingTable(
       List.of(
           Enchantment.DIG_SPEED,
           Enchantment.DURABILITY,
           Enchantment.LOOT_BONUS_BLOCKS,
-          Enchantment.SILK_TOUCH),
-      Enchantability.forMaterial(Material.STONE_PICKAXE));
+          Enchantment.SILK_TOUCH
+      ),
+      Enchantabilies.forMaterial(Material.STONE_PICKAXE)
+  );
 
-  StoneEnchantListener(@NotNull Plugin plugin) {
+  StoneEnchantListener(Plugin plugin) {
     super(plugin);
   }
 
   @Override
-  protected @Nullable EnchantingTable getTable(
-      @NotNull Player player,
-      @NotNull ItemStack enchanted) {
+  protected EnchantingTable getTable(Player player, ItemStack enchanted) {
     // Use stored instance.
     return table;
   }
 
   @Override
-  protected boolean isIneligible(
-      @NotNull Player player,
-      @NotNull ItemStack enchanted) {
+  protected boolean isIneligible(Player player, ItemStack enchanted) {
     // Only allow enchanting stone.
     return itemStack.getType() != Material.STONE;
   }
-
 }
 ```
 
@@ -139,4 +166,6 @@ JitPack supports Gradle, Maven, SBT, and Leiningen.
 
 ## For Developers
 
+The project is compiled using Gradle via the `build` task, i.e. `./gradlew build`.  
 Generated source files can be recreated from Minecraft internals with the `generate` task.
+The generator module is not built by default so as to not require the Paper server to be compiled.

@@ -1,9 +1,10 @@
 rootProject.name = "planarenchanting-parent"
 
+include("enchanting-generator")
+include("enchanting-common", "enchanting-components", "enchanting-meta")
+
 include(":planarenchanting")
-project(":planarenchanting").projectDir = file("enchanting-core")
+project(":planarenchanting").projectDir = file("enchanting-bundler")
 
-include(":planarenchanting-generator")
-project(":planarenchanting-generator").projectDir = file("enchanting-generator")
-
-startParameter.excludedTaskNames.add(":planarenchanting-generator:build")
+// Don't build generator unless generating.
+startParameter.excludedTaskNames.add(":enchanting-generator:build")

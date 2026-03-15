@@ -1,22 +1,17 @@
 import org.gradle.kotlin.dsl.register
 
-repositories {
-  maven("https://repo.papermc.io/repository/maven-public/")
-  maven("https://jitpack.io/")
-}
-
 plugins {
   alias(libs.plugins.io.papermc.paperweight)
 }
 
 dependencies {
   implementation(libs.com.palantir.javapoet.javapoet)
-  implementation(libs.io.papermc.paper.paper.api)
   paperweight.paperDevBundle(libs.versions.io.papermc.paper.paper.api)
 }
 
-var core: Project = project(":planarenchanting")
-var generationDir: Directory = core.layout.projectDirectory.dir("src/generated/java")
+// TODO would be nice to generate EnchantabilityCategory into common, rest into meta (should meta become spigot?)
+var common: Project = project(":enchanting-common")
+var generationDir: Directory = common.layout.projectDirectory.dir("src/generated/java")
 
 val generate = tasks.register<JavaExec>("generate") {
   dependsOn("removeGeneratedFiles", "build")
@@ -38,7 +33,7 @@ tasks.register<Delete>("removeGeneratedLogs") {
   delete(layout.projectDirectory.dir("logs"))
 }
 
-core.tasks.named<JavaCompile>("compileJava") {
+common.tasks.named<JavaCompile>("compileJava") {
   // Require compilation to wait on generation to complete if run at the same time.
   mustRunAfter(generate)
 }
