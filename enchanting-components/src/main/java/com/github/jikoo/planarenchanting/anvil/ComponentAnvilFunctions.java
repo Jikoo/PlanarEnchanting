@@ -11,7 +11,9 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.NullMarked;
 
-// TODO docs
+/**
+ * Data component-based {@link AnvilFunctionsProvider}.
+ */
 @NullMarked
 public final class ComponentAnvilFunctions implements AnvilFunctionsProvider<ItemStack> {
 

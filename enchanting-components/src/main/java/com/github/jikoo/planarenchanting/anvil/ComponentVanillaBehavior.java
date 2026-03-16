@@ -10,6 +10,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * Data component-based {@link AnvilBehavior}.
+ */
 @NullMarked
 public class ComponentVanillaBehavior implements AnvilBehavior<ItemStack> {
 

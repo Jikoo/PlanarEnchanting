@@ -11,15 +11,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.MockedStatic;
 import org.mockito.stubbing.Answer;
 
@@ -69,11 +71,17 @@ class MetaEnchantProviderTest {
   }
 
   @ParameterizedTest
-  @ValueSource(booleans = { true, false })
-  void ofUnknown(boolean isTrident) {
+  @CsvSource({ "true,true", "true,false", "false,true", "false,false" })
+  void ofUnknown(boolean isTrident, boolean isTool) {
     Enchantment enchantment = mock(Enchantment.class);
-    doReturn(NamespacedKey.minecraft("trident_" + isTrident)).when(enchantment).getKey();
-    doReturn(isTrident).when(enchantment).canEnchantItem(any());
+    doReturn(NamespacedKey.minecraft("trident_" + isTrident + "_" + isTool)).when(enchantment).getKey();
+
+    doAnswer(invocation -> {
+      if (isTool) return true;
+      ItemStack stack = invocation.getArgument(0);
+      Material mat = stack.getType();
+      return isTrident && mat == Material.TRIDENT;
+    }).when(enchantment).canEnchantItem(any());
 
     EnchantData data = provider.of(enchantment);
 
@@ -84,7 +92,7 @@ class MetaEnchantProviderTest {
     assertThat("Min cost uses unbreaking formula", data.getMinModifiedCost(2), is(13));
     assertThat("Max cost uses unbreaking formula", data.getMaxModifiedCost(1), is(55));
     assertThat("Max cost uses unbreaking formula", data.getMaxModifiedCost(2), is(63));
-    assertThat("Trident enchant uses enchant definition", data.isTridentEnchant(), is(isTrident));
+    assertThat("Trident enchant uses enchant definition", data.isTridentEnchant(), is(isTrident && !isTool));
   }
 
 }

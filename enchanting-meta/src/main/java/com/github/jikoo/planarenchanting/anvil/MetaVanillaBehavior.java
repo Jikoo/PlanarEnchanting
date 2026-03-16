@@ -4,6 +4,10 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * {@link org.bukkit.inventory.meta.ItemMeta}-based {@link AnvilBehavior}.
+ * Uses pre-baked data to cover missing API.
+ */
 @NullMarked
 public class MetaVanillaBehavior implements AnvilBehavior<MetaCachedStack> {
 

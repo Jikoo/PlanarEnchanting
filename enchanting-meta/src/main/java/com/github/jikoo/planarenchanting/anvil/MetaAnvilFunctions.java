@@ -7,6 +7,9 @@ import org.bukkit.inventory.meta.Repairable;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * {@link ItemMeta}-based {@link AnvilFunctionsProvider}.
+ */
 @NullMarked
 public final class MetaAnvilFunctions implements AnvilFunctionsProvider<MetaCachedStack> {
 
