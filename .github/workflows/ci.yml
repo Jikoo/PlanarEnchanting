@@ -7,6 +7,6 @@ on:
 
 jobs:
   build:
-    uses: Jikoo/PlanarActions/.github/workflows/ci_gradle_sonar.yml@master
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    uses: Jikoo/PlanarActions/.github/workflows/ci_gradle.yml@master
+    with:
+      include-artifacts: "./enchanting-bundler/build/libs/*.jar"

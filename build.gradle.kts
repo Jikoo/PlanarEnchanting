@@ -5,7 +5,6 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
   `java-library`
   jacoco
-  alias(libs.plugins.org.sonarqube)
 }
 
 repositories {
@@ -83,15 +82,4 @@ subprojects {
 tasks.jacocoTestReport {
 //  executionData.setFrom(subprojects.jacocoTestReport.executionData)
 //  executionData.setFrom(files(subprojects.map { executionData }))
-}
-
-sonar {
-  properties {
-    property("sonar.projectKey", "Jikoo_PlanarEnchanting")
-    property("sonar.organization", "jikoo")
-    property("sonar.host.url", "https://sonarcloud.io")
-    property("sonar.language", "java")
-    property("sonar.java.coveragePlugin", "jacoco")
-    property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
-  }
 }
