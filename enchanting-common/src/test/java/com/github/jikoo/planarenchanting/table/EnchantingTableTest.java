@@ -59,7 +59,7 @@ import org.mockito.MockedStatic;
 class EnchantingTableTest {
 
   private MockedStatic<Bukkit> bukkit;
-  private final Random random = new Random(0); // TODO reset seed before each? Consistency
+  private final Random random = new Random(0);
   private Collection<Enchantment> toolEnchants;
 
   @BeforeAll
@@ -88,6 +88,11 @@ class EnchantingTableTest {
   @AfterAll
   void tearDown() {
     bukkit.close();
+  }
+
+  @BeforeEach
+  void setUpEach() {
+    random.setSeed(0);
   }
 
   static void setUpToolEnchants() {
