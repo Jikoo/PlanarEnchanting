@@ -42,7 +42,7 @@ class ComponentViewStateTest {
   void getOriginalView() {
     AnvilView view = mock();
     ComponentViewState state = new ComponentViewState(view);
-    assertThat("Original view is available", state.getOriginalView(), is(view));
+    assertThat("Original view is available", state.getAnvilView(), is(view));
   }
 
   @Test

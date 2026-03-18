@@ -118,7 +118,7 @@ class ComponentAnvilFunctionsTest {
 
       AnvilView view = mock();
       doReturn(anvilName).when(view).getRenameText();
-      doReturn(view).when(state).getOriginalView();
+      doReturn(view).when(state).getAnvilView();
 
       ItemStack stack = mock();
       doReturn(baseName).when(stack).getData(DataComponentTypes.CUSTOM_NAME);
@@ -134,7 +134,7 @@ class ComponentAnvilFunctionsTest {
       ItemStack resultStack = mock();
 
       AnvilView view = mock();
-      doReturn(view).when(state).getOriginalView();
+      doReturn(view).when(state).getAnvilView();
 
       ItemStack stack = mock();
       doReturn(stack).when(state).getBase();
@@ -164,7 +164,7 @@ class ComponentAnvilFunctionsTest {
 
       AnvilView view = mock();
       doReturn("sample text").when(view).getRenameText();
-      doReturn(view).when(state).getOriginalView();
+      doReturn(view).when(state).getAnvilView();
 
       AnvilFunctionResult<ItemStack> result = function.getResult(behavior, state, resultStack);
 

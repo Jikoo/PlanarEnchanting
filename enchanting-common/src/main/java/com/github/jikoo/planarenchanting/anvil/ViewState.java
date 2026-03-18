@@ -17,8 +17,7 @@ public interface ViewState<T> {
    *
    * @return the {@code AnvilView}
    */
-  // TODO replace this with getAnvilText and getMaximumRepairCost?
-  AnvilView getOriginalView();
+  AnvilView getAnvilView();
 
   /**
    * Get the base input item.

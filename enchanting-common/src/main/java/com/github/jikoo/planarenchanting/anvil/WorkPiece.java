@@ -11,7 +11,7 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public final class WorkPiece<T> {
 
-  private final ViewState<T> view;
+  private final ViewState<T> state;
   private final Temperer<T> temperer;
   final T result;
   private int levelCost = 0;
@@ -23,9 +23,9 @@ public final class WorkPiece<T> {
    * @param state the {@link ViewState} the state is derived from
    */
   public WorkPiece(ViewState<T> state, Temperer<T> temperer) {
-    this.view = state;
+    this.state = state;
     this.temperer = temperer;
-    this.result = view.createResult();
+    this.result = this.state.createResult();
   }
 
   /**
@@ -34,7 +34,7 @@ public final class WorkPiece<T> {
    * @return the base input item
    */
   public T getBase() {
-    return view.getBase();
+    return state.getBase();
   }
 
   /**
@@ -43,7 +43,7 @@ public final class WorkPiece<T> {
    * @return the secondary input item
    */
   public T getAddition() {
-    return view.getAddition();
+    return state.getAddition();
   }
 
   /**
@@ -92,11 +92,11 @@ public final class WorkPiece<T> {
    * @return whether the {@link AnvilFunction} could apply
    */
   public boolean apply(AnvilBehavior<T> behavior, AnvilFunction<T> function) {
-    if (!function.canApply(behavior, view, result)) {
+    if (!function.canApply(behavior, state, result)) {
       return false;
     }
 
-    AnvilFunctionResult<T> anvilResult = function.getResult(behavior, view, result);
+    AnvilFunctionResult<T> anvilResult = function.getResult(behavior, state, result);
 
     anvilResult.modifyResult(result);
     setLevelCost(getLevelCost() + anvilResult.getLevelCostIncrease());
@@ -111,7 +111,7 @@ public final class WorkPiece<T> {
    * @return the finalized result
    */
   public AnvilResult temper() {
-    if (temperer.hasChanged(view.getBase(), view.getAddition(), result)) {
+    if (temperer.hasChanged(state.getBase(), state.getAddition(), result)) {
       return new AnvilResult(temperer.temper(result), levelCost, materialCost);
     }
     return AnvilResult.EMPTY;

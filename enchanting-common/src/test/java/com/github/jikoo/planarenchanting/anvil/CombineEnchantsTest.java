@@ -378,7 +378,7 @@ class CombineEnchantsTest {
 
     AnvilView view = mock();
     doReturn(99).when(view).getMaximumRepairCost();
-    doReturn(view).when(state).getOriginalView();
+    doReturn(view).when(state).getAnvilView();
 
     Enchantment enchantment = mock();
     EnchantData data = EnchantData.Service.PROVIDER.of(enchantment);

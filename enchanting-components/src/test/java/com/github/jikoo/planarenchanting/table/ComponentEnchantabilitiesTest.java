@@ -36,6 +36,7 @@ class ComponentEnchantabilitiesTest {
   private MockedStatic<RegistryAccess> registryAccess;
   private EnchantabilityProvider provider;
 
+  @SuppressWarnings({ "removal", "unchecked" })
   @BeforeAll
   void setUp() {
     Answer<?> get = invocation -> switch (invocation.getArgument(0, Key.class).value()) {

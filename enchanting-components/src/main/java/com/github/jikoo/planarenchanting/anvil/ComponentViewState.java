@@ -20,7 +20,7 @@ class ComponentViewState implements ViewState<ItemStack> {
   }
 
   @Override
-  public AnvilView getOriginalView() {
+  public AnvilView getAnvilView() {
     return view;
   }
 

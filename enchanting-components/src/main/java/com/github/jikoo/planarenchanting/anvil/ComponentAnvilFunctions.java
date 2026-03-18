@@ -49,7 +49,7 @@ public final class ComponentAnvilFunctions implements AnvilFunctionsProvider<Ite
         ItemStack result
     ) {
       Component data = state.getBase().getData(CUSTOM_NAME);
-      String anvilText = state.getOriginalView().getRenameText();
+      String anvilText = state.getAnvilView().getRenameText();
 
       // If the names aren't the same, the rename can be applied.
       if (data == null) {
@@ -73,7 +73,7 @@ public final class ComponentAnvilFunctions implements AnvilFunctionsProvider<Ite
 
         @Override
         public void modifyResult(ItemStack modified) {
-          String anvilText = state.getOriginalView().getRenameText();
+          String anvilText = state.getAnvilView().getRenameText();
 
           if (anvilText == null) {
             modified.resetData(CUSTOM_NAME);

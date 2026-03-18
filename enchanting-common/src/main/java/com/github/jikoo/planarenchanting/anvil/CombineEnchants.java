@@ -46,7 +46,7 @@ public class CombineEnchants<T> implements AnvilFunction<T> {
         additionEnchants
     );
 
-    int finalCost = mergeResult.levelCost < 0 ? state.getOriginalView().getMaximumRepairCost() : mergeResult.levelCost;
+    int finalCost = mergeResult.levelCost < 0 ? state.getAnvilView().getMaximumRepairCost() : mergeResult.levelCost;
 
     return new AnvilFunctionResult<>() {
       @Override

@@ -170,7 +170,7 @@ class MetaAnvilFunctionsTest {
 
       AnvilView view = mock();
       doReturn(anvilName).when(view).getRenameText();
-      doReturn(view).when(state).getOriginalView();
+      doReturn(view).when(state).getAnvilView();
 
       assertThat("Rename requires different name", function.canApply(behavior, state, resultStack), is(canApply));
     }
@@ -183,7 +183,7 @@ class MetaAnvilFunctionsTest {
 
       AnvilView view = mock();
       doReturn("sample text").when(view).getRenameText();
-      doReturn(view).when(state).getOriginalView();
+      doReturn(view).when(state).getAnvilView();
 
       AnvilFunctionResult<MetaCachedStack> result = function.getResult(behavior, state, resultStack);
 
@@ -204,7 +204,7 @@ class MetaAnvilFunctionsTest {
 
       AnvilView view = mock();
       doReturn("sample text").when(view).getRenameText();
-      doReturn(view).when(state).getOriginalView();
+      doReturn(view).when(state).getAnvilView();
 
       AnvilFunctionResult<MetaCachedStack> result = function.getResult(behavior, state, resultStack);
 
@@ -232,7 +232,7 @@ class MetaAnvilFunctionsTest {
 
       AnvilView view = mock();
       doReturn("sample text").when(view).getRenameText();
-      doReturn(view).when(state).getOriginalView();
+      doReturn(view).when(state).getAnvilView();
       MetaCachedStack metaStack = mock();
       doReturn(metaStack).when(state).getBase();
       doReturn(metaStack).when(state).getAddition();

@@ -3,7 +3,6 @@ package com.github.jikoo.planarenchanting.util.mock.inventory;
 import java.util.Map;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  * implementation exists that does not implement Damageable, Repairable, and BlockDataMeta.
  * See CraftMetaItem.
  */
-public interface ItemMetaBase extends ItemMeta, Repairable, Damageable {
+public interface ItemMetaBase extends Repairable, Damageable {
 
   void setEnchants(Map<Enchantment, Integer> enchantments);
 

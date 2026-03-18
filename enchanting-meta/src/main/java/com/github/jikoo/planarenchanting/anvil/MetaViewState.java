@@ -17,7 +17,7 @@ class MetaViewState implements ViewState<MetaCachedStack> {
   }
 
   @Override
-  public AnvilView getOriginalView() {
+  public AnvilView getAnvilView() {
     return view;
   }
 
