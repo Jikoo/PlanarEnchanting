@@ -17,7 +17,6 @@ import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
-import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -49,7 +48,7 @@ class MetaTempererTest {
   void hasChangedBaseNullMeta() {
     MetaCachedStack base = mock();
 
-    RepairableMeta resultMeta = mock();
+    Repairable resultMeta = mock();
     MetaCachedStack result = mock();
     doReturn(resultMeta).when(result).getMeta();
 
@@ -63,7 +62,7 @@ class MetaTempererTest {
 
   @Test
   void hasChangedResultNullMeta() {
-    RepairableMeta baseMeta = mock();
+    Repairable baseMeta = mock();
     MetaCachedStack base = mock();
     doReturn(baseMeta).when(base).getMeta();
 
@@ -95,7 +94,7 @@ class MetaTempererTest {
     MetaCachedStack base = mock();
     doReturn(baseMeta).when(base).getMeta();
 
-    RepairableMeta resultMeta = mock();
+    Repairable resultMeta = mock();
     doReturn(resultMeta).when(resultMeta).clone();
     MetaCachedStack result = mock();
     doReturn(resultMeta).when(result).getMeta();
@@ -113,7 +112,7 @@ class MetaTempererTest {
 
   @Test
   void hasChangedResultNotRepairable() {
-    RepairableMeta baseMeta = mock();
+    Repairable baseMeta = mock();
     MetaCachedStack base = mock();
     doReturn(baseMeta).when(base).getMeta();
 
@@ -155,11 +154,11 @@ class MetaTempererTest {
 
   @Test
   void hasChangedAirAddition() {
-    RepairableMeta baseMeta = mock();
+    Repairable baseMeta = mock();
     MetaCachedStack base = mock();
     doReturn(baseMeta).when(base).getMeta();
 
-    RepairableMeta resultMeta = mock();
+    Repairable resultMeta = mock();
     doReturn(resultMeta).when(resultMeta).clone();
     MetaCachedStack result = mock();
     doReturn(resultMeta).when(result).getMeta();
@@ -180,11 +179,11 @@ class MetaTempererTest {
 
   @Test
   void hasChanged() {
-    RepairableMeta baseMeta = mock();
+    Repairable baseMeta = mock();
     MetaCachedStack base = mock();
     doReturn(baseMeta).when(base).getMeta();
 
-    RepairableMeta resultMeta = mock();
+    Repairable resultMeta = mock();
     doReturn(resultMeta).when(resultMeta).clone();
     MetaCachedStack result = mock();
     doReturn(resultMeta).when(result).getMeta();
@@ -214,11 +213,6 @@ class MetaTempererTest {
 
     verify(metaStack).getMeta();
     verify(stack).setItemMeta(any());
-  }
-
-  private interface RepairableMeta extends ItemMeta, Repairable {
-    @Override
-    @NonNull RepairableMeta clone();
   }
 
 }

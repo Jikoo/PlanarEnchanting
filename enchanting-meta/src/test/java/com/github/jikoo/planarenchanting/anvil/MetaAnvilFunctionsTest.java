@@ -62,7 +62,7 @@ class MetaAnvilFunctionsTest {
       ViewState<MetaCachedStack> state = mock();
       MetaCachedStack resultStack = mock();
 
-      RepairableMeta meta = mock();
+      Repairable meta = mock();
       doReturn(baseWork).when(meta).getRepairCost();
       MetaCachedStack metaStack = mock();
       doReturn(meta).when(metaStack).getMeta();
@@ -242,7 +242,7 @@ class MetaAnvilFunctionsTest {
       assertThat("Level cost increase is 1", result.getLevelCostIncrease(), is(1));
       assertThat("Material cost is unchanged", result.getMaterialCostIncrease(), is(0));
 
-      RepairableMeta meta = mock();
+      Repairable meta = mock();
       metaStack = mock();
       doReturn(meta).when(metaStack).getMeta();
 
@@ -305,7 +305,7 @@ class MetaAnvilFunctionsTest {
       ViewState<MetaCachedStack> state = mock();
       MetaCachedStack resultStack = mock();
 
-      RepairableMeta meta = mock();
+      Repairable meta = mock();
       MetaCachedStack stack = mock();
       doReturn(meta).when(stack).getMeta();
       doReturn(stack).when(state).getBase();
@@ -342,7 +342,7 @@ class MetaAnvilFunctionsTest {
       ViewState<MetaCachedStack> state = mock();
       MetaCachedStack resultStack = mock();
 
-      RepairableMeta meta = mock();
+      Repairable meta = mock();
       doReturn(baseCost).when(meta).getRepairCost();
       MetaCachedStack stack = mock();
       doReturn(meta).when(stack).getMeta();
@@ -445,7 +445,7 @@ class MetaAnvilFunctionsTest {
       doReturn((short) 100).when(material).getMaxDurability();
       ItemStack stack = mock();
       doReturn(material).when(stack).getType();
-      DamageableMeta meta = mock();
+      Damageable meta = mock();
       MetaCachedStack metaStack = mock();
       doReturn(stack).when(metaStack).getItem();
       doReturn(meta).when(metaStack).getMeta();
@@ -466,7 +466,7 @@ class MetaAnvilFunctionsTest {
       doReturn((short) 4).when(material).getMaxDurability();
       ItemStack stack = mock();
       doReturn(material).when(stack).getType();
-      DamageableMeta meta = mock();
+      Damageable meta = mock();
       doReturn(4).when(meta).getDamage();
       MetaCachedStack metaStack = mock();
       doReturn(stack).when(metaStack).getItem();
@@ -498,7 +498,7 @@ class MetaAnvilFunctionsTest {
       ViewState<MetaCachedStack> state = mock();
       MetaCachedStack resultStack = mock();
 
-      DamageableMeta meta = mock();
+      Damageable meta = mock();
       MetaCachedStack metaStack = mock();
       doReturn(meta).when(metaStack).getMeta();
       doReturn(metaStack).when(state).getBase();
@@ -525,7 +525,7 @@ class MetaAnvilFunctionsTest {
       doReturn((short) 4).when(material).getMaxDurability();
       ItemStack stack = mock();
       doReturn(material).when(stack).getType();
-      DamageableMeta meta = mock();
+      Damageable meta = mock();
       doReturn(4).when(meta).getDamage();
       MetaCachedStack metaStack = mock();
       doReturn(stack).when(metaStack).getItem();
@@ -651,7 +651,7 @@ class MetaAnvilFunctionsTest {
       doReturn((short) 4).when(material).getMaxDurability();
       ItemStack stack = mock();
       doReturn(material).when(stack).getType();
-      DamageableMeta meta = mock();
+      Damageable meta = mock();
       MetaCachedStack metaStack = mock();
       doReturn(stack).when(metaStack).getItem();
       doReturn(meta).when(metaStack).getMeta();
@@ -680,7 +680,7 @@ class MetaAnvilFunctionsTest {
       doReturn((short) 4).when(material).getMaxDurability();
       ItemStack stack = mock();
       doReturn(material).when(stack).getType();
-      DamageableMeta meta = mock();
+      Damageable meta = mock();
       doReturn(4).when(meta).getDamage();
       MetaCachedStack metaStack = mock();
       doReturn(stack).when(metaStack).getItem();
@@ -731,7 +731,7 @@ class MetaAnvilFunctionsTest {
 
       // Base
       ItemStack stack = mock();
-      DamageableMeta meta = mock();
+      Damageable meta = mock();
       MetaCachedStack metaStack = mock();
       doReturn(stack).when(metaStack).getItem();
       doReturn(meta).when(metaStack).getMeta();
@@ -758,7 +758,7 @@ class MetaAnvilFunctionsTest {
 
       // Base
       ItemStack stack = mock();
-      DamageableMeta meta = mock();
+      Damageable meta = mock();
       MetaCachedStack metaStack = mock();
       doReturn(stack).when(metaStack).getItem();
       doReturn(meta).when(metaStack).getMeta();
@@ -791,7 +791,7 @@ class MetaAnvilFunctionsTest {
       // Base
       ItemStack stack = mock();
       doReturn(material).when(stack).getType();
-      DamageableMeta meta = mock();
+      Damageable meta = mock();
       doReturn(100).when(meta).getDamage();
       MetaCachedStack metaStack = mock();
       doReturn(stack).when(metaStack).getItem();
@@ -864,16 +864,6 @@ class MetaAnvilFunctionsTest {
         functions.combineEnchantsBedrock(),
         is(sameInstance(MetaAnvilFunctions.COMBINE_ENCHANTMENTS_BEDROCK))
     );
-  }
-
-  private interface RepairableMeta extends ItemMeta, Repairable {
-    @Override
-    @NonNull RepairableMeta clone();
-  }
-
-  private interface DamageableMeta extends ItemMeta, Damageable {
-    @Override
-    @NonNull DamageableMeta clone();
   }
 
 }
