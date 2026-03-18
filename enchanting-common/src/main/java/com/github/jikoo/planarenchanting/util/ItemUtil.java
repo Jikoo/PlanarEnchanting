@@ -28,7 +28,6 @@ public final class ItemUtil {
   };
 
   private ItemUtil() {
-    // TODO parity for static helpers
     throw new IllegalStateException("Cannot instantiate static helper container.");
   }
 
