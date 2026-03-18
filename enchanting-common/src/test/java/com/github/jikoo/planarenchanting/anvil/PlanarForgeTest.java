@@ -42,6 +42,7 @@ class PlanarForgeTest {
     doReturn(1).when(base).getAmount();
     doReturn(base).when(inventory).getItem(0);
     addition = mock();
+    doReturn(1).when(addition).getAmount();
     doReturn(addition).when(inventory).getItem(1);
 
     ViewState<Void> state = mock();
@@ -80,8 +81,19 @@ class PlanarForgeTest {
   }
 
   @Test
-  void getResultEmptyBase() {
+  void getResultAirBase() {
     doReturn(Material.AIR).when(base).getType();
+
+    assertThat(
+        "Result is empty for empty base.",
+        anvil.getResult(view).item().getType() == Material.AIR,
+        is(true)
+    );
+  }
+
+  @Test
+  void getResultEmptyBase() {
+    doReturn(0).when(base).getAmount();
 
     assertThat(
         "Result is empty for empty base.",
@@ -100,13 +112,12 @@ class PlanarForgeTest {
         is(true)
     );
 
-    verify(functions).addPriorWorkLevelCost();
     // No addition means only a rename.
     verify(functions).rename();
   }
 
   @Test
-  void getResultEmptyAddition() {
+  void getResultAirAddition() {
     doReturn(Material.AIR).when(addition).getType();
 
     assertThat(
@@ -115,7 +126,19 @@ class PlanarForgeTest {
         is(true)
     );
 
-    verify(functions).addPriorWorkLevelCost();
+    verify(functions).rename();
+  }
+
+  @Test
+  void getResultEmptyAddition() {
+    doReturn(0).when(addition).getAmount();
+
+    assertThat(
+        "Result is empty for empty addition and no rename.",
+        anvil.getResult(view).item().getType() == Material.AIR,
+        is(true)
+    );
+
     verify(functions).rename();
   }
 
@@ -134,7 +157,6 @@ class PlanarForgeTest {
         is(sameInstance(forgeResult))
     );
 
-    verify(functions).addPriorWorkLevelCost();
     verify(functions).rename();
     verify(functions, never()).setItemPriorWork();
   }
@@ -149,7 +171,6 @@ class PlanarForgeTest {
         is(true)
     );
 
-    verify(functions).addPriorWorkLevelCost();
     verify(functions, never()).rename();
   }
 
@@ -157,7 +178,6 @@ class PlanarForgeTest {
   void getResult() {
     assertThat("Result is expected value", anvil.getResult(view), is(forgeResult));
 
-    verify(functions).addPriorWorkLevelCost();
     verify(functions).rename();
     verify(functions).setItemPriorWork();
     verify(functions).repairWithMaterial();
@@ -175,7 +195,6 @@ class PlanarForgeTest {
 
     assertThat("Result is expected value", anvil.getResult(view), is(forgeResult));
 
-    verify(functions).addPriorWorkLevelCost();
     verify(functions).rename();
     verify(functions).setItemPriorWork();
     verify(functions).repairWithMaterial();

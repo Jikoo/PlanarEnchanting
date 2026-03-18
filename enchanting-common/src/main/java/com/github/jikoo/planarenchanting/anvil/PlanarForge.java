@@ -36,22 +36,16 @@ public final class PlanarForge<T> implements Anvil {
 
     AnvilInventory anvil = view.getTopInventory();
     ItemStack base = anvil.getItem(0);
-    if (base == null || base.getType() == Material.AIR) { // TODO check count > 0 too in these areas?
+    if (base == null || base.getType() == Material.AIR || base.getAmount() < 1) {
       return AnvilResult.EMPTY;
     }
 
-    // Apply base cost.
-    piece.apply(behavior, functions.addPriorWorkLevelCost()); // TODO check if renames ignore this now
-
     ItemStack addition = anvil.getItem(1);
-    if (addition == null || addition.getType() == Material.AIR) {
+    if (addition == null || addition.getType() == Material.AIR || addition.getAmount() < 1) {
       if (!piece.apply(behavior, functions.rename())) {
         // If there isn't a rename occurring, nothing is happening.
         return AnvilResult.EMPTY;
       }
-
-      // If the only thing occurring is a renaming operation, it is always allowed.
-      piece.setLevelCost(Math.min(piece.getLevelCost(), view.getMaximumRepairCost() - 1));
 
       // No addition means no other operations to perform.
       return piece.temper();
