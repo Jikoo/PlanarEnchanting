@@ -10,6 +10,8 @@ import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.ParameterizedTypeName;
 import com.palantir.javapoet.TypeName;
 import com.palantir.javapoet.TypeSpec;
+
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -76,6 +78,7 @@ public class EnchantDataGenerator extends Generator {
     VanillaRegistries.createLookup()
         .lookupOrThrow(Registries.ENCHANTMENT)
         .listElements()
+        .sorted(Comparator.comparing(ref -> ref.key().identifier()))
         .forEach(ref -> addEnchant(getter, ref));
 
     getter.addComment("</editor-fold>");
@@ -145,11 +148,13 @@ public class EnchantDataGenerator extends Generator {
 
                   @Override
                   public boolean isTridentEnchant() {
-                    return enchant.canEnchantItem(new $T($T.TRIDENT));
+                    return enchant.canEnchantItem(new $T($T.TRIDENT))
+                        && !enchant.canEnchantItem(new $T($T.DIAMOND_SWORD));
                   }
                 };
                 """,
                 enchantData,
+                ItemStack.class, Material.class,
                 ItemStack.class, Material.class
             )
             .build()

@@ -177,8 +177,7 @@ public final class ComponentAnvilFunctions implements AnvilFunctionsProvider<Ite
         return false;
       }
       // If either is undamaged, not eligible for repair.
-      // TODO check if this is true for addition (if yes update meta version)
-      if (get(state.getBase(), DAMAGE) <= 0 || get(state.getAddition(), DAMAGE) <= 0) {
+      if (get(state.getBase(), DAMAGE) <= 0) {
         return false;
       }
       // If the base doesn't have a valid max damage, not eligible.
