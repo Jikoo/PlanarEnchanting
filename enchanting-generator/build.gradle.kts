@@ -9,7 +9,6 @@ dependencies {
   paperweight.paperDevBundle(libs.versions.io.papermc.paper.paper.api)
 }
 
-// TODO would be nice to generate EnchantabilityCategory into common, rest into meta (should meta become spigot?)
 var common: Project = project(":enchanting-common")
 var generationDir: Directory = common.layout.projectDirectory.dir("src/generated/java")
 

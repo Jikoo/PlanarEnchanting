@@ -143,5 +143,4 @@ public class RepairMaterialsGenerator extends ItemConsumingGenerator {
     super.generate(dir);
   }
 
-
 }

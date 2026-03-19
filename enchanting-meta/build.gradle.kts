@@ -4,7 +4,9 @@ repositories {
 
 dependencies {
   compileOnly(libs.org.spigotmc.spigot.api)
-  implementation(project(":enchanting-common"))
+  implementation(project(":enchanting-common")) {
+    exclude(group = "com.github.jikoo", module = "planarwrappers")
+  }
 
   testImplementation(libs.org.spigotmc.spigot.api)
 }

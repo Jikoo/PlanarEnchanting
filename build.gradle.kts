@@ -5,6 +5,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
   `java-library`
   jacoco
+  alias(libs.plugins.shadow) apply false
 }
 
 repositories {
@@ -77,9 +78,4 @@ subprojects {
       }
     }
   }
-}
-
-tasks.jacocoTestReport {
-//  executionData.setFrom(subprojects.jacocoTestReport.executionData)
-//  executionData.setFrom(files(subprojects.map { executionData }))
 }
