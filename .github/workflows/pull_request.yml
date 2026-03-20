@@ -5,9 +5,7 @@ on:
 
 jobs:
   run-ci:
-    uses: Jikoo/PlanarActions/.github/workflows/ci_gradle_sonar.yml@master
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    uses: Jikoo/PlanarActions/.github/workflows/ci_gradle.yml@master
   approve-and-merge-dependabot:
     if: "github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'"
     needs: [ "run-ci" ]
