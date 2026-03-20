@@ -4,6 +4,7 @@ import static javax.lang.model.element.Modifier.PRIVATE;
 
 import com.github.jikoo.planarenchanting.generator.ItemConsumingGenerator;
 import com.mojang.datafixers.util.Either;
+import com.palantir.javapoet.AnnotationSpec;
 import com.palantir.javapoet.ClassName;
 import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.ParameterizedTypeName;
@@ -14,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
-import net.kyori.adventure.key.Key;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -23,8 +23,10 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Repairable;
+import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.UnknownNullability;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 @NullMarked
 public class RepairMaterialsGenerator extends ItemConsumingGenerator {
@@ -38,7 +40,13 @@ public class RepairMaterialsGenerator extends ItemConsumingGenerator {
 
   @Override
   protected TypeSpec.Builder create() {
-    ParameterizedTypeName returnType = ParameterizedTypeName.get(Map.class, Key.class, Key.class);
+    AnnotationSpec nullable = AnnotationSpec.builder(Nullable.class).build();
+
+    ParameterizedTypeName returnType = ParameterizedTypeName.get(
+        ClassName.get(Map.class),
+        ClassName.get(NamespacedKey.class).annotated(nullable),
+        ClassName.get(NamespacedKey.class).annotated(nullable)
+    );
     tagGetter = MethodSpec.methodBuilder("getTags")
         .addModifiers(Modifier.STATIC)
         .returns(returnType)
@@ -50,8 +58,11 @@ public class RepairMaterialsGenerator extends ItemConsumingGenerator {
 
     returnType = ParameterizedTypeName.get(
         ClassName.get(Map.class),
-        ClassName.get(Key.class),
-        ParameterizedTypeName.get(List.class, Key.class)
+        ClassName.get(NamespacedKey.class).annotated(nullable),
+        ParameterizedTypeName.get(
+            ClassName.get(List.class),
+            ClassName.get(NamespacedKey.class).annotated(nullable)
+        )
     );
     listGetter = MethodSpec.methodBuilder("getLists")
         .addModifiers(Modifier.STATIC)
@@ -63,7 +74,10 @@ public class RepairMaterialsGenerator extends ItemConsumingGenerator {
         );
 
     return TypeSpec.classBuilder(generatedClass)
-        .addJavadoc("Pre-baked data used as a fallthrough for RepairMaterial.\n\n")
+        .addJavadoc(
+            "Pre-baked data used for {@link $T}.\n\n",
+            ClassName.get(generatedClass.packageName(), "RepairMaterial")
+        )
         // package-private; only RepairMaterial needs access.
         .addModifiers(Modifier.FINAL)
         .addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).build());
@@ -83,8 +97,8 @@ public class RepairMaterialsGenerator extends ItemConsumingGenerator {
         tagKey -> {
           Identifier id = tagKey.location();
           tagGetter.addStatement(
-              "map.put($T.key($S, $S), $T.key($S, $S))",
-              Key.class, key.getNamespace(), key.getPath(), Key.class, id.getNamespace(), id.getPath()
+              "map.put($T.fromString($S), $T.fromString($S))",
+              NamespacedKey.class, key.toString(), NamespacedKey.class, id.toString()
           );
           return null;
         },
@@ -93,8 +107,8 @@ public class RepairMaterialsGenerator extends ItemConsumingGenerator {
             return null;
           }
           listGetter.addCode(
-              "map.put($T.key($S, $S), $T.of(",
-              Key.class, key.getNamespace(), key.getPath(), List.class
+              "map.put($T.fromString($S), $T.of(",
+              NamespacedKey.class, key.toString(), List.class
           );
 
           boolean first = true;
@@ -107,7 +121,7 @@ public class RepairMaterialsGenerator extends ItemConsumingGenerator {
 
             Item value = holder.value();
             Identifier id = BuiltInRegistries.ITEM.getKey(value);
-            listGetter.addCode("$T.key($S, $S)", Key.class, id.getNamespace(), id.getPath());
+            listGetter.addCode("$T.fromString($S)", NamespacedKey.class, id.toString());
           }
 
           listGetter.addStatement("))");
@@ -128,6 +142,5 @@ public class RepairMaterialsGenerator extends ItemConsumingGenerator {
 
     super.generate(dir);
   }
-
 
 }

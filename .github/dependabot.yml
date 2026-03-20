@@ -6,3 +6,6 @@ updates:
       interval: monthly
       time: "10:00"
     open-pull-requests-limit: 10
+    ignore:
+      # Spigot-API is pinned to the point when the hard fork occurred.
+      - dependency-name: "org.spigotmc:*"
