@@ -13,7 +13,7 @@ org-jetbrains-annotations = "26.0.2-1"
 org-mockito-mockito-core = "5.23.0"
 org-sonarqube = "7.1.0.6387"
 paperweight = "2.0.0-beta.19"
-com-palantir-javapoet-javapoet = "0.11.0"
+com-palantir-javapoet-javapoet = "0.12.0"
 shadow = "9.4.0"
 
 [libraries]
