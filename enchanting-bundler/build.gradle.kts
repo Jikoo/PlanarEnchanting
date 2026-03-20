@@ -15,12 +15,21 @@ dependencies {
   testImplementation(libs.org.spigotmc.spigot.api)
 }
 
+tasks.jar {
+  enabled = false
+}
+
 tasks.shadowJar {
-  dependsOn(tasks.jar)
+  dependsOn("classes")
+  archiveClassifier.set("")
 
   archiveBaseName = "${project.name}"
 }
 
-tasks.build {
+tasks.assemble {
   dependsOn(tasks.shadowJar)
+}
+
+artifacts {
+  add("default", tasks.shadowJar)
 }
