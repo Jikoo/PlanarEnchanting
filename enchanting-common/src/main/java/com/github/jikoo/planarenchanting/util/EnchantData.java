@@ -1,8 +1,6 @@
 package com.github.jikoo.planarenchanting.util;
 
-import java.util.ServiceLoader;
 import org.bukkit.enchantments.Enchantment;
-import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -53,23 +51,12 @@ public interface EnchantData {
   /**
    * An enchantment data provider.
    *
-   * @see Service#PROVIDER
+   * @see EnchantDataService#PROVIDER
    */
   @NullMarked
   interface Provider {
 
     EnchantData of(Enchantment enchantment);
-
-  }
-
-  @ApiStatus.NonExtendable
-  interface Service {
-
-    /**
-     * A {@link Provider} loaded from a service.
-     */
-    Provider PROVIDER = ServiceLoader.load(Provider.class, Provider.class.getClassLoader())
-        .findFirst().orElseThrow();
 
   }
 

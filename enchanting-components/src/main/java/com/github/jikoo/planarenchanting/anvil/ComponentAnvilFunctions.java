@@ -228,7 +228,7 @@ public final class ComponentAnvilFunctions implements AnvilFunctionsProvider<Ite
   public static final AnvilFunction<ItemStack> COMBINE_ENCHANTMENTS_JAVA;
   public static final AnvilFunction<ItemStack> COMBINE_ENCHANTMENTS_BEDROCK;
 
-  public static ComponentAnvilFunctions INSTANCE = new ComponentAnvilFunctions();
+  public static final ComponentAnvilFunctions INSTANCE = new ComponentAnvilFunctions();
 
   static {
     ComponentEnchantmentAccess access = new ComponentEnchantmentAccess();

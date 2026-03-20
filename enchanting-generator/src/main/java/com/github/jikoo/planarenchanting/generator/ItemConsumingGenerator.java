@@ -7,7 +7,7 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public abstract class ItemConsumingGenerator extends Generator {
 
-  public ItemConsumingGenerator(String pkg, String name) {
+  protected ItemConsumingGenerator(String pkg, String name) {
     super(pkg, "Baked" + name + "Data");
   }
 

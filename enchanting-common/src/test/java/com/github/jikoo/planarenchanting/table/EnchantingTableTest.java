@@ -19,6 +19,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 import com.github.jikoo.planarenchanting.util.EnchantData;
+import com.github.jikoo.planarenchanting.util.EnchantDataService;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -96,7 +98,7 @@ class EnchantingTableTest {
   }
 
   static void setUpToolEnchants() {
-    EnchantData data = EnchantData.Service.PROVIDER.of(Enchantment.EFFICIENCY);
+    EnchantData data = EnchantDataService.PROVIDER.of(Enchantment.EFFICIENCY);
     doReturn(10).when(data).getWeight();
     doAnswer(invocation -> {
       int level = invocation.getArgument(0);
@@ -108,7 +110,7 @@ class EnchantingTableTest {
     }).when(data).getMaxModifiedCost(anyInt());
     doReturn(5).when(Enchantment.EFFICIENCY).getMaxLevel();
 
-    data = EnchantData.Service.PROVIDER.of(Enchantment.UNBREAKING);
+    data = EnchantDataService.PROVIDER.of(Enchantment.UNBREAKING);
     doReturn(5).when(data).getWeight();
     doAnswer(invocation -> {
       int level = invocation.getArgument(0);
@@ -120,7 +122,7 @@ class EnchantingTableTest {
     }).when(data).getMaxModifiedCost(anyInt());
     doReturn(3).when(Enchantment.UNBREAKING).getMaxLevel();
 
-    data = EnchantData.Service.PROVIDER.of(Enchantment.FORTUNE);
+    data = EnchantDataService.PROVIDER.of(Enchantment.FORTUNE);
     doReturn(2).when(data).getWeight();
     doAnswer(invocation -> {
       int level = invocation.getArgument(0);
@@ -132,7 +134,7 @@ class EnchantingTableTest {
     }).when(data).getMaxModifiedCost(anyInt());
     doReturn(3).when(Enchantment.FORTUNE).getMaxLevel();
 
-    data = EnchantData.Service.PROVIDER.of(Enchantment.SILK_TOUCH);
+    data = EnchantDataService.PROVIDER.of(Enchantment.SILK_TOUCH);
     doReturn(1).when(data).getWeight();
     doReturn(15).when(data).getMinModifiedCost(anyInt());
     doReturn(65).when(data).getMaxModifiedCost(anyInt());
@@ -231,7 +233,7 @@ class EnchantingTableTest {
   @ParameterizedTest
   @CsvSource({"1,0", "10,0", "15,0", "1,12348", "10,98124", "15,23479"})
   void testGetButtonLevels(int shelves, int seed) {
-    Random random = new Random(seed);
+    random.setSeed(seed);
     int[] buttonLevels1 = EnchantingTable.getButtonLevels(random, shelves);
     random.setSeed(seed);
     int[] buttonLevels2 = EnchantingTable.getButtonLevels(random, shelves);

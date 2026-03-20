@@ -18,7 +18,7 @@ public final class FieldAccessor {
       constructor.setAccessible(true);
       COMMENT = constructor.newInstance("//");
     } catch (ReflectiveOperationException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 
@@ -31,7 +31,7 @@ public final class FieldAccessor {
       try {
         consumer.accept(field.getName(), type.cast(field.get(null)));
       } catch (IllegalAccessException e) {
-        throw new RuntimeException(e);
+        throw new IllegalStateException(e);
       }
     }
   }

@@ -23,7 +23,7 @@ public abstract class Generator {
   protected final ClassName generatedClass;
   protected TypeSpec.@UnknownNullability Builder builder;
 
-  public Generator(String pkg, String name) {
+  protected Generator(String pkg, String name) {
     this.generatedClass = ClassName.get(pkg, name);
   }
 
@@ -105,7 +105,7 @@ public abstract class Generator {
   /**
    * Lenient annotation declaration. This is a bit hairy, because annotations may have values set.
    */
-  private static final @RegExp String ANNOTATION = "@[\\w.]+(?:\\(.*?\\))?";
+  private static final @RegExp String ANNOTATION = "@[\\w.]+(?:\\([^\\)]*+\\))?";
   /** Lenient generic type declaration. */
   private static final @RegExp String GENERIC = "<(?:(?:" + ANNOTATION + " )*?[\\w<>, ]+)+>";
   /**
@@ -157,7 +157,7 @@ public abstract class Generator {
           // Javadoc comments. Multi-line only, because JavaPoet only generates multi-line Javadocs.
           + "(?: {2}/\\*\\*\n(?:.*\n)*?\\s*\\*/\n)?"
           // Regular comments in case of comment hack fields.
-          + "(?: {2}//.*?\n)?"
+          + "(?: {2}//[^\\n]*+\n)?"
           // Any annotations.
           + "(?: {2}" + ANNOTATION + "\n)*?"
           // Matching indent.
