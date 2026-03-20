@@ -6,6 +6,8 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import com.github.jikoo.planarenchanting.util.EnchantData;
 import com.github.jikoo.planarenchanting.util.EnchantmentAccess;
+import com.github.jikoo.planarenchanting.util.EnchantDataService;
+
 import org.bukkit.enchantments.Enchantment;
 import org.jspecify.annotations.NullMarked;
 
@@ -22,7 +24,7 @@ public class CombineEnchants<T> implements AnvilFunction<T> {
 
   protected CombineEnchants(Platform platform, EnchantmentAccess<T> access) {
     this.access = access;
-    this.platform = platform.platform;
+    this.platform = platform.internalPlatform;
   }
 
   @Override
@@ -110,10 +112,10 @@ public class CombineEnchants<T> implements AnvilFunction<T> {
     JAVA(new Java()),
     BEDROCK(new Bedrock()),;
 
-    private final EnchantingPlatform platform;
+    private final EnchantingPlatform internalPlatform;
 
     Platform(EnchantingPlatform platform) {
-      this.platform = platform;
+      this.internalPlatform = platform;
     }
   }
 
@@ -128,7 +130,7 @@ public class CombineEnchants<T> implements AnvilFunction<T> {
   private static final class Java implements EnchantingPlatform {
     @Override
     public int getAnvilCost(Enchantment enchantment, boolean isFromBook) {
-      int value = EnchantData.Service.PROVIDER.of(enchantment).getAnvilCost();
+      int value = EnchantDataService.PROVIDER.of(enchantment).getAnvilCost();
       return isFromBook ? Math.max(1, value / 2) : value;
     }
 
@@ -146,7 +148,7 @@ public class CombineEnchants<T> implements AnvilFunction<T> {
   private static final class Bedrock implements EnchantingPlatform {
     @Override
     public int getAnvilCost(Enchantment enchantment, boolean isFromBook) {
-      EnchantData data = EnchantData.Service.PROVIDER.of(enchantment);
+      EnchantData data = EnchantDataService.PROVIDER.of(enchantment);
 
       int cost = data.getAnvilCost();
 

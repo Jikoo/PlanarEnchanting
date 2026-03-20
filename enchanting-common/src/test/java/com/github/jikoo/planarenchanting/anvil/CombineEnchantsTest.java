@@ -21,6 +21,8 @@ import com.github.jikoo.planarenchanting.anvil.CombineEnchants.MergeResult;
 import com.github.jikoo.planarenchanting.anvil.CombineEnchants.Platform;
 import com.github.jikoo.planarenchanting.util.EnchantData;
 import com.github.jikoo.planarenchanting.util.EnchantmentAccess;
+import com.github.jikoo.planarenchanting.util.EnchantDataService;
+
 import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -185,7 +187,7 @@ class CombineEnchantsTest {
     Map<Enchantment, Integer> base = Map.of(enchantment, 1);
     Map<Enchantment, Integer> added = Map.of(enchantment, 1);
 
-    EnchantData data = EnchantData.Service.PROVIDER.of(enchantment);
+    EnchantData data = EnchantDataService.PROVIDER.of(enchantment);
     doReturn(5).when(data).getAnvilCost();
 
     CombineEnchants<Void> function = new CombineEnchants<>(platform, access);
@@ -220,7 +222,7 @@ class CombineEnchantsTest {
     Map<Enchantment, Integer> base = Map.of(enchantment, baseLevel);
     Map<Enchantment, Integer> added = Map.of(enchantment, addedLevel);
 
-    EnchantData data = EnchantData.Service.PROVIDER.of(enchantment);
+    EnchantData data = EnchantDataService.PROVIDER.of(enchantment);
     int anvilCost = 5;
     doReturn(anvilCost).when(data).getAnvilCost();
 
@@ -252,7 +254,7 @@ class CombineEnchantsTest {
     Map<Enchantment, Integer> base = Map.of(enchantment, baseLevel);
     Map<Enchantment, Integer> added = Map.of(enchantment, addedLevel);
 
-    EnchantData data = EnchantData.Service.PROVIDER.of(enchantment);
+    EnchantData data = EnchantDataService.PROVIDER.of(enchantment);
     int anvilCost = 5;
     doReturn(anvilCost).when(data).getAnvilCost();
 
@@ -284,7 +286,7 @@ class CombineEnchantsTest {
     Map<Enchantment, Integer> base = Map.of();
     Map<Enchantment, Integer> added = Map.of(enchantment, 1);
 
-    EnchantData data = EnchantData.Service.PROVIDER.of(enchantment);
+    EnchantData data = EnchantDataService.PROVIDER.of(enchantment);
     int anvilCost = 5;
     doReturn(anvilCost).when(data).getAnvilCost();
 
@@ -314,7 +316,7 @@ class CombineEnchantsTest {
     Map<Enchantment, Integer> base = Map.of();
     Map<Enchantment, Integer> added = Map.of(enchantment, 1);
 
-    EnchantData data = EnchantData.Service.PROVIDER.of(enchantment);
+    EnchantData data = EnchantDataService.PROVIDER.of(enchantment);
     int anvilCost = 5;
     doReturn(anvilCost).when(data).getAnvilCost();
     doReturn(true).when(data).isTridentEnchant();
@@ -352,7 +354,7 @@ class CombineEnchantsTest {
     doReturn(1).when(behavior).getEnchantMaxLevel(any());
 
     Enchantment enchantment = mock();
-    EnchantData data = EnchantData.Service.PROVIDER.of(enchantment);
+    EnchantData data = EnchantDataService.PROVIDER.of(enchantment);
     doReturn(5).when(data).getAnvilCost();
     doReturn(Map.of()).doReturn(Map.of(enchantment, 1)).when(access).getEnchantments(any());
 
@@ -381,7 +383,7 @@ class CombineEnchantsTest {
     doReturn(view).when(state).getAnvilView();
 
     Enchantment enchantment = mock();
-    EnchantData data = EnchantData.Service.PROVIDER.of(enchantment);
+    EnchantData data = EnchantDataService.PROVIDER.of(enchantment);
     doReturn(5).when(data).getAnvilCost();
     doReturn(Map.of(enchantment, -2)).when(access).getEnchantments(any());
 

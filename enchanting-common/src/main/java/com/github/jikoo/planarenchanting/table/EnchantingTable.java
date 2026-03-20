@@ -1,6 +1,7 @@
 package com.github.jikoo.planarenchanting.table;
 
 import com.github.jikoo.planarenchanting.util.EnchantData;
+import com.github.jikoo.planarenchanting.util.EnchantDataService;
 import com.github.jikoo.planarwrappers.util.WeightedRandom;
 import java.util.Collection;
 import java.util.Collections;
@@ -104,7 +105,7 @@ public class EnchantingTable {
     Map<Enchantment, Integer> available = new HashMap<>();
 
     for (Enchantment enchantment : this.enchantments) {
-      EnchantData data = EnchantData.Service.PROVIDER.of(enchantment);
+      EnchantData data = EnchantDataService.PROVIDER.of(enchantment);
       // Find a level appropriate for the finalized enchanting level.
       for (int lvl = maxLevel.applyAsInt(enchantment); lvl >= enchantment.getStartLevel(); --lvl) {
         if (enchantQuality >= data.getMinModifiedCost(lvl)
@@ -138,7 +139,7 @@ public class EnchantingTable {
     Enchantment choice = WeightedRandom.choose(
         random,
         available.keySet(),
-        enchant -> EnchantData.Service.PROVIDER.of(enchant).getWeight()
+        enchant -> EnchantDataService.PROVIDER.of(enchant).getWeight()
     );
 
     // Add selected enchantment and remove it from the available listings.

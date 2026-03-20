@@ -60,8 +60,8 @@ import org.mockito.MockedStatic;
 class TableEnchantListenerTest {
 
   private MockedStatic<Bukkit> bukkit;
-  private final Material ENCHANTABLE_MATERIAL = Material.COAL_ORE;
-  private final Material UNENCHANTABLE_MATERIAL = Material.DIRT;
+  private final Material enchantableMaterial = Material.COAL_ORE;
+  private final Material unenchantableMaterial = Material.DIRT;
   private Enchantment validEnchant;
   private Collection<Enchantment> toolEnchants;
 
@@ -77,9 +77,9 @@ class TableEnchantListenerTest {
     bukkit.when(() -> Bukkit.getRegistry(any())).thenAnswer(inv -> {
       Registry<Enchantment> registry = mock();
       doAnswer(invocation -> {
-        NamespacedKey key = invocation.getArgument(0);
+        NamespacedKey invocationKey = invocation.getArgument(0);
         Enchantment enchant = mock();
-        doReturn(key).when(enchant).getKey();
+        doReturn(invocationKey).when(enchant).getKey();
         return enchant;
       }).when(registry).getOrThrow(any());
       return registry;
@@ -114,7 +114,7 @@ class TableEnchantListenerTest {
 
       @Override
       protected boolean isIneligible(Player player, ItemStack enchanted) {
-        return itemStack.getType() != ENCHANTABLE_MATERIAL;
+        return itemStack.getType() != enchantableMaterial;
       }
 
       @Override
@@ -148,7 +148,7 @@ class TableEnchantListenerTest {
     }).when(player).setEnchantmentSeed(anyInt());
 
     itemStack = mock();
-    doReturn(ENCHANTABLE_MATERIAL).when(itemStack).getType();
+    doReturn(enchantableMaterial).when(itemStack).getType();
     doReturn(1).when(itemStack).getAmount();
     key = new NamespacedKey(plugin, "enchanting_table_seed");
   }
@@ -167,7 +167,7 @@ class TableEnchantListenerTest {
 
   @Test
   void testCanNotEnchantWrongMaterial() {
-    doReturn(UNENCHANTABLE_MATERIAL).when(itemStack).getType();
+    doReturn(unenchantableMaterial).when(itemStack).getType();
     assertThat(
         "Material with no enchants cannot be enchanted",
         listener.canNotEnchant(player, itemStack));
@@ -183,7 +183,7 @@ class TableEnchantListenerTest {
 
   @Test
   void testPrepareItemEnchantInvalid() {
-    doReturn(UNENCHANTABLE_MATERIAL).when(itemStack).getType();
+    doReturn(unenchantableMaterial).when(itemStack).getType();
     var event = prepareEvent(15);
     assertDoesNotThrow(() -> listener.onPrepareItemEnchant(event));
     assertThat(

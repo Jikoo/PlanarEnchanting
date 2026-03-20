@@ -51,7 +51,7 @@ class PlanarForgeTest {
     functions = mock(Mockito.RETURNS_MOCKS);
     forgeResult = mock();
     anvil = new PlanarForge<>(
-        view -> {
+        localView -> {
           WorkPiece<Void> piece = mock();
           doReturn(forgeResult).when(piece).temper();
           doAnswer(invocation -> {
