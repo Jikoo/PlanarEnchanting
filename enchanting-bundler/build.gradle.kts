@@ -1,5 +1,6 @@
 plugins {
   alias(libs.plugins.shadow)
+  `maven-publish`
 }
 
 dependencies {
@@ -32,4 +33,15 @@ tasks.assemble {
 
 artifacts {
   add("default", tasks.shadowJar)
+}
+
+publishing {
+  publications {
+    create<MavenPublication>("maven") {
+      from(components["shadow"])
+    }
+  }
+  repositories {
+    mavenLocal()
+  }
 }
