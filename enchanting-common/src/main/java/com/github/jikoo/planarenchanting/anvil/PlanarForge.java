@@ -20,7 +20,7 @@ public final class PlanarForge<T> implements Anvil {
   private final AnvilBehavior<T> behavior;
   private final AnvilFunctionsProvider<T> functions;
 
-  PlanarForge(
+  public PlanarForge(
       Function<AnvilView, WorkPiece<T>> createPiece,
       AnvilBehavior<T> behavior,
       AnvilFunctionsProvider<T> functions
