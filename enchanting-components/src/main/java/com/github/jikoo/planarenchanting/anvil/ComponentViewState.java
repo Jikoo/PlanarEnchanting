@@ -4,6 +4,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.view.AnvilView;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * A {@link ViewState} for raw item access.
+ */
 @NullMarked
 public class ComponentViewState implements ViewState<ItemStack> {
 

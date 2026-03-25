@@ -5,6 +5,9 @@ import org.bukkit.enchantments.Enchantment;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * An {@link Provider EnchantData.Provider} wrapping a platform-dependent provider.
+ */
 @Internal
 @NullMarked
 public class DelegateEnchantProvider implements Provider {

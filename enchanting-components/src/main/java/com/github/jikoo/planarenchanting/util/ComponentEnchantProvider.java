@@ -6,6 +6,10 @@ import org.bukkit.enchantments.Enchantment;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * An {@link Provider EnchantData.Provider} for
+ * {@link io.papermc.paper.datacomponent.DataComponentType DataComponent}-based {@link EnchantData}.
+ */
 @Internal
 @NullMarked
 public class ComponentEnchantProvider implements Provider {

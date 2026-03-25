@@ -5,6 +5,9 @@ import io.papermc.paper.datacomponent.DataComponentTypes;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * A {@link Temperer} for {@link DataComponentType DataComponent}-based operations.
+ */
 @NullMarked
 public class ComponentTemperer implements Temperer<ItemStack> {
 

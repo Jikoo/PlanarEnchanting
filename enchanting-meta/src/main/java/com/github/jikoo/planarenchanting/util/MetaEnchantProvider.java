@@ -11,6 +11,10 @@ import org.bukkit.enchantments.Enchantment;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * An {@link Provider EnchantData.Provider} using pre-baked enchantment data. May not include more
+ * recently added enchantments! Falls through to data for unbreaking.
+ */
 @Internal
 @NullMarked
 public class MetaEnchantProvider implements Provider {
