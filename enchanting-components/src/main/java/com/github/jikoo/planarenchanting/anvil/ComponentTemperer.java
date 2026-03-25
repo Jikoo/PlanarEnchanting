@@ -5,10 +5,13 @@ import io.papermc.paper.datacomponent.DataComponentTypes;
 import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * A {@link Temperer} for {@link DataComponentType DataComponent}-based operations.
+ */
 @NullMarked
-class ComponentTemperer implements Temperer<ItemStack> {
+public class ComponentTemperer implements Temperer<ItemStack> {
 
-  static final ComponentTemperer INSTANCE = new ComponentTemperer();
+  public static final ComponentTemperer INSTANCE = new ComponentTemperer();
 
   @Override
   public boolean hasChanged(ItemStack base, ItemStack addition, ItemStack result) {

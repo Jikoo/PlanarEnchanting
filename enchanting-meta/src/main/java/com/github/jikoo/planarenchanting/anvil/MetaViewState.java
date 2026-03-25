@@ -3,14 +3,18 @@ package com.github.jikoo.planarenchanting.anvil;
 import org.bukkit.inventory.view.AnvilView;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * A {@link ViewState} wrapping contents with a {@link MetaCachedStack} for repeated meta
+ * modification.
+ */
 @NullMarked
-class MetaViewState implements ViewState<MetaCachedStack> {
+public class MetaViewState implements ViewState<MetaCachedStack> {
 
   private final AnvilView view;
   private final MetaCachedStack base;
   private final MetaCachedStack addition;
 
-  MetaViewState(AnvilView view) {
+  public MetaViewState(AnvilView view) {
     this.view = view;
     this.base = new MetaCachedStack(view.getItem(0));
     this.addition = new MetaCachedStack(view.getItem(1));

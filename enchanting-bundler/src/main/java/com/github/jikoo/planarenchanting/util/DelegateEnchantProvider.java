@@ -2,10 +2,15 @@ package com.github.jikoo.planarenchanting.util;
 
 import com.github.jikoo.planarenchanting.util.EnchantData.Provider;
 import org.bukkit.enchantments.Enchantment;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * An {@link Provider EnchantData.Provider} wrapping a platform-dependent provider.
+ */
+@Internal
 @NullMarked
-class DelegateEnchantProvider implements Provider {
+public class DelegateEnchantProvider implements Provider {
 
   private final Provider delegate =
       ServerCapabilities.DATA_COMPONENT ? new ComponentEnchantProvider() : new MetaEnchantProvider();

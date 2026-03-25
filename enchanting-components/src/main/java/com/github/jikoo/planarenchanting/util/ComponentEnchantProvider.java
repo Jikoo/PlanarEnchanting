@@ -3,10 +3,16 @@ package com.github.jikoo.planarenchanting.util;
 import com.github.jikoo.planarenchanting.util.EnchantData.Provider;
 import io.papermc.paper.registry.keys.ItemTypeKeys;
 import org.bukkit.enchantments.Enchantment;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * An {@link Provider EnchantData.Provider} for
+ * {@link io.papermc.paper.datacomponent.DataComponentType DataComponent}-based {@link EnchantData}.
+ */
+@Internal
 @NullMarked
-class ComponentEnchantProvider implements Provider {
+public class ComponentEnchantProvider implements Provider {
 
   @Override
   public EnchantData of(Enchantment enchantment) {

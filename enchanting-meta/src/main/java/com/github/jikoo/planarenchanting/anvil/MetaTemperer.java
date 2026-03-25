@@ -7,10 +7,13 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * A {@link Temperer} for {@link ItemMeta}-based operations.
+ */
 @NullMarked
-class MetaTemperer implements Temperer<MetaCachedStack> {
+public class MetaTemperer implements Temperer<MetaCachedStack> {
 
-  static final MetaTemperer INSTANCE = new MetaTemperer();
+  public static final MetaTemperer INSTANCE = new MetaTemperer();
 
   @Override
   public boolean hasChanged(
