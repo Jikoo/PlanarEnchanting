@@ -8,10 +8,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.enchantments.Enchantment;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jspecify.annotations.NullMarked;
 
+@Internal
 @NullMarked
-class MetaEnchantProvider implements Provider {
+public class MetaEnchantProvider implements Provider {
 
   private final Map<NamespacedKey, EnchantData> data = new HashMap<>();
 
