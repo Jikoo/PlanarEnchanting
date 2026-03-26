@@ -224,14 +224,15 @@ class MetaAnvilFunctionsTest {
       verifyNoMoreInteractions(meta);
     }
 
-    @Test
-    void getResult() {
+    @ParameterizedTest
+    @MethodSource("renames")
+    void getResult(String anvilText, String resultText) {
       AnvilBehavior<MetaCachedStack> behavior = mock();
       ViewState<MetaCachedStack> state = mock();
       MetaCachedStack resultStack = mock();
 
       AnvilView view = mock();
-      doReturn("sample text").when(view).getRenameText();
+      doReturn(anvilText).when(view).getRenameText();
       doReturn(view).when(state).getAnvilView();
       MetaCachedStack metaStack = mock();
       doReturn(metaStack).when(state).getBase();
@@ -251,7 +252,7 @@ class MetaAnvilFunctionsTest {
       verify(metaStack).getMeta();
       verifyNoMoreInteractions(metaStack);
 
-      verify(meta).setDisplayName(any());
+      verify(meta).setDisplayName(resultText);
       verify(meta).setRepairCost(anyInt());
       verifyNoMoreInteractions(meta);
     }
@@ -265,14 +266,25 @@ class MetaAnvilFunctionsTest {
           Arguments.of(null, null, false),
           // Both identically named
           Arguments.of(name1, name1, false),
+          // Anvil text empty
+          Arguments.of("", null, false),
 
           // APPLICABLE
           // Only anvil named
           Arguments.of(name1, null, true),
           // Only item named
           Arguments.of(null, name1, true),
+          Arguments.of("", name1, true),
           // Both named differently
           Arguments.of(name1, name2, true)
+      );
+    }
+
+    private static Stream<Arguments> renames() {
+      return Stream.of(
+          Arguments.of(null, null),
+          Arguments.of("", null),
+          Arguments.of("Sample Text", "Sample Text")
       );
     }
 

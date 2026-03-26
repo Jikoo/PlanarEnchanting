@@ -127,13 +127,15 @@ class ComponentAnvilFunctionsTest {
       assertThat("Rename requires different name", function.canApply(behavior, state, resultStack), is(canApply));
     }
 
-    @Test
-    void getResultResetName() {
+    @ParameterizedTest
+    @MethodSource("resetName")
+    void getResultResetName(String anvilText) {
       AnvilBehavior<ItemStack> behavior = mock();
       ViewState<ItemStack> state = mock();
       ItemStack resultStack = mock();
 
       AnvilView view = mock();
+      doReturn(anvilText).when(view).getRenameText();
       doReturn(view).when(state).getAnvilView();
 
       ItemStack stack = mock();
@@ -187,15 +189,22 @@ class ComponentAnvilFunctionsTest {
           Arguments.of(null, null, false),
           // Both identically named
           Arguments.of(name1, Component.text(name1), false),
+          // Anvil text empty
+          Arguments.of("", null, false),
 
           // APPLICABLE
           // Only anvil named
           Arguments.of(name1, null, true),
           // Only item named
           Arguments.of(null, Component.text(name1), true),
+          Arguments.of("", Component.text(name1), true),
           // Both named differently
           Arguments.of(name1, Component.text(name2), true)
       );
+    }
+
+    private static String[] resetName() {
+      return new String[] { null, "" };
     }
 
   }

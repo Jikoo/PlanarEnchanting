@@ -55,7 +55,7 @@ public final class MetaAnvilFunctions implements AnvilFunctionsProvider<MetaCach
       String customName = itemMeta.hasDisplayName() ? itemMeta.getDisplayName() : null;
       String anvilText = state.getAnvilView().getRenameText();
       if (customName == null) {
-        return anvilText != null;
+        return anvilText != null && !anvilText.isEmpty();
       }
       return !customName.equals(anvilText);
     }
@@ -80,7 +80,12 @@ public final class MetaAnvilFunctions implements AnvilFunctionsProvider<MetaCach
             return;
           }
 
-          itemMeta.setDisplayName(state.getAnvilView().getRenameText());
+          String name = state.getAnvilView().getRenameText();
+          if (name != null && name.isEmpty()) {
+            name = null;
+          }
+
+          itemMeta.setDisplayName(name);
           if (itemMeta instanceof Repairable repairable) {
             int repairCost = Math.max(
                 getRepairCost(state.getBase().getMeta()),

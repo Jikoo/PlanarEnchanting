@@ -53,7 +53,7 @@ public final class ComponentAnvilFunctions implements AnvilFunctionsProvider<Ite
 
       // If the names aren't the same, the rename can be applied.
       if (data == null) {
-        return anvilText != null;
+        return anvilText != null && !anvilText.isEmpty();
       }
 
       return !LegacyComponentSerializer.legacySection().serialize(data).equals(anvilText);
@@ -75,7 +75,7 @@ public final class ComponentAnvilFunctions implements AnvilFunctionsProvider<Ite
         public void modifyResult(ItemStack modified) {
           String anvilText = state.getAnvilView().getRenameText();
 
-          if (anvilText == null) {
+          if (anvilText == null || anvilText.isEmpty()) {
             modified.resetData(CUSTOM_NAME);
           } else {
             modified.setData(CUSTOM_NAME, Component.text(anvilText));
