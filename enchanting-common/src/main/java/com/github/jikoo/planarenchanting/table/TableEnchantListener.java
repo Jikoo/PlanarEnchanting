@@ -3,6 +3,7 @@ package com.github.jikoo.planarenchanting.table;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntSupplier;
+import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -62,7 +63,24 @@ public abstract class TableEnchantListener implements Listener {
     // Force button refresh. This is required for normally unenchantable items.
     // Waiting a tick fixes desync problems that prevent the client from enchanting
     // ordinarily un-enchantable objects.
-    plugin.getServer().getScheduler().runTaskLater(plugin, () -> event.getView().setOffers(event.getOffers()), 1L);
+    plugin.getServer().getScheduler().runTaskLater(
+        plugin,
+        () -> {
+          try {
+            event.getView().setOffers(event.getOffers());
+          } catch (IllegalArgumentException e) {
+            // SPIGOT-8131: Inverted precondition prevents correct length being used.
+            EnchantmentOffer[] offers = new EnchantmentOffer[event.getOffers().length + 1];
+            System.arraycopy(event.getOffers(), 0, offers, 0, event.getOffers().length);
+            try {
+              event.getView().setOffers(offers);
+            } catch (ArrayIndexOutOfBoundsException ignored) {
+              // It's this or only set 2/3 of the offers, don't look at me like that.
+            }
+          }
+        },
+        1L
+    );
   }
 
   @EventHandler
