@@ -3,7 +3,7 @@
 [versions]
 com-github-jikoo-planarwrappers = "4.0.0"
 com-jparams-to-string-verifier = "1.4.8"
-io-papermc-paper-paper-api = "1.21.11-R0.1-SNAPSHOT"
+io-papermc-paper-paper-api = "26.1.2.build.53-stable"
 # Spigot version is pinned at the last version before Paper development diverged.
 # Even using 1.21.4 is frustrating because Spigot added RegistryAware to Enchantment after the fork.
 org-spigotmc-spigot-api = "1.21.3-R0.1-SNAPSHOT"
