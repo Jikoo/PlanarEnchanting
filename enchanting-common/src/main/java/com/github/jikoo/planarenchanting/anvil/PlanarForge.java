@@ -40,6 +40,8 @@ public final class PlanarForge<T> implements Anvil {
       return AnvilResult.EMPTY;
     }
 
+    piece.apply(behavior, functions.addPriorWorkLevelCost());
+
     ItemStack addition = anvil.getItem(1);
     if (addition == null || addition.getType() == Material.AIR || addition.getAmount() < 1) {
       if (!piece.apply(behavior, functions.rename())) {
