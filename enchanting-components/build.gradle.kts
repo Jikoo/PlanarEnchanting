@@ -7,3 +7,7 @@ dependencies {
 
   testImplementation(libs.io.papermc.paper.paper.api)
 }
+
+java {
+  toolchain.languageVersion.set(JavaLanguageVersion.of(25))
+}

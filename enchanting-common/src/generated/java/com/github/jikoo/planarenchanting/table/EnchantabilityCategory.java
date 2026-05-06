@@ -14,7 +14,7 @@ import org.jspecify.annotations.Nullable;
  * <p>All fields are generated from Minecraft internals and may be added or removed with
  * no notice. Please account for this.</p>
  *
- * <p>This file was generated from Minecraft 1.21.11. Regenerate it rather than modify.</p>
+ * <p>This file was generated from Minecraft 26.1.2. Regenerate it rather than modify.</p>
  */
 @Generated("com.github.jikoo.planarenchanting.generator.impl.EnchantabilityCategoryGenerator")
 @NullMarked

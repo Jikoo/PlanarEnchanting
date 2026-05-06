@@ -21,6 +21,12 @@ subprojects {
     maven("https://jitpack.io/")
   }
 
+  configurations.matching { it is ConsumableConfiguration || it is ResolvableConfiguration }.configureEach {
+    attributes {
+      attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 25)
+    }
+  }
+
   tasks.withType<JavaCompile>().configureEach {
     options.release = 21
     options.encoding = Charsets.UTF_8.name()

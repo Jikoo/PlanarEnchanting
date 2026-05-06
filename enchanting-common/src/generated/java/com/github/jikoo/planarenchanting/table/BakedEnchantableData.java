@@ -13,7 +13,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Pre-baked data used as a fallthrough for {@link Enchantable}.
  *
- * <p>This file was generated from Minecraft 1.21.11. Regenerate it rather than modify.</p>
+ * <p>This file was generated from Minecraft 26.1.2. Regenerate it rather than modify.</p>
  */
 @Generated("com.github.jikoo.planarenchanting.generator.impl.EnchantableGenerator")
 @NullMarked

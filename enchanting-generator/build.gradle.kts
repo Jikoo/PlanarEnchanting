@@ -4,6 +4,10 @@ plugins {
   alias(libs.plugins.io.papermc.paperweight)
 }
 
+java {
+  toolchain.languageVersion.set(JavaLanguageVersion.of(25))
+}
+
 dependencies {
   implementation(libs.com.palantir.javapoet.javapoet)
   paperweight.paperDevBundle(libs.versions.io.papermc.paper.paper.api)
