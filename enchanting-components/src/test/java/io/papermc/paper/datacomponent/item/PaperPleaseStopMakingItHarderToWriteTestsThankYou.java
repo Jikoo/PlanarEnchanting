@@ -8,7 +8,6 @@ import io.papermc.paper.datacomponent.item.ResolvableProfile.SkinPatch;
 import io.papermc.paper.datacomponent.item.ResolvableProfile.SkinPatchBuilder;
 import io.papermc.paper.datacomponent.item.Tool.Rule;
 import io.papermc.paper.registry.set.RegistryKeySet;
-import io.papermc.paper.registry.tag.TagKey;
 import io.papermc.paper.text.Filtered;
 import java.util.HashMap;
 import java.util.Map;
@@ -234,7 +233,7 @@ public class PaperPleaseStopMakingItHarderToWriteTestsThankYou implements ItemCo
   }
 
   @Override
-  public DamageResistant damageResistant(TagKey<DamageType> types) {
+  public DamageResistant damageResistant(RegistryKeySet<DamageType> types) {
     throw new UnsupportedOperationException();
   }
 
