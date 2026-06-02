@@ -12,7 +12,7 @@ org-jspecify-jspecify = "1.0.0"
 org-jetbrains-annotations = "26.1.0"
 org-mockito-mockito-core = "5.23.0"
 paperweight = "2.0.0-beta.21"
-com-palantir-javapoet-javapoet = "0.15.0"
+com-palantir-javapoet-javapoet = "0.16.0"
 shadow = "9.4.2"
 
 [libraries]
