@@ -12,19 +12,15 @@ import java.util.Set;
 import java.util.logging.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
-import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.Tag;
-import org.bukkit.UnsafeValues;
 import org.bukkit.inventory.ItemFactory;
-import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
-// These suppressions are for internals we have to mock to get a usable server for testing.
-@SuppressWarnings({"deprecation", "UnstableApiUsage"})
+// This suppression is for internals we have to mock to get a usable server for testing.
+@SuppressWarnings({"UnstableApiUsage"})
 public final class ServerMocks {
 
-  public static @NotNull Server mockServer() {
+  public static void mockServer() {
     Server mock = mock(Server.class);
 
     doReturn(ServerMocks.class.getName()).when(mock).getName();
@@ -37,15 +33,6 @@ public final class ServerMocks {
 
     ItemFactory itemFactory = ItemFactoryMocks.mockFactory();
     when(mock.getItemFactory()).thenReturn(itemFactory);
-    doAnswer(invocation -> {
-       UnsafeValues unsafe = mock();
-
-      ItemStack empty = mock();
-      doReturn(Material.AIR).when(empty).getType();
-      when(unsafe.createEmptyStack()).thenReturn(empty);
-
-      return unsafe;
-    }).when(mock).getUnsafe();
 
     // Server must be available before tags can be mocked.
     Bukkit.setServer(mock);
@@ -78,7 +65,6 @@ public final class ServerMocks {
       throw new RuntimeException(e);
     }
 
-    return mock;
   }
 
   public static void unsetBukkitServer() {
