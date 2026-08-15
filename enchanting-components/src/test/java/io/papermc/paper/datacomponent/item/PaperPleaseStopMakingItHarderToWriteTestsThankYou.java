@@ -307,4 +307,10 @@ public class PaperPleaseStopMakingItHarderToWriteTestsThankYou implements ItemCo
       float minRelativeSpeed) {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public SulfurCubeContent sulfurCubeContent(ItemStack absorbedItem) {
+    throw new UnsupportedOperationException();
+  }
+
 }
